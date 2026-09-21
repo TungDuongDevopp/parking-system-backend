@@ -47,7 +47,9 @@ namespace ParkingSystem.Web.Host.Startup
             AuthConfigurer.Configure(services, _appConfiguration);
 
             services.AddSignalR();
+            var origins = _appConfiguration["App:CorsOrigins"];
 
+            Console.WriteLine($"CORS = {origins}");
             // Configure CORS for angular2 UI
             services.AddCors(
                 options => options.AddPolicy(
@@ -85,11 +87,12 @@ namespace ParkingSystem.Web.Host.Startup
         {
             app.UseAbp(options => { options.UseAbpRequestLocalization = false; }); // Initializes ABP framework.
 
-            app.UseCors(_defaultCorsPolicyName); // Enable CORS!
+          
 
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseCors(_defaultCorsPolicyName); // Enable CORS!
 
             app.UseAuthentication();
             app.UseAuthorization();
