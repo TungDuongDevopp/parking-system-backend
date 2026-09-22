@@ -69,7 +69,7 @@ public class UserAppService : AsyncCrudAppService<User, UserDto, long, PagedUser
         {
             CheckErrors(await _userManager.SetRolesAsync(user, input.RoleNames));
         }
-
+      
         CurrentUnitOfWork.SaveChanges();
 
         return MapToEntityDto(user);

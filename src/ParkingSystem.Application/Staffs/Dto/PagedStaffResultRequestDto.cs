@@ -3,6 +3,7 @@
 using Abp.Application.Services.Dto;
 using ParkingSystem.Entities.Enums;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace ParkingSystem.Staffs.Dto;
 
@@ -17,5 +18,6 @@ public class PagedStaffResultRequestDto : PagedResultRequestDto, ISortedResultRe
     public DateTime? DateOfBirthFrom { get; set; }
     public DateTime? DateOfBirthTo { get; set; }
 
+    [EnumDataType(typeof(StaffStatus))]
     public StaffStatus? Status { get; set; }
 }

@@ -7,32 +7,31 @@ using ParkingSystem.Vehicles;
 using ParkingSystem.Web.Models.Vehicle;
 using System.Threading.Tasks;
 
-namespace ParkingSystem.Web.Controllers
+namespace ParkingSystem.Web.Controllers;
+
+[AbpMvcAuthorize(PermissionNames.Pages_Vehicles)]
+public class VehicleController : ParkingSystemControllerBase
 {
-    [AbpMvcAuthorize(PermissionNames.Pages_Vehicles)]
-    public class VehicleController : ParkingSystemControllerBase
+    private readonly IVehicleAppService _vehicleAppService;
+
+    public VehicleController(IVehicleAppService vehicleAppService)
     {
-        private readonly IVehicleAppService _vehicleAppService;
+        _vehicleAppService = vehicleAppService;
+    }
 
-        public VehicleController(IVehicleAppService vehicleAppService)
+    public IActionResult Index()
+    {
+        return View();
+    }
+
+    public async Task<ActionResult> EditModal(long vehicleId)
+    {
+        var vehicle = await _vehicleAppService.GetAsync(new EntityDto<long>(vehicleId));
+        var model = new EditVehicleViewModel
         {
-            _vehicleAppService = vehicleAppService;
-        }
+            Vehicle = vehicle
+        };
 
-        public IActionResult Index()
-        {
-            return View();
-        }
-
-        public async Task<ActionResult> EditModal(long vehicleId)
-        {
-            var vehicle = await _vehicleAppService.GetAsync(new EntityDto<long>(vehicleId));
-            var model = new EditVehicleViewModel
-            {
-                Vehicle = vehicle
-            };
-
-            return PartialView("_EditModal", model);
-        }
+        return PartialView("_EditModal", model);
     }
 }
