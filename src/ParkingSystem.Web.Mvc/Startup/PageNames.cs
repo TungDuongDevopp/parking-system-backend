@@ -1,3 +1,5 @@
+using NUglify.JavaScript.Syntax;
+
 namespace ParkingSystem.Web.Startup;
 
 
@@ -15,5 +17,6 @@ public class PageNames
 
     public const string Staffs = "Staffs";
     public const string Vehicles = "Vehicles";
+    public const string ParkingAreas = "ParkingAreas";
 
 }

@@ -1,9 +1,8 @@
 using ParkingSystem.Vehicles.Dto;
 
-namespace ParkingSystem.Web.Models.Vehicle
+namespace ParkingSystem.Web.Models.Vehicle;
+
+public class EditVehicleViewModel
 {
-    public class EditVehicleViewModel
-    {
-        public VehicleDto Vehicle { get; set; }
-    }
+    public VehicleDto Vehicle { get; set; }
 }
