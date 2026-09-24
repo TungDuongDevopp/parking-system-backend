@@ -35,6 +35,7 @@
 	  <text name="Car" value="Car" />  
 	  
 	  //Cấu hình trang parkingArea
+	  <text name="ParkingArea" value="Parking Area" />
 	<text name="CreateNewParkingArea" value="Create new parking area" />
     <text name="EditParkingArea" value="Edit parking area" />
 	<text name="Capacity" value="Capacity" />
@@ -48,10 +49,24 @@
 	  <text name="CapacityTo" value="Capacity To" />
 	  <text name="To" value="To" />
 	  <text name="Location" value="Location" />
+	  <text name="Description" value="Description" />
+
+	  //Cấu hình trang parkingSpot
+	  <text name="SpotCode" value="Spot Code" />
+	  <text name="ParkingAreaId" value="Parking Area Id" />
+	  <text name="ParkingAreaCode" value="Parking Area Code" />
+	  <text name="ParkingAreaName" value="Parking Area Name" />
+	  <text name="Available" value="Available" />
+	  <text name="Occupied" value="Occupied" />
+	  <text name="Reserved" value="Reserved" />
+	  <text name="Unavailable" value="Unavailable" />
+	  <text name="ParkingSpotDeleteWarningMessage">Parking spot {0} will be deleted.</text>
+
+	  //Cấu hình trang Subscription
+	  <text name="Subscriptions" value="Subscriptions"/>
+	  <text name="Subscriptions_Manager" value="Subscriptions Manager"/>
 	  
-	 
-	  
-	<text name="PhoneNumber" value="Phone number"/>
+	  <text name="PhoneNumber" value="Phone number"/>
 	<text name="CreationTime" value="Creation time"/>
 	<text name="WelcomeMessage" value="Welcome to ParkingSystem!" />
     <text name="FormIsNotValidMessage" value="Form is not valid. Please check and fix errors." />

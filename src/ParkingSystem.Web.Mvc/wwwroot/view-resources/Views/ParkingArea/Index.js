@@ -8,11 +8,14 @@
         _$createForm = _$createModal.find("form"),
         _$table = $("#ParkingAreaTable"),
         _$searchForm = $("#ParkingAreaSearchForm"),
-        _$editModal = $("#ParkingAreaEditModal");
+        _$editModal = $("#ParkingAreaEditModal"),
+        _$statusModal = $("#ParkingAreaStatusModal"),
+        _$statusForm = $("#ParkingAreaStatusForm");
 
     // 3. PERMISSIONS (UX only)
-    var canEdit = abp.auth.isGranted("Pages.ParkingAreas"),
-        canDelete = canEdit;
+    var isManager = abp.auth.isGranted("Pages.ParkingAreas.Manager"),
+        canEdit = isManager,
+        canDelete = isManager;
 
     // 4. DATATABLE INITIALIZATION
     var _$parkingAreaTable = _$table.DataTable({
@@ -84,6 +87,14 @@
                         );
                     }
 
+                    if (isManager) {
+                        actions.push(
+                            '<button type="button" class="btn btn-sm bg-info change-status-parking-area me-1 mr-1" data-id="' + row.id + '" data-name="' + (row.name || "") + '" data-status="' + row.status + '" data-bs-toggle="modal" data-bs-target="#ParkingAreaStatusModal">',
+                            '    <i class="fas fa-toggle-on"></i> ' + l("ChangeStatus"),
+                            '</button>'
+                        );
+                    }
+
                     if (canDelete) {
                         actions.push(
                             '<button type="button" class="btn btn-sm bg-danger delete-parking-area" data-id="' + row.id + '" data-name="' + (row.name || "") + '">',
@@ -149,20 +160,39 @@
             abp.ui.clearBusy(_$createModal);
         });
     });
-
     // 7. EDIT MODAL OPEN
-    $(document).on("click", ".edit-parking-area", function (e) {
-        var id = $(this).attr("data-id");
-        e.preventDefault();
-        abp.ajax({
-            url: abp.appPath + "ParkingArea/EditModal?parkingAreaId=" + id,
-            type: "POST",
-            dataType: "html",
-            success: function (content) {
-                _$editModal.find("div.modal-content").html(content);
-            }
-        });
+$(document).on("click", ".edit-parking-area", function (e) {
+    e.preventDefault();
+
+    var id = $(this).attr("data-id");
+
+    abp.ajax({
+        url: abp.appPath + "ParkingArea/EditModal?parkingAreaId=" + id,
+        type: "POST",
+        dataType: "html",
+        success: function (content) {
+            _$editModal.find("div.modal-content").html(content);
+
+            var isInUse = _$editModal
+                .find("#ParkingAreaEdit_IsInUse")
+                .val() === "true";
+
+            _$editModal
+                .find("#ParkingAreaEdit_VehicleType")
+                .prop("disabled", isInUse);
+
+            _$editModal
+                .find("#ParkingAreaEdit_Capacity")
+                .prop("disabled", isInUse);
+
+            _$editModal
+                .find("#ParkingAreaEdit_ParkingMode")
+                .prop("disabled", isInUse);
+
+            _$editModal.modal("show");
+        }
     });
+});
 
     // 8. DELETE
     $(document).on("click", ".delete-parking-area", function () {
@@ -218,6 +248,35 @@
 
     abp.event.on("parkingArea.edited", function () {
         _$parkingAreaTable.ajax.reload();
+    });
+
+    // 11. CHANGE STATUS
+    $(document).on("click", ".change-status-parking-area", function () {
+        var areaId = $(this).attr("data-id");
+        var areaName = $(this).attr("data-name");
+        var status = $(this).attr("data-status");
+
+        $("#ParkingAreaStatus_Id").val(areaId);
+        $("#ParkingAreaStatus_Name").text(areaName);
+        $("#ParkingAreaStatus_Select").val(status);
+    });
+
+    _$statusForm.on("submit", function (e) {
+        e.preventDefault();
+        var areaId = $("#ParkingAreaStatus_Id").val();
+        var newStatus = parseInt($("#ParkingAreaStatus_Select").val(), 10);
+
+        abp.ui.setBusy(_$statusModal);
+        _parkingAreaService.changeStatus({
+            id: areaId,
+            status: newStatus
+        }).done(function () {
+            _$statusModal.modal("hide");
+            abp.notify.info(l("SavedSuccessfully"));
+            _$parkingAreaTable.ajax.reload();
+        }).always(function () {
+            abp.ui.clearBusy(_$statusModal);
+        });
     });
 
 })(jQuery);

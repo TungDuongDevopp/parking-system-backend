@@ -48,6 +48,11 @@ public static class PermissionNames
 
     public const string Pages_Quotations_Manager = "Pages.Quotations.Manager";
 
+    //SubScription
+    public const string Pages_Subscriptions = "Pages.Subscriptions";
+
+    public const string Pages_Subscriptions_Manager = "Pages.Subscriptions.Manager";
+
 
 
 

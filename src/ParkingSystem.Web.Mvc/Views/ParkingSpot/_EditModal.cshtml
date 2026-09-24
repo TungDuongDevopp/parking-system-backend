@@ -1,0 +1,24 @@
+﻿@using ParkingSystem.Web.Models.Common.Modals
+@using ParkingSystem.Web.Models.ParkingSpot
+@using ParkingSystem.Entities.Enums
+@model EditParkingSpotViewModel
+@{
+    Layout = null;
+}
+
+@await Html.PartialAsync("~/Views/Shared/Modals/_ModalHeader.cshtml", new ModalHeaderViewModel(L("EditParkingSpot")))
+
+<form name="parkingSpotEditForm" role="form" class="form-horizontal">
+    <input type="hidden" name="Id" value="@Model.ParkingSpot.Id" />
+    <div class="modal-body">
+        <div class="form-group row mb-3">
+            <label class="col-md-3 col-form-label">@L("SpotCode")</label>
+            <div class="col-md-9">
+                <input type="text" class="form-control" name="SpotCode" value="@Model.ParkingSpot.SpotCode" />
+            </div>
+        </div>
+    </div>
+    @await Html.PartialAsync("~/Views/Shared/Modals/_ModalFooterWithSaveAndCancel.cshtml")
+</form>
+
+<script src="~/view-resources/Views/ParkingSpot/_EditModal.js" asp-append-version="true"></script>

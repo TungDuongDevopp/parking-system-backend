@@ -19,4 +19,6 @@ public class PageNames
     public const string Vehicles = "Vehicles";
     public const string ParkingAreas = "ParkingAreas";
 
+    public const string ParkingSpots = "ParkingSpots";
+
 }

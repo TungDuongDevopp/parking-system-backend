@@ -14,7 +14,7 @@ public class VehicleDto : EntityDto<long>
 
     public VehicleType VehicleType { get; set; }
 
-    public string VehicleTypename => VehicleType.ToString();
+    public string VehicleTypeName => VehicleType.ToString();
     public string LicensePlate { get; set; }
 
     public string Brand { get; set; }

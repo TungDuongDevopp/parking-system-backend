@@ -6,11 +6,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ParkingSystem.Quotations.Dto;
 
-public class UpdateQuotationDto:EntityDto<long>
+public class UpdateQuotationDto : EntityDto<long>
 {
     [EnumDataType(typeof(VehicleType))]
     public VehicleType? VehicleType { get; set; }
-   
+
     [GreaterThanZero]
     public int? Duration { get; set; }
 
