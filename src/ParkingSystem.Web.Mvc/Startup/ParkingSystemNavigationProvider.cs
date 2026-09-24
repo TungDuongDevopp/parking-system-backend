@@ -75,7 +75,15 @@ public class ParkingSystemNavigationProvider : NavigationProvider
                     L("ParkingAreas"),
                     url: "ParkingArea",
                     icon: "fas fa-parking",
-                    permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_Vehicles)
+                    permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_ParkingAreas)
+                    )
+                ).AddItem(
+                new MenuItemDefinition(
+                    PageNames.ParkingSpots,
+                    L("ParkingSpots"),
+                    url: "ParkingSpot",
+                    icon: "fas fa-square",
+                    permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_ParkingSpots)
                     )
                 )
             ;

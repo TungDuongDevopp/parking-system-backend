@@ -1,4 +1,4 @@
-﻿
+
 
 using Abp.Application.Services;
 using Abp.Application.Services.Dto;
@@ -164,9 +164,13 @@ public class ParkingAreaAppService: AsyncCrudAppService<ParkingArea,ParkingAreaD
 
     }
     [AbpAuthorize(PermissionNames.Pages_ParkingAreas_Manager)]
-    public  async Task<ParkingAreaDto> ChangeStatus(ChangeStatusDto input)
+    public async Task<ParkingAreaDto> ChangeStatus(ChangeStatusDto input)
     {
         var entity = await Repository.FirstOrDefaultAsync(input.Id);
+        if (entity == null)
+        {
+            throw new ResourceNotFoundException("Parking area not found with id: " + input.Id);
+        }
 
         entity.Status = input.Status;
         await Repository.UpdateAsync(entity);

@@ -25,6 +25,7 @@ public class Subscription: Entity<long>, IHasCreationTime, IHasModificationTime
     public long QuotationId { get; set; }
 
     public Customer Customer { get; set; }
+    
     [Required]
     public long CustomerId { get; set; }
 

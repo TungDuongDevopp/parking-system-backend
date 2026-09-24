@@ -43,7 +43,22 @@
             return;
         }
 
+        // If some fields are disabled (Area is Active), temporarily remove their name
+        // attributes so serializeFormToObject() won't include them (the global
+        // serialize plugin includes disabled fields). We restore names after.
+        var fieldsToProtect = _$form.find("[name='VehicleType'], [name='Capacity'], [name='ParkingMode']");
+        var removed = [];
+        fieldsToProtect.filter(":disabled").each(function () {
+            removed.push({ el: this, name: this.name });
+            this.removeAttribute("name");
+        });
+
         var parkingArea = _$form.serializeFormToObject();
+
+        // restore names
+        removed.forEach(function (r) {
+            r.el.name = r.name;
+        });
 
         abp.ui.setBusy(_$form);
         _parkingAreaService.update(parkingArea).done(function () {

@@ -11,47 +11,78 @@
 <form name="parkingAreaEditForm" role="form" class="form-horizontal">
     <input type="hidden" name="Id" value="@Model.ParkingArea.Id" />
     <div class="modal-body">
+      
         <div class="form-group row mb-3">
             <label class="col-md-3 col-form-label">@L("ParkingCode")</label>
             <div class="col-md-9">
-                <input type="text" class="form-control" name="ParkingCode" value="@Model.ParkingArea.ParkingCode" maxlength="30" />
+                <input type="text" class="form-control" name="ParkingCode" value="@Model.ParkingArea.ParkingCode" />
             </div>
         </div>
 
         <div class="form-group row mb-3">
             <label class="col-md-3 col-form-label">@L("Name")</label>
             <div class="col-md-9">
-                <input type="text" class="form-control" name="Name" value="@Model.ParkingArea.Name" maxlength="30" />
+                <input type="text" class="form-control" name="Name" value="@Model.ParkingArea.Name"/>
             </div>
         </div>
 
         <div class="form-group row mb-3">
             <label class="col-md-3 col-form-label">@L("VehicleType")</label>
             <div class="col-md-9">
-                <select class="form-control" name="VehicleType">
-                    <option value="@((int)VehicleType.Bicycle)" selected="@(Model.ParkingArea.VehicleType == VehicleType.Bicycle)">@L("Bicycle")</option>
-                    <option value="@((int)VehicleType.ElectricBicycle)" selected="@(Model.ParkingArea.VehicleType == VehicleType.ElectricBicycle)">@L("ElectricBicycle")</option>
-                    <option value="@((int)VehicleType.Motorcycle)" selected="@(Model.ParkingArea.VehicleType == VehicleType.Motorcycle)">@L("Motorcycle")</option>
-                    <option value="@((int)VehicleType.ElectricMotorcycle)" selected="@(Model.ParkingArea.VehicleType == VehicleType.ElectricMotorcycle)">@L("ElectricMotorcycle")</option>
-                    <option value="@((int)VehicleType.Car)" selected="@(Model.ParkingArea.VehicleType == VehicleType.Car)">@L("Car")</option>
-                </select>
+                @if (Model.ParkingArea.Status == ParkingAreaStatus.Active)
+                {
+                    <select class="form-control" name="VehicleType" disabled>
+                        <option value="@((int)VehicleType.Bicycle)" selected="@(Model.ParkingArea.VehicleType == VehicleType.Bicycle)">@L("Bicycle")</option>
+                        <option value="@((int)VehicleType.ElectricBicycle)" selected="@(Model.ParkingArea.VehicleType == VehicleType.ElectricBicycle)">@L("ElectricBicycle")</option>
+                        <option value="@((int)VehicleType.Motorcycle)" selected="@(Model.ParkingArea.VehicleType == VehicleType.Motorcycle)">@L("Motorcycle")</option>
+                        <option value="@((int)VehicleType.ElectricMotorcycle)" selected="@(Model.ParkingArea.VehicleType == VehicleType.ElectricMotorcycle)">@L("ElectricMotorcycle")</option>
+                        <option value="@((int)VehicleType.Car)" selected="@(Model.ParkingArea.VehicleType == VehicleType.Car)">@L("Car")</option>
+                    </select>
+                }
+                else
+                {
+                    <select class="form-control" name="VehicleType">
+                        <option value="@((int)VehicleType.Bicycle)" selected="@(Model.ParkingArea.VehicleType == VehicleType.Bicycle)">@L("Bicycle")</option>
+                        <option value="@((int)VehicleType.ElectricBicycle)" selected="@(Model.ParkingArea.VehicleType == VehicleType.ElectricBicycle)">@L("ElectricBicycle")</option>
+                        <option value="@((int)VehicleType.Motorcycle)" selected="@(Model.ParkingArea.VehicleType == VehicleType.Motorcycle)">@L("Motorcycle")</option>
+                        <option value="@((int)VehicleType.ElectricMotorcycle)" selected="@(Model.ParkingArea.VehicleType == VehicleType.ElectricMotorcycle)">@L("ElectricMotorcycle")</option>
+                        <option value="@((int)VehicleType.Car)" selected="@(Model.ParkingArea.VehicleType == VehicleType.Car)">@L("Car")</option>
+                    </select>
+                }
             </div>
         </div>
 
         <div class="form-group row mb-3">
             <label class="col-md-3 col-form-label">@L("Capacity")</label>
             <div class="col-md-9">
-                <input type="number" class="form-control" name="Capacity" min="0" value="@Model.ParkingArea.Capacity" />
+                @if (Model.ParkingArea.Status == ParkingAreaStatus.Active)
+                {
+                    <input type="number" class="form-control" name="Capacity" value="@Model.ParkingArea.Capacity" disabled />
+                }
+                else
+                {
+                    <input type="number" class="form-control" name="Capacity" value="@Model.ParkingArea.Capacity" />
+                }
             </div>
         </div>
 
         <div class="form-group row mb-3">
             <label class="col-md-3 col-form-label">@L("ParkingMode")</label>
             <div class="col-md-9">
-                <select class="form-control" name="ParkingMode">
-                    <option value="@((int)ParkingMode.capacityBase)" selected="@(Model.ParkingArea.ParkingMode == ParkingMode.capacityBase)">@L("capacityBase")</option>
-                    <option value="@((int)ParkingMode.individualSpot)" selected="@(Model.ParkingArea.ParkingMode == ParkingMode.individualSpot)">@L("individualSpot")</option>
-                </select>
+                @if (Model.ParkingArea.Status == ParkingAreaStatus.Active)
+                {
+                    <select class="form-control" name="ParkingMode" disabled>
+                        <option value="@((int)ParkingMode.capacityBase)" selected="@(Model.ParkingArea.ParkingMode == ParkingMode.capacityBase)">@L("capacityBase")</option>
+                        <option value="@((int)ParkingMode.individualSpot)" selected="@(Model.ParkingArea.ParkingMode == ParkingMode.individualSpot)">@L("individualSpot")</option>
+                    </select>
+                }
+                else
+                {
+                    <select class="form-control" name="ParkingMode">
+                        <option value="@((int)ParkingMode.capacityBase)" selected="@(Model.ParkingArea.ParkingMode == ParkingMode.capacityBase)">@L("capacityBase")</option>
+                        <option value="@((int)ParkingMode.individualSpot)" selected="@(Model.ParkingArea.ParkingMode == ParkingMode.individualSpot)">@L("individualSpot")</option>
+                    </select>
+                }
             </div>
         </div>
 

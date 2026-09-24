@@ -45,7 +45,7 @@
         },
         columnDefs: [
             { targets: 0, className: "control", defaultContent: "", orderable: false },
-            { targets: 1, data: "vehicleTypeName" },
+            { targets: 1, data: "vehicleTypeName" ,name:"vehicleType" },
             { targets: 2, data: "licensePlate" },
             { targets: 3, data: "brand" },
             { targets: 4, data: "color" },

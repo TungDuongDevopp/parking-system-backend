@@ -5,7 +5,6 @@ using ParkingSystem.Authorization;
 using ParkingSystem.Controllers;
 using ParkingSystem.ParkingAreas;
 using ParkingSystem.Web.Models.ParkingArea;
-using ParkingSystem.Web.Models.Vehicle;
 using System.Threading.Tasks;
 
 namespace ParkingSystem.Web.Controllers;
