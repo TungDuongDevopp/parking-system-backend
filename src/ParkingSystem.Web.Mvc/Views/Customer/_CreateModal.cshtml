@@ -6,22 +6,22 @@
             <form name="customerCreateForm" role="form" class="form-horizontal">
                 @await Html.PartialAsync("~/Views/Shared/Modals/_ModalHeader.cshtml", new ModalHeaderViewModel(L("CreateNewCustomer")))
                 <div class="modal-body">
-                    <div class="form-group row required mb-3">
+                    <div class="form-group row mb-3">
                         <label class="col-md-3 col-form-label">@L("Name")</label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" name="Name" id="CustomerCreate_Name" required maxlength="100" placeholder="@L("Name")">
+                            <input type="text" class="form-control" name="Name" maxlength="100" placeholder="@L("Name")">
                         </div>
                     </div>
-                    <div class="form-group row required mb-3">
+                    <div class="form-group row mb-3">
                         <label class="col-md-3 col-form-label">@L("PhoneNumber")</label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" name="PhoneNumber" id="CustomerCreate_PhoneNumber" required maxlength="20" placeholder="@L("PhoneNumber")">
+                            <input type="text" class="form-control" name="PhoneNumber" maxlength="20" placeholder="@L("PhoneNumber")">
                         </div>
                     </div>
                     <div class="form-group row mb-3">
                         <label class="col-md-3 col-form-label">@L("EmailAddress")</label>
                         <div class="col-md-9">
-                            <input type="email" class="form-control" name="Email" id="CustomerCreate_Email" maxlength="255" placeholder="@L("EmailAddress")">
+                            <input type="email" class="form-control" name="Email" maxlength="255" placeholder="@L("EmailAddress")">
                         </div>
                     </div>
                 </div>

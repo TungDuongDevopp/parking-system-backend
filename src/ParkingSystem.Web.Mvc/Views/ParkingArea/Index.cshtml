@@ -1,4 +1,4 @@
-﻿@using ParkingSystem.Web.Startup
+@using ParkingSystem.Web.Startup
 @using ParkingSystem.Authorization
 @{
     ViewBag.Title = L("ParkingAreas");
@@ -35,7 +35,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="ParkingAreasTable" class="table table-striped table-bordered table-hover w-100">
+                    <table id="ParkingAreaTable" class="table table-striped table-bordered table-hover w-100">
                         <thead>
                             <tr>
                                 <th></th>
@@ -44,6 +44,7 @@
                                 <th>@L("VehicleType")</th>
                                 <th>@L("Capacity")</th>
                                 <th>@L("ParkingMode")</th>
+                                <th>@L("Location")</th>
                                 <th>@L("Status")</th>
                                 <th>@L("CreationTime")</th>
                                 <th style="width: 150px">@L("Actions")</th>

@@ -50,7 +50,9 @@ public class ParkingAreaAppService: AsyncCrudAppService<ParkingArea,ParkingAreaD
               nameof(ParkingArea.Location),
               nameof(ParkingArea.CreationTime),
               nameof(ParkingArea.Status),
-              nameof(ParkingArea.Capacity)
+              nameof(ParkingArea.Capacity),
+              nameof(ParkingArea.ParkingMode),
+              nameof(ParkingArea.VehicleType)
                );
 
             return query.OrderBy(sorting);

@@ -35,7 +35,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="CustomersTable" class="table table-striped table-bordered table-hover w-100">
+                    <table id="CustomerTable" class="table table-striped table-bordered table-hover w-100">
                         <thead>
                             <tr>
                                 <th></th>
@@ -54,9 +54,9 @@
     </div>
 </section>
 
-@await Html.PartialAsync("~/Views/Vehicle/_CreateModal.cshtml").
+@await Html.PartialAsync("~/Views/Customer/_CreateModal.cshtml")
 
-<div class="modal fade" id="VehicleEditModal" tabindex="-1" role="dialog" data-backdrop="static">
+<div class="modal fade" id="CustomerEditModal" tabindex="-1" role="dialog" data-backdrop="static">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content"></div>
     </div>

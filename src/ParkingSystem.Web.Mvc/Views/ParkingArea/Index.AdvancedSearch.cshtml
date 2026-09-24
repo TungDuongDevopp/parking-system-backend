@@ -1,15 +1,11 @@
-﻿@using ParkingSystem.Entities.Enums
+@using ParkingSystem.Entities.Enums
 
-<form id="ParkingAreasSearchForm" class="form-horizontal">
+<form id="ParkingAreaSearchForm" class="form-horizontal">
     <div class="row g-2 align-items-center">
         <!-- Search -->
         <div class="col-md-3">
             <div class="input-group">
-                <input
-                    type="text"
-                    name="Keyword"
-                    class="form-control txt-search"
-                    placeholder="@L("SearchWithThreeDot")" />
+                <input type="text" name="Keyword" class="form-control txt-search" placeholder="@L("SearchWithThreeDot")" />
                 <button type="button" class="btn bg-blue btn-search" title="@L("Search")">
                     <span class="fas fa-search" aria-hidden="true"></span>
                 </button>
@@ -37,37 +33,16 @@
             </select>
         </div>
 
-        <!-- Status -->
-        <div class="col-md-2">
-            <select name="Status" class="form-control status-type-filter">
-                <option value="">@L("All") @L("ParkingAreaStatus")</option>
-                <option value="@((int)ParkingAreaStatus.Inactive)">@L("Inactive")</option>
-                <option value="@((int)ParkingAreaStatus.Active)">@L("Active")</option>
-            </select>
-        </div>
-
-        <!-- Capacity -->
-        <div class="col-md-2 d-flex gap-1">
-            <input
-                type="number"
-                name="CapacityFrom"
-                class="form-control"
-                title="@L("CapacityFrom")"
-                min="0"
-                placeholder="@L("From")" />
-            <input
-                type="number"
-                name="CapacityTo"
-                class="form-control"
-                min="0"
-                title="@L("CapacityTo")"
-                placeholder="@L("To")" />
+        <!-- Capacity (Min & Max) -->
+        <div class="col-md-3 d-flex gap-1">
+            <input type="number" name="MinCapacity" class="form-control" title="@L("MinCapacity")" min="1" placeholder="@L("Capacity") @L("From")" />
+            <input type="number" name="MaxCapacity" class="form-control" min="1" title="@L("MaxCapacity")" placeholder="@L("Capacity") @L("To")" />
         </div>
 
         <!-- Actions -->
-        <div class="col-md-1 d-flex gap-1">
-            <button type="button" class="btn btn-primary btn-search" title="@L("Filter")">
-                <i class="fas fa-filter"></i>
+        <div class="col-md-2 d-flex gap-1">
+            <button type="button" class="btn btn-primary btn-search flex-grow-1" title="@L("Filter")">
+                <i class="fas fa-filter"></i> @L("Filter")
             </button>
             <button type="button" class="btn btn-outline-secondary btn-clear-search" title="@L("Clear")">
                 <i class="fas fa-undo"></i>

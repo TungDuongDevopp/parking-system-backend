@@ -6,13 +6,13 @@
     Layout = null;
 }
 @await Html.PartialAsync("~/Views/Shared/Modals/_ModalHeader.cshtml", new ModalHeaderViewModel(L("EditVehicle")))
-<form name="VehicleEditForm" role="form" class="form-horizontal">
+<form name="vehicleEditForm" role="form" class="form-horizontal">
     <input type="hidden" name="Id" value="@Model.Vehicle.Id" />
     <div class="modal-body">
-        <div class="form-group row required mb-3">
+        <div class="form-group row mb-3">
             <label class="col-md-3 col-form-label">@L("VehicleType")</label>
             <div class="col-md-9">
-                <select class="form-control" name="VehicleType" required>
+                <select class="form-control" name="VehicleType">
                     <option value="@((int)VehicleType.Bicycle)" selected="@(Model.Vehicle.VehicleType == VehicleType.Bicycle)">@L("Bicycle")</option>
                     <option value="@((int)VehicleType.ElectricBicycle)" selected="@(Model.Vehicle.VehicleType == VehicleType.ElectricBicycle)">@L("ElectricBicycle")</option>
                     <option value="@((int)VehicleType.Motorcycle)" selected="@(Model.Vehicle.VehicleType == VehicleType.Motorcycle)">@L("Motorcycle")</option>
@@ -33,10 +33,10 @@
                 <input type="text" class="form-control" name="Brand" value="@Model.Vehicle.Brand" maxlength="255">
             </div>
         </div>
-        <div class="form-group row required mb-3">
+        <div class="form-group row mb-3">
             <label class="col-md-3 col-form-label">@L("Color")</label>
             <div class="col-md-9">
-                <input type="text" class="form-control" name="Color" value="@Model.Vehicle.Color" required maxlength="255">
+                <input type="text" class="form-control" name="Color" value="@Model.Vehicle.Color" maxlength="255">
             </div>
         </div>
     </div>

@@ -5,20 +5,20 @@
     Layout = null;
 }
 @await Html.PartialAsync("~/Views/Shared/Modals/_ModalHeader.cshtml", new ModalHeaderViewModel(L("EditStaff")))
-<form name="StaffEditForm" role="form" class="form-horizontal">
+<form name="staffEditForm" role="form" class="form-horizontal">
     <input type="hidden" name="Id" value="@Model.Staff.Id" />
     <div class="modal-body">
-        <div class="form-group row required mb-3">
+        <div class="form-group row mb-3">
             <label class="col-md-3 col-form-label">@L("Name")</label>
             <div class="col-md-9">
-                <input type="text" class="form-control" name="Name" value="@Model.Staff.Name" required maxlength="100">
+                <input type="text" class="form-control" name="Name" value="@Model.Staff.Name" maxlength="100">
             </div>
         </div>
 
-        <div class="form-group row required mb-3">
+        <div class="form-group row mb-3">
             <label class="col-md-3 col-form-label">@L("PhoneNumber")</label>
             <div class="col-md-9">
-                <input type="text" class="form-control" name="PhoneNumber" value="@Model.Staff.PhoneNumber" required maxlength="20">
+                <input type="text" class="form-control" name="PhoneNumber" value="@Model.Staff.PhoneNumber" maxlength="20">
             </div>
         </div>
 
@@ -49,12 +49,12 @@
             </div>
         </div>
 
-        <div class="form-group row required mb-3">
+        <div class="form-group row mb-3">
             <label class="col-md-3 col-form-label">@L("HiredDate")</label>
             <div class="col-md-9">
                 <input type="date" class="form-control" name="HiredDate"
                        value="@(Model.Staff.HiredDate.ToString("yyyy-MM-dd"))"
-                       max="@DateTime.Today.ToString("yyyy-MM-dd")" required>
+                       max="@DateTime.Today.ToString("yyyy-MM-dd")">
             </div>
         </div>
 
