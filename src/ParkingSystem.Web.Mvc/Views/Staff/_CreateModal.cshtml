@@ -8,12 +8,12 @@
             <form name="staffCreateForm" role="form" class="form-horizontal">
                 @await Html.PartialAsync("~/Views/Shared/Modals/_ModalHeader.cshtml", new ModalHeaderViewModel(L("CreateNewStaff")))
                 <div class="modal-body">
-                    <div class="form-group row required mb-3">
+                    <div class="form-group row mb-3">
                         <label class="col-md-3 col-form-label">@L("Account") (@L("User"))</label>
                         <div class="col-md-9">
                             @if (Model.AvailableUsers != null && Model.AvailableUsers.Any())
                             {
-                                <select class="form-control" name="UserId" id="StaffCreate_UserId" required>
+                                <select class="form-control" name="UserId" id="StaffCreate_UserId">
                                     <option value="">-- @L("SelectUser") --</option>
                                     @foreach (var user in Model.AvailableUsers)
                                     {
@@ -37,17 +37,17 @@
                         </div>
                     </div>
 
-                    <div class="form-group row required mb-3">
+                    <div class="form-group row mb-3">
                         <label class="col-md-3 col-form-label">@L("Name")</label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" name="Name" id="StaffCreate_Name" required maxlength="100" placeholder="@L("Name")">
+                            <input type="text" class="form-control" name="Name" id="StaffCreate_Name" maxlength="100" placeholder="@L("Name")">
                         </div>
                     </div>
 
-                    <div class="form-group row required mb-3">
+                    <div class="form-group row mb-3">
                         <label class="col-md-3 col-form-label">@L("PhoneNumber")</label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" name="PhoneNumber" id="StaffCreate_PhoneNumber" required maxlength="20" placeholder="@L("PhoneNumber")">
+                            <input type="text" class="form-control" name="PhoneNumber" id="StaffCreate_Phone" maxlength="20" placeholder="@L("PhoneNumber")">
                         </div>
                     </div>
 
@@ -61,7 +61,7 @@
                     <div class="form-group row mb-3">
                         <label class="col-md-3 col-form-label">@L("Gender")</label>
                         <div class="col-md-9">
-                            <select class="form-control" name="Gender" required>
+                            <select class="form-control" name="Gender">
                                 <option value="">-- @L("SelectGender") --</option>
                                 <option value="true">@L("Male")</option>
                                 <option value="false">@L("Female")</option>
@@ -76,10 +76,10 @@
                         </div>
                     </div>
 
-                    <div class="form-group row required mb-3">
+                    <div class="form-group row mb-3">
                         <label class="col-md-3 col-form-label">@L("HiredDate")</label>
                         <div class="col-md-9">
-                            <input type="date" class="form-control" name="HiredDate" value="@DateTime.Today.ToString("yyyy-MM-dd")" max="@DateTime.Today.ToString("yyyy-MM-dd")" required>
+                            <input type="date" class="form-control" name="HiredDate" value="@DateTime.Today.ToString("yyyy-MM-dd")" max="@DateTime.Today.ToString("yyyy-MM-dd")">
                         </div>
                     </div>
 

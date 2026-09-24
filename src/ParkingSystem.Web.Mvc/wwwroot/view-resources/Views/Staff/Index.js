@@ -6,10 +6,11 @@
     // 2. DOM ELEMENTS
     var _$createModal = $("#StaffCreateModal"),
         _$createForm = _$createModal.find("form"),
-        _$table = $("#StaffsTable"),
-        _$searchForm = $("#StaffsSearchForm"),
-        _$changeStatusModal = $("#StaffChangeStatusModal"),
-        _$changeStatusForm = $("#StaffChangeStatusForm");
+        _$table = $("#StaffTable"),
+        _$searchForm = $("#StaffSearchForm"),
+        _$editModal = $("#StaffEditModal"),
+        _$statusModal = $("#StaffStatusModal"),
+        _$statusForm = $("#StaffStatusForm");
 
     // 3. PERMISSIONS (UX only)
     var isManager = abp.auth.isGranted("Pages.Staffs.Manager"),
@@ -17,14 +18,18 @@
         canDelete = isManager;
 
     // 4. DATATABLE INITIALIZATION
-    var _$staffsTable = _$table.DataTable({
+    var _$staffTable = _$table.DataTable({
         paging: true,
         serverSide: true,
         processing: true,
         listAction: {
             ajaxFunction: _staffService.getAll,
             inputFilter: function () {
-                return _$searchForm.serializeFormToObject(true);
+                var filter = _$searchForm.serializeFormToObject(true);
+                for (var key in filter) {
+                    if (filter[key] === "") delete filter[key];
+                }
+                return filter;
             }
         },
         buttons: [
@@ -32,7 +37,7 @@
                 name: "refresh",
                 text: '<i class="fas fa-redo-alt"></i>',
                 action: function () {
-                    _$staffsTable.draw(false);
+                    _$staffTable.draw(false);
                 }
             }
         ],
@@ -48,7 +53,8 @@
             { targets: 3, data: "email" },
             {
                 targets: 4, data: "genderName",
-                name: "gender" },
+                name: "gender"
+            },
             {
                 targets: 5,
                 data: "dateOfBirth",
@@ -88,7 +94,7 @@
 
                     if (canEdit) {
                         actions.push(
-                            '<button type="button" class="btn btn-sm bg-secondary edit-staff me-1 mr-1" data-staff-id="' + row.id + '" data-bs-toggle="modal" data-bs-target="#StaffEditModal">',
+                            '<button type="button" class="btn btn-sm bg-secondary edit-staff me-1 mr-1" data-id="' + row.id + '" data-bs-toggle="modal" data-bs-target="#StaffEditModal">',
                             '    <i class="fas fa-pencil-alt"></i> ' + l("Edit"),
                             '</button>'
                         );
@@ -96,7 +102,7 @@
 
                     if (isManager) {
                         actions.push(
-                            '<button type="button" class="btn btn-sm bg-info change-status-staff me-1 mr-1" data-staff-id="' + row.id + '" data-staff-name="' + row.name + '" data-staff-status="' + row.status + '" data-bs-toggle="modal" data-bs-target="#StaffChangeStatusModal">',
+                            '<button type="button" class="btn btn-sm bg-info change-status-staff me-1 mr-1" data-id="' + row.id + '" data-name="' + (row.name || "") + '" data-status="' + row.status + '" data-bs-toggle="modal" data-bs-target="#StaffStatusModal">',
                             '    <i class="fas fa-toggle-on"></i> ' + l("ChangeStatus"),
                             '</button>'
                         );
@@ -104,7 +110,7 @@
 
                     if (canDelete) {
                         actions.push(
-                            '<button type="button" class="btn btn-sm bg-danger delete-staff" data-staff-id="' + row.id + '" data-staff-name="' + row.name + '">',
+                            '<button type="button" class="btn btn-sm bg-danger delete-staff" data-id="' + row.id + '" data-name="' + (row.name || "") + '">',
                             '    <i class="fas fa-trash"></i> ' + l("Delete"),
                             '</button>'
                         );
@@ -116,13 +122,27 @@
         ]
     });
 
-    // 5. FORM VALIDATION (CREATE)
+    // 5. FORM VALIDATION (CREATE) - Validated entirely in JS
     _$createForm.validate({
         rules: {
-            UserId: "required",
-            Name: "required",
-            PhoneNumber: "required",
-            HiredDate: "required"
+            UserId: {
+                required: true
+            },
+            Name: {
+                required: true,
+                maxlength: 100
+            },
+            PhoneNumber: {
+                required: true,
+                maxlength: 20
+            },
+            Email: {
+                email: true,
+                maxlength: 255
+            },
+            HiredDate: {
+                required: true
+            }
         }
     });
 
@@ -143,7 +163,7 @@
             _$createModal.modal("hide");
             _$createForm[0].reset();
             abp.notify.info(l("SavedSuccessfully"));
-            _$staffsTable.ajax.reload();
+            _$staffTable.ajax.reload();
         }).always(function () {
             abp.ui.clearBusy(_$createModal);
         });
@@ -151,24 +171,24 @@
 
     // 7. EDIT MODAL OPEN
     $(document).on("click", ".edit-staff", function (e) {
-        var staffId = $(this).attr("data-staff-id");
+        var id = $(this).attr("data-id");
         e.preventDefault();
         abp.ajax({
-            url: abp.appPath + "Staff/EditModal?staffId=" + staffId,
+            url: abp.appPath + "Staff/EditModal?staffId=" + id,
             type: "POST",
             dataType: "html",
             success: function (content) {
-                $("#StaffEditModal div.modal-content").html(content);
+                _$editModal.find("div.modal-content").html(content);
             }
         });
     });
 
     // 8. DELETE
     $(document).on("click", ".delete-staff", function () {
-        var staffId = $(this).attr("data-staff-id");
-        var staffName = $(this).attr("data-staff-name");
+        var id = $(this).attr("data-id");
+        var name = $(this).attr("data-name");
 
-        deleteStaff(staffId, staffName);
+        deleteStaff(id, name);
     });
 
     function deleteStaff(id, name) {
@@ -179,7 +199,7 @@
                 if (isConfirmed) {
                     _staffService.delete({ id: id }).done(function () {
                         abp.notify.info(l("SuccessfullyDeleted"));
-                        _$staffsTable.ajax.reload();
+                        _$staffTable.ajax.reload();
                     });
                 }
             }
@@ -187,24 +207,24 @@
     }
 
     // 9. SEARCH & FILTERS
-    $(".btn-search").on("click", function () {
-        _$staffsTable.ajax.reload();
+    _$searchForm.find(".btn-search").on("click", function () {
+        _$staffTable.ajax.reload();
     });
 
-    $(".txt-search").on("keypress", function (e) {
+    _$searchForm.find(".txt-search").on("keypress", function (e) {
         if (e.which === 13) {
-            _$staffsTable.ajax.reload();
+            _$staffTable.ajax.reload();
             return false;
         }
     });
 
-    $(".staff-status-filter").on("change", function () {
-        _$staffsTable.ajax.reload();
+    _$searchForm.find(".staff-status-filter, input[type='date']").on("change", function () {
+        _$staffTable.ajax.reload();
     });
 
-    $(".btn-clear-search").on("click", function () {
+    _$searchForm.find(".btn-clear-search").on("click", function () {
         _$searchForm[0].reset();
-        _$staffsTable.ajax.reload();
+        _$staffTable.ajax.reload();
     });
 
     // 10. MODAL EVENTS & ABP EVENT LISTENERS
@@ -212,19 +232,20 @@
         _$createModal.find("input:not([type=hidden]):first").focus();
     }).on("hidden.bs.modal", function () {
         _$createForm[0].reset();
+        _$createForm.validate().resetForm();
     });
 
     abp.event.on("staff.edited", function () {
-        _$staffsTable.ajax.reload();
+        _$staffTable.ajax.reload();
     });
 
     // --- DOMAIN-SPECIFIC BUSINESS FEATURES (STAFF) ---
     // Auto fill Name, Email, Phone when User selected in Create Modal
     $("#StaffCreate_UserId").on("change", function () {
-        var $selected = $(this).find("option:selected");
-        var name = $selected.data("name");
-        var email = $selected.data("email");
-        var phone = $selected.data("phone");
+        var $opt = $(this).find("option:selected");
+        var name = $opt.data("name");
+        var email = $opt.data("email");
+        var phone = $opt.data("phone");
 
         if (name && !$("#StaffCreate_Name").val()) {
             $("#StaffCreate_Name").val(name);
@@ -232,38 +253,38 @@
         if (email && !$("#StaffCreate_Email").val()) {
             $("#StaffCreate_Email").val(email);
         }
-        if (phone && !$("#StaffCreate_PhoneNumber").val()) {
-            $("#StaffCreate_PhoneNumber").val(phone);
+        if (phone && !$("#StaffCreate_Phone").val()) {
+            $("#StaffCreate_Phone").val(phone);
         }
     });
 
     // Change Status Modal Open
     $(document).on("click", ".change-status-staff", function () {
-        var staffId = $(this).attr("data-staff-id");
-        var staffName = $(this).attr("data-staff-name");
-        var status = $(this).attr("data-staff-status");
+        var staffId = $(this).attr("data-id");
+        var staffName = $(this).attr("data-name");
+        var status = $(this).attr("data-status");
 
-        $("#ChangeStatus_StaffId").val(staffId);
-        $("#ChangeStatus_StaffName").text(staffName);
-        $("#ChangeStatus_Select").val(status);
+        $("#StaffStatus_Id").val(staffId);
+        $("#StaffStatus_Name").text(staffName);
+        $("#StaffStatus_Select").val(status);
     });
 
     // Change Status Form Submit
-    _$changeStatusForm.on("submit", function (e) {
+    _$statusForm.on("submit", function (e) {
         e.preventDefault();
-        var staffId = $("#ChangeStatus_StaffId").val();
-        var newStatus = parseInt($("#ChangeStatus_Select").val(), 10);
+        var staffId = $("#StaffStatus_Id").val();
+        var newStatus = parseInt($("#StaffStatus_Select").val(), 10);
 
-        abp.ui.setBusy(_$changeStatusModal);
+        abp.ui.setBusy(_$statusModal);
         _staffService.changeStatus({
             id: staffId,
             status: newStatus
         }).done(function () {
-            _$changeStatusModal.modal("hide");
+            _$statusModal.modal("hide");
             abp.notify.info(l("SavedSuccessfully"));
-            _$staffsTable.ajax.reload();
+            _$staffTable.ajax.reload();
         }).always(function () {
-            abp.ui.clearBusy(_$changeStatusModal);
+            abp.ui.clearBusy(_$statusModal);
         });
     });
 

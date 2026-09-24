@@ -7,10 +7,10 @@
             <form name="vehicleCreateForm" role="form" class="form-horizontal">
                 @await Html.PartialAsync("~/Views/Shared/Modals/_ModalHeader.cshtml", new ModalHeaderViewModel(L("CreateNewVehicle")))
                 <div class="modal-body">
-                    <div class="form-group row required mb-3">
+                    <div class="form-group row mb-3">
                         <label class="col-md-3 col-form-label">@L("VehicleType")</label>
                         <div class="col-md-9">
-                            <select class="form-control" name="VehicleType" id="VehicleCreate_VehicleType" required>
+                            <select class="form-control" name="VehicleType">
                                 <option value="">-- @L("SelectType") --</option>
                                 <option value="@((int)VehicleType.Bicycle)">@L("Bicycle")</option>
                                 <option value="@((int)VehicleType.ElectricBicycle)">@L("ElectricBicycle")</option>
@@ -23,19 +23,19 @@
                     <div class="form-group row mb-3">
                         <label class="col-md-3 col-form-label">@L("LicensePlate")</label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" name="LicensePlate" id="VehicleCreate_LicensePlate" maxlength="30" placeholder="@L("LicensePlate")">
+                            <input type="text" class="form-control" name="LicensePlate" maxlength="30" placeholder="@L("LicensePlate")">
                         </div>
                     </div>
                     <div class="form-group row mb-3">
                         <label class="col-md-3 col-form-label">@L("Brand")</label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" name="Brand" id="VehicleCreate_Brand" maxlength="255" placeholder="@L("Brand")">
+                            <input type="text" class="form-control" name="Brand" maxlength="255" placeholder="@L("Brand")">
                         </div>
                     </div>
-                    <div class="form-group row required mb-3">
+                    <div class="form-group row mb-3">
                         <label class="col-md-3 col-form-label">@L("Color")</label>
                         <div class="col-md-9">
-                            <input type="text" class="form-control" name="Color" id="VehicleCreate_Color" required maxlength="255" placeholder="@L("Color")">
+                            <input type="text" class="form-control" name="Color" maxlength="255" placeholder="@L("Color")">
                         </div>
                     </div>
                 </div>

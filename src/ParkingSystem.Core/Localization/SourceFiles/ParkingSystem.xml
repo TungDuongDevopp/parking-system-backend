@@ -47,6 +47,7 @@
 	  <text name="From" value="From" />
 	  <text name="CapacityTo" value="Capacity To" />
 	  <text name="To" value="To" />
+	  <text name="Location" value="Location" />
 	  
 	 
 	  

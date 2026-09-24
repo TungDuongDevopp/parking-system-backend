@@ -6,22 +6,27 @@
     // 2. DOM ELEMENTS
     var _$createModal = $("#CustomerCreateModal"),
         _$createForm = _$createModal.find("form"),
-        _$table = $("#CustomersTable"),
-        _$searchForm = $("#CustomersSearchForm");
+        _$table = $("#CustomerTable"),
+        _$searchForm = $("#CustomerSearchForm"),
+        _$editModal = $("#CustomerEditModal");
 
     // 3. PERMISSIONS (UX only)
-    var canEdit = abp.auth.isGranted("Pages.Customers.ModifyAll") || abp.auth.isGranted("Pages.Customers"),
-        canDelete = abp.auth.isGranted("Pages.Customers.ModifyAll") || abp.auth.isGranted("Pages.Customers");
+    var canEdit = abp.auth.isGranted("Pages.Customers"),
+        canDelete = canEdit;
 
     // 4. DATATABLE INITIALIZATION
-    var _$customersTable = _$table.DataTable({
+    var _$customerTable = _$table.DataTable({
         paging: true,
         serverSide: true,
         processing: true,
         listAction: {
             ajaxFunction: _customerService.getAll,
             inputFilter: function () {
-                return _$searchForm.serializeFormToObject(true);
+                var filter = _$searchForm.serializeFormToObject(true);
+                for (var key in filter) {
+                    if (filter[key] === "") delete filter[key];
+                }
+                return filter;
             }
         },
         buttons: [
@@ -29,7 +34,7 @@
                 name: "refresh",
                 text: '<i class="fas fa-redo-alt"></i>',
                 action: function () {
-                    _$customersTable.draw(false);
+                    _$customerTable.draw(false);
                 }
             }
         ],
@@ -61,7 +66,7 @@
 
                     if (canEdit) {
                         actions.push(
-                            '<button type="button" class="btn btn-sm bg-secondary edit-customer me-1 mr-1" data-customer-id="' + row.id + '" data-bs-toggle="modal" data-bs-target="#CustomerEditModal">',
+                            '<button type="button" class="btn btn-sm bg-secondary edit-customer me-1 mr-1" data-id="' + row.id + '" data-bs-toggle="modal" data-bs-target="#CustomerEditModal">',
                             '    <i class="fas fa-pencil-alt"></i> ' + l("Edit"),
                             '</button>'
                         );
@@ -69,7 +74,7 @@
 
                     if (canDelete) {
                         actions.push(
-                            '<button type="button" class="btn btn-sm bg-danger delete-customer" data-customer-id="' + row.id + '" data-customer-name="' + row.name + '">',
+                            '<button type="button" class="btn btn-sm bg-danger delete-customer" data-id="' + row.id + '" data-name="' + (row.name || "") + '">',
                             '    <i class="fas fa-trash"></i> ' + l("Delete"),
                             '</button>'
                         );
@@ -81,11 +86,21 @@
         ]
     });
 
-    // 5. FORM VALIDATION (CREATE)
+    // 5. FORM VALIDATION (CREATE) - Validated entirely in JS
     _$createForm.validate({
         rules: {
-            Name: "required",
-            PhoneNumber: "required"
+            Name: {
+                required: true,
+                maxlength: 100
+            },
+            PhoneNumber: {
+                required: true,
+                maxlength: 20
+            },
+            Email: {
+                email: true,
+                maxlength: 255
+            }
         }
     });
 
@@ -103,7 +118,7 @@
             _$createModal.modal("hide");
             _$createForm[0].reset();
             abp.notify.info(l("SavedSuccessfully"));
-            _$customersTable.ajax.reload();
+            _$customerTable.ajax.reload();
         }).always(function () {
             abp.ui.clearBusy(_$createModal);
         });
@@ -111,24 +126,24 @@
 
     // 7. EDIT MODAL OPEN
     $(document).on("click", ".edit-customer", function (e) {
-        var customerId = $(this).attr("data-customer-id");
+        var id = $(this).attr("data-id");
         e.preventDefault();
         abp.ajax({
-            url: abp.appPath + "Customer/EditModal?customerId=" + customerId,
+            url: abp.appPath + "Customer/EditModal?customerId=" + id,
             type: "POST",
             dataType: "html",
             success: function (content) {
-                $("#CustomerEditModal div.modal-content").html(content);
+                _$editModal.find("div.modal-content").html(content);
             }
         });
     });
 
     // 8. DELETE
     $(document).on("click", ".delete-customer", function () {
-        var customerId = $(this).attr("data-customer-id");
-        var customerName = $(this).attr("data-customer-name");
+        var id = $(this).attr("data-id");
+        var name = $(this).attr("data-name");
 
-        deleteCustomer(customerId, customerName);
+        deleteCustomer(id, name);
     });
 
     function deleteCustomer(id, name) {
@@ -139,7 +154,7 @@
                 if (isConfirmed) {
                     _customerService.delete({ id: id }).done(function () {
                         abp.notify.info(l("SuccessfullyDeleted"));
-                        _$customersTable.ajax.reload();
+                        _$customerTable.ajax.reload();
                     });
                 }
             }
@@ -147,20 +162,20 @@
     }
 
     // 9. SEARCH & FILTERS
-    $(".btn-search").on("click", function () {
-        _$customersTable.ajax.reload();
+    _$searchForm.find(".btn-search").on("click", function () {
+        _$customerTable.ajax.reload();
     });
 
-    $(".txt-search").on("keypress", function (e) {
+    _$searchForm.find(".txt-search").on("keypress", function (e) {
         if (e.which === 13) {
-            _$customersTable.ajax.reload();
+            _$customerTable.ajax.reload();
             return false;
         }
     });
 
-    $(".btn-clear-search").on("click", function () {
+    _$searchForm.find(".btn-clear-search").on("click", function () {
         _$searchForm[0].reset();
-        _$customersTable.ajax.reload();
+        _$customerTable.ajax.reload();
     });
 
     // 10. MODAL EVENTS & ABP EVENT LISTENERS
@@ -168,10 +183,11 @@
         _$createModal.find("input:not([type=hidden]):first").focus();
     }).on("hidden.bs.modal", function () {
         _$createForm[0].reset();
+        _$createForm.validate().resetForm();
     });
 
     abp.event.on("customer.edited", function () {
-        _$customersTable.ajax.reload();
+        _$customerTable.ajax.reload();
     });
 
 })(jQuery);

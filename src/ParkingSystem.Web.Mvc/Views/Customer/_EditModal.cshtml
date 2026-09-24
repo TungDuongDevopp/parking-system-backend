@@ -5,19 +5,19 @@
     Layout = null;
 }
 @await Html.PartialAsync("~/Views/Shared/Modals/_ModalHeader.cshtml", new ModalHeaderViewModel(L("EditCustomer")))
-<form name="CustomerEditForm" role="form" class="form-horizontal">
+<form name="customerEditForm" role="form" class="form-horizontal">
     <input type="hidden" name="Id" value="@Model.Customer.Id" />
     <div class="modal-body">
-        <div class="form-group row required mb-3">
+        <div class="form-group row mb-3">
             <label class="col-md-3 col-form-label">@L("Name")</label>
             <div class="col-md-9">
-                <input type="text" class="form-control" name="Name" value="@Model.Customer.Name" required maxlength="100">
+                <input type="text" class="form-control" name="Name" value="@Model.Customer.Name" maxlength="100">
             </div>
         </div>
-        <div class="form-group row required mb-3">
+        <div class="form-group row mb-3">
             <label class="col-md-3 col-form-label">@L("PhoneNumber")</label>
             <div class="col-md-9">
-                <input type="text" class="form-control" name="PhoneNumber" value="@Model.Customer.PhoneNumber" required maxlength="20">
+                <input type="text" class="form-control" name="PhoneNumber" value="@Model.Customer.PhoneNumber" maxlength="20">
             </div>
         </div>
         <div class="form-group row mb-3">

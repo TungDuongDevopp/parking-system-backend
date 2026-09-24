@@ -38,7 +38,7 @@
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="StaffsTable" class="table table-striped table-bordered table-hover w-100">
+                    <table id="StaffTable" class="table table-striped table-bordered table-hover w-100">
                         <thead>
                             <tr>
                                 <th></th>
@@ -68,22 +68,22 @@
     </div>
 </div>
 
-<div class="modal fade" id="StaffChangeStatusModal" tabindex="-1" role="dialog" data-backdrop="static">
+<div class="modal fade" id="StaffStatusModal" tabindex="-1" role="dialog" data-backdrop="static">
     <div class="modal-dialog modal-sm" role="document">
         <div class="modal-content">
-            <form id="StaffChangeStatusForm">
-                <input type="hidden" name="Id" id="ChangeStatus_StaffId" />
+            <form id="StaffStatusForm">
+                <input type="hidden" name="Id" id="StaffStatus_Id" />
                 <div class="modal-header">
                     <h5 class="modal-title">@L("ChangeStatus")</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label font-weight-bold">@L("Staff"): <span id="ChangeStatus_StaffName" class="text-primary"></span></label>
+                        <label class="form-label font-weight-bold">@L("Staff"): <span id="StaffStatus_Name" class="text-primary"></span></label>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">@L("Status")</label>
-                        <select class="form-control" name="Status" id="ChangeStatus_Select">
+                        <select class="form-control" name="Status" id="StaffStatus_Select">
                             <option value="@((int)StaffStatus.Active)">@L("Active")</option>
                             <option value="@((int)StaffStatus.Inactive)">@L("Inactive")</option>
                             <option value="@((int)StaffStatus.Suspended)">@L("Suspended")</option>
@@ -92,7 +92,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@L("Cancel")</button>
-                    <button type="submit" class="btn btn-primary btn-save-status">@L("Save")</button>
+                    <button type="submit" class="btn btn-primary">@L("Save")</button>
                 </div>
             </form>
         </div>

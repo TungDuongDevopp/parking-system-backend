@@ -5,11 +5,21 @@
         _$modal = $("#CustomerEditModal"),
         _$form = _$modal.find("form");
 
-    // 2. FORM VALIDATION (EDIT)
+    // 2. FORM VALIDATION (EDIT) - Validated entirely in JS
     _$form.validate({
         rules: {
-            Name: "required",
-            PhoneNumber: "required"
+            Name: {
+                required: true,
+                maxlength: 100
+            },
+            PhoneNumber: {
+                required: true,
+                maxlength: 20
+            },
+            Email: {
+                email: true,
+                maxlength: 255
+            }
         }
     });
 

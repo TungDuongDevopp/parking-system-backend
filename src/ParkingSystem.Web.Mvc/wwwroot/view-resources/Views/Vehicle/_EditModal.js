@@ -5,11 +5,22 @@
         _$modal = $("#VehicleEditModal"),
         _$form = _$modal.find("form");
 
-    // 2. FORM VALIDATION (EDIT)
+    // 2. FORM VALIDATION (EDIT) - Validated entirely in JS
     _$form.validate({
         rules: {
-            VehicleType: "required",
-            Color: "required"
+            VehicleType: {
+                required: true
+            },
+            LicensePlate: {
+                maxlength: 30
+            },
+            Brand: {
+                maxlength: 255
+            },
+            Color: {
+                required: true,
+                maxlength: 255
+            }
         }
     });
 
