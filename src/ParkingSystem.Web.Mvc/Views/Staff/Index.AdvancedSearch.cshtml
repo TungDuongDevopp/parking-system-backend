@@ -1,7 +1,7 @@
 @using ParkingSystem.Entities.Enums
 <form id="StaffSearchForm" class="form-horizontal">
     <div class="row g-2 align-items-center">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <div class="input-group">
                 <input type="text" name="Keyword" class="form-control txt-search" placeholder="@L("SearchWithThreeDot")" />
                 <button type="button" class="btn bg-blue btn-search" title="@L("Search")">
@@ -23,11 +23,19 @@
         <div class="col-md-2">
             <input type="date" name="HiredDateTo" class="form-control" title="@L("HiredDateTo")" placeholder="@L("HiredDateTo")" />
         </div>
-        <div class="col-md-3 d-flex gap-1">
-            <button type="button" class="btn btn-primary btn-search flex-grow-1" title="@L("Filter")">
-                <i class="fas fa-filter"></i> @L("Filter")
+        <div class="col-md-2">
+            <button type="button"
+                    class="btn btn-primary w-100 btn-search"
+                    title="@L("Filter")">
+                <i class="fas fa-filter"></i>
             </button>
-            <button type="button" class="btn btn-outline-secondary btn-clear-search" title="@L("Clear")">
+        </div>
+
+        <!-- Clear -->
+        <div class="col-md-2">
+            <button type="button"
+                    class="btn btn-outline-secondary w-100 btn-clear-search"
+                    title="@L("Clear")">
                 <i class="fas fa-undo"></i>
             </button>
         </div>

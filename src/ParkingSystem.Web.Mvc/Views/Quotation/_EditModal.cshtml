@@ -1,0 +1,57 @@
+﻿@using ParkingSystem.Entities.Enums
+@using ParkingSystem.Web.Models.Common.Modals
+@using ParkingSystem.Web.Models.Quotation
+@model EditQuotationViewModel
+@{
+    Layout = null;
+}
+
+@await Html.PartialAsync("~/Views/Shared/Modals/_ModalHeader.cshtml", new ModalHeaderViewModel(L("EditQuotation")))
+
+<form name="quotationEditForm" role="form" class="form-horizontal">
+    <input type="hidden" name="Id" value="@Model.Quotation.Id" />
+    <div class="modal-body">
+
+        <div class="form-group row mb-3">
+            <label class="col-md-3 col-form-label">@L("VehicleType")</label>
+            <div class="col-md-9">
+                    <select class="form-control" name="VehicleType" disabled>
+                    <option value="@((int)VehicleType.Bicycle)" selected="@(Model.Quotation.VehicleType == VehicleType.Bicycle)">@L("Bicycle")</option>
+                    <option value="@((int)VehicleType.ElectricBicycle)" selected="@(Model.Quotation.VehicleType == VehicleType.ElectricBicycle)">@L("ElectricBicycle")</option>
+                    <option value="@((int)VehicleType.Motorcycle)" selected="@(Model.Quotation.VehicleType == VehicleType.Motorcycle)">@L("Motorcycle")</option>
+                    <option value="@((int)VehicleType.ElectricMotorcycle)" selected="@(Model.Quotation.VehicleType == VehicleType.ElectricMotorcycle)">@L("ElectricMotorcycle")</option>
+                    <option value="@((int)VehicleType.Car)" selected="@(Model.Quotation.VehicleType == VehicleType.Car)">@L("Car")</option>
+                    </select>    
+            </div>
+        </div>
+        <div class="form-group row mb-3">
+            <label class="col-md-3 col-form-label">@L("Unit")</label>
+            <div class="col-md-9">
+                <select class="form-control" name="DurationUnit" disabled>
+                    <option value="@((int)DurationUnit.Hour)" selected="@(Model.Quotation.DurationUnit == DurationUnit.Hour)">@L("Hour")</option>
+                    <option value="@((int)DurationUnit.Day)" selected="@(Model.Quotation.DurationUnit == DurationUnit.Day)">@L("Day")</option>
+                    <option value="@((int)DurationUnit.Week)" selected="@(Model.Quotation.DurationUnit == DurationUnit.Week)">@L("Week")</option>
+                    <option value="@((int)DurationUnit.Month)" selected="@(Model.Quotation.DurationUnit == DurationUnit.Month)">@L("Month")</option>
+                    <option value="@((int)DurationUnit.Year)" selected="@(Model.Quotation.DurationUnit == DurationUnit.Year)">@L("Year")</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group row mb-3">
+            <label class="col-md-3 col-form-label">@L("Duration")</label>
+            <div class="col-md-9">
+                <input type="number" class="form-control" name="Duration" min="1" value="@Model.Quotation.Duration" />
+            </div>
+        </div>
+        <div class="form-group row mb-3">
+            <label class="col-md-3 col-form-label">@L("Price")</label>
+            <div class="col-md-9">
+                <input type="number" class="form-control" name="Price" min="1" value="@Model.Quotation.Price" />
+            </div>
+        </div>
+
+       
+    </div>
+    @await Html.PartialAsync("~/Views/Shared/Modals/_ModalFooterWithSaveAndCancel.cshtml")
+</form>
+
+<script src="~/view-resources/Views/Quotation/_EditModal.js" asp-append-version="true"></script>

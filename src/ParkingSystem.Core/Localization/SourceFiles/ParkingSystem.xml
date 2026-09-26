@@ -3,6 +3,9 @@
   <texts>
     <text name="HomePage" value="Home page" />
     <text name="About" value="About" />
+	  
+	  
+	 // Cấu hình quyền hạn 
 	<text name="Customers" value="Customers"/>
 	<text name="Customers_ViewAll" value="Customers ViewAll"/>
 	<text name="Customers_ModifyAll" value="Customers ModifyAll"/>
@@ -17,6 +20,32 @@
 	<text name="ParkingSpots_Manager" value="Parking Spots Manager"/>
 	<text name="Quotations" value="Quotations"/>
 	<text name="Quotations_Manager" value="Quotations Manager"/>
+	<text name="Subscriptions" value="Subscriptions"/>
+	<text name="Subscriptions_Manager" value="Subscriptions Manager"/>
+
+	    // Cấu hình trang staff
+	<text name="Staff">Staff</text>
+	<text name="CreateNewStaff">Create new staff</text>
+	<text name="EditStaff">Edit staff</text>
+	<text name="Gender">Gender</text>
+	<text name="Male">Male</text>
+	<text name="Female">Female</text>
+	<text name="Unspecified">Unspecified</text>
+	<text name="DateOfBirth">Date of Birth</text>
+	<text name="HiredDate">Hired Date</text>
+	<text name="HiredDateFrom">Hired date from</text>
+	<text name="HiredDateTo">Hired date to</text>
+	<text name="Status">Status</text>
+	<text name="Active">Active</text>
+	<text name="Inactive">Inactive</text>
+	<text name="Suspended">Suspended</text>
+	<text name="Address">Address</text>
+	<text name="Account">Account</text>
+	<text name="ChangeStatus">Change Status</text>
+	<text name="SelectUser">Select User</text>
+	<text name="StaffDeleteWarningMessage">Staff {0} will be deleted.</text>
+	<text name="SelectUserWithStaffRoleInfo">Only users with the 'Staff' role who do not yet have a staff profile are shown.</text>
+	<text name="NoAvailableStaffUserWarning">There are no users with the 'Staff' role available. Please assign the 'Staff' role to a user in the Users page first.</text>
 	 
 	 //Cấu hình trang vehicle
 	<text name="CreateNewVehicle" value="Create new vehicle" />
@@ -35,38 +64,52 @@
 	  <text name="Car" value="Car" />  
 	  
 	  //Cấu hình trang parkingArea
-	  <text name="ParkingArea" value="Parking Area" />
+	<text name="ParkingArea" value="Parking Area" />
 	<text name="CreateNewParkingArea" value="Create new parking area" />
     <text name="EditParkingArea" value="Edit parking area" />
 	<text name="Capacity" value="Capacity" />
 	<text name="ParkingMode" value="Parking Mode" />
 	<text name="ParkingCode" value="Parking Code" />
-	  <text name="individualSpot" value="Individual Spot" />
-	  <text name="capacityBase" value="Capacity Base" />
-	  <text name="ParkingAreaStatus" value="Status" />
-	  <text name="CapacityFrom" value="Capacity From" />
-	  <text name="From" value="From" />
-	  <text name="CapacityTo" value="Capacity To" />
-	  <text name="To" value="To" />
-	  <text name="Location" value="Location" />
-	  <text name="Description" value="Description" />
+	<text name="individualSpot" value="Individual Spot" />
+	<text name="capacityBase" value="Capacity Base" />
+	<text name="ParkingAreaStatus" value="Status" />
+	<text name="CapacityFrom" value="Capacity From" />
+	<text name="From" value="From" />
+	<text name="CapacityTo" value="Capacity To" />
+	<text name="To" value="To" />
+	<text name="Location" value="Location" />
+	<text name="Description" value="Description" />
 
 	  //Cấu hình trang parkingSpot
-	  <text name="SpotCode" value="Spot Code" />
-	  <text name="ParkingAreaId" value="Parking Area Id" />
-	  <text name="ParkingAreaCode" value="Parking Area Code" />
-	  <text name="ParkingAreaName" value="Parking Area Name" />
-	  <text name="Available" value="Available" />
-	  <text name="Occupied" value="Occupied" />
-	  <text name="Reserved" value="Reserved" />
-	  <text name="Unavailable" value="Unavailable" />
-	  <text name="ParkingSpotDeleteWarningMessage">Parking spot {0} will be deleted.</text>
+	  <text name="CreateNewParkingSpot" value="Create new parking spot" />
+	  <text name="EditParkingSpot" value="Edit parking spot" />
+	<text name="SpotCode" value="Spot Code" />
+	<text name="ParkingAreaId" value="Parking Area Id" />
+	<text name="ParkingAreaCode" value="Parking Area Code" />
+	<text name="ParkingAreaName" value="Parking Area Name" />
+	<text name="Available" value="Available" />
+	<text name="Occupied" value="Occupied" />
+	<text name="Reserved" value="Reserved" />
+	<text name="Unavailable" value="Unavailable" />
+	<text name="ParkingSpotDeleteWarningMessage">Parking spot {0} will be deleted.</text>
 
-	  //Cấu hình trang Subscription
-	  <text name="Subscriptions" value="Subscriptions"/>
-	  <text name="Subscriptions_Manager" value="Subscriptions Manager"/>
+
+	  // Cấu hình trang Quotation
+	  <text name="CreateNewQuotation" value="Create new quotation" />
+	  <text name="EditQuotation" value="Edit quotation" />
+	  <text name="Duration" value="Duration" />
+	  <text name="DurationUnit" value="Duration Unit" />
+	  <text name="Price" value="Price" />
+	  <text name="Unit" value="Duration Unit" />
+	  <text name="Hour" value="Hour" />
+	  <text name="Day" value="Day" />
+	  <text name="Week" value="Week" />
+	  <text name="Month" value="Month" />
+	  <text name="Year" value="Year" />
+	  <text name="MinPrice" value="MinPrice" />
+	  <text name="MaxPrice" value="MaxPrice" />
 	  
-	  <text name="PhoneNumber" value="Phone number"/>
+	<text name="PhoneNumber" value="Phone number"/>
 	<text name="CreationTime" value="Creation time"/>
 	<text name="WelcomeMessage" value="Welcome to ParkingSystem!" />
     <text name="FormIsNotValidMessage" value="Form is not valid. Please check and fix errors." />
@@ -189,28 +232,7 @@
     <text name="403PageDescription">You don't have permission to access this resource. Please contact your administrator.</text>
     <text name="403PageButton">Go back to Dashboard</text>
     
-    <text name="Staff">Staff</text>
-    <text name="CreateNewStaff">Create new staff</text>
-    <text name="EditStaff">Edit staff</text>
-    <text name="Gender">Gender</text>
-    <text name="Male">Male</text>
-    <text name="Female">Female</text>
-    <text name="Unspecified">Unspecified</text>
-    <text name="DateOfBirth">Date of Birth</text>
-    <text name="HiredDate">Hired Date</text>
-    <text name="HiredDateFrom">Hired date from</text>
-    <text name="HiredDateTo">Hired date to</text>
-    <text name="Status">Status</text>
-    <text name="Active">Active</text>
-    <text name="Inactive">Inactive</text>
-    <text name="Suspended">Suspended</text>
-    <text name="Address">Address</text>
-    <text name="Account">Account</text>
-    <text name="ChangeStatus">Change Status</text>
-    <text name="SelectUser">Select User</text>
-    <text name="StaffDeleteWarningMessage">Staff {0} will be deleted.</text>
-    <text name="SelectUserWithStaffRoleInfo">Only users with the 'Staff' role who do not yet have a staff profile are shown.</text>
-    <text name="NoAvailableStaffUserWarning">There are no users with the 'Staff' role available. Please assign the 'Staff' role to a user in the Users page first.</text>
+	
 
   </texts>
 </localizationDictionary>

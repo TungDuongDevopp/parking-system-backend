@@ -117,7 +117,8 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
     {
         IQueryable<Subscription> query = _repository.GetAll()
             .AsNoTracking()
-            .Include(x => x.Customer);
+            .Include(x => x.Customer)
+            .Include(x=>x.Quotation);
 
         // Permission / Ownership
         var canViewAll =
@@ -190,11 +191,18 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
 
     public async Task<SubscriptionDto> GetAsync(EntityDto<long> input)
     {
-        var subscription = await _repository.FirstOrDefaultAsync(input.Id);
+        IQueryable<Subscription> query = _repository.GetAll()
+         .AsNoTracking()
+         .Include(x => x.Quotation)
+         .Include(x=>x.Customer);
+
+        var subscription = await query
+            .FirstOrDefaultAsync(s => s.Id == input.Id);
 
         if (subscription == null)
         {
-            throw new ResourceNotFoundException("Subcription not found with id: " + input.Id);
+            throw new ResourceNotFoundException(
+                "Subscription not found with id: " + input.Id);
         }
 
         await CheckSubcriptionViewAccessAsync(subscription);

@@ -1,16 +1,8 @@
+﻿
 @using ParkingSystem.Entities.Enums
 
-<form id="ParkingAreaSearchForm" class="form-horizontal">
+<form id="QuotationSearchForm" class="form-horizontal">
     <div class="row g-2 align-items-center">
-        <!-- Search -->
-        <div class="col-md-3">
-            <div class="input-group">
-                <input type="text" name="Keyword" class="form-control txt-search" placeholder="@L("SearchWithThreeDot")" />
-                <button type="button" class="btn bg-blue btn-search" title="@L("Search")">
-                    <span class="fas fa-search" aria-hidden="true"></span>
-                </button>
-            </div>
-        </div>
 
         <!-- Vehicle Type -->
         <div class="col-md-2">
@@ -24,24 +16,47 @@
             </select>
         </div>
 
-        <!-- Parking Mode -->
+        <!-- Duration Unit -->
         <div class="col-md-2">
-            <select name="ParkingMode" class="form-control parkingmode-type-filter">
-                <option value="">@L("All") @L("ParkingMode")</option>
-                <option value="@((int)ParkingMode.individualSpot)">@L("individualSpot")</option>
-                <option value="@((int)ParkingMode.capacityBase)">@L("capacityBase")</option>
+            <select name="DurationUnit" class="form-control duration-unit-filter">
+                <option value="">@L("All") @L("Unit")</option>
+                <option value="@((int)DurationUnit.Hour)">@L("Hour")</option>
+                <option value="@((int)DurationUnit.Day)">@L("Day")</option>
+                <option value="@((int)DurationUnit.Week)">@L("Week")</option>
+                <option value="@((int)DurationUnit.Month)">@L("Month")</option>
+                <option value="@((int)DurationUnit.Year)">@L("Year")</option>
             </select>
         </div>
 
-        <!-- Capacity (Min & Max) -->
-        <div class="col-md-1">
-            <input type="number" name="MinCapacity" class="form-control" title="@L("MinCapacity")" min="1" placeholder="@L("Capacity") @L("From")" /> 
-        </div>
-        <div class="col-md-1">
-            <input type="number" name="MaxCapacity" class="form-control" min="1" title="@L("MaxCapacity")" placeholder="@L("Capacity") @L("To")" />
+        <!-- Duration -->
+        <div class="col-md-2">
+            <input type="number"
+                   name="Duration"
+                   class="form-control"
+                   min="1"
+                   placeholder="@L("Duration")" />
         </div>
 
+        <!-- Min Price -->
         <div class="col-md-2">
+            <input type="number"
+                   name="MinPrice"
+                   class="form-control"
+                   min="1"
+                   placeholder="@L("MinPrice")" />
+        </div>
+
+        <!-- Max Price -->
+        <div class="col-md-2">
+            <input type="number"
+                   name="MaxPrice"
+                   class="form-control"
+                   min="1"
+                   placeholder="@L("MaxPrice")" />
+        </div>
+
+        <!-- Filter -->
+        <div class="col-md-1">
             <button type="button"
                     class="btn btn-primary w-100 btn-search"
                     title="@L("Filter")">
@@ -57,5 +72,7 @@
                 <i class="fas fa-undo"></i>
             </button>
         </div>
+
     </div>
 </form>
+

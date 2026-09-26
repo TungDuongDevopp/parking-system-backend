@@ -18,7 +18,8 @@ public class PageNames
     public const string Staffs = "Staffs";
     public const string Vehicles = "Vehicles";
     public const string ParkingAreas = "ParkingAreas";
-
     public const string ParkingSpots = "ParkingSpots";
+
+    public const string Quotations = "Quotations";
 
 }

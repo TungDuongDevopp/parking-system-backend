@@ -1,0 +1,57 @@
+﻿@using ParkingSystem.Web.Models.Common.Modals
+@using ParkingSystem.Entities.Enums
+
+<div class="modal fade" id="QuotationCreateModal" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <form name="quotationCreateForm" role="form" class="form-horizontal">
+                @await Html.PartialAsync("~/Views/Shared/Modals/_ModalHeader.cshtml", new ModalHeaderViewModel(L("CreateNewQuotation")))
+                <div class="modal-body">
+                    <div class="form-group row mb-3">
+                        <label class="col-md-3 col-form-label">@L("VehicleType")</label>
+                        <div class="col-md-9">
+                            <select class="form-control" name="VehicleType">
+                                <option value="">-- @L("SelectType") --</option>
+                                <option value="@((int)VehicleType.Bicycle)">@L("Bicycle")</option>
+                                <option value="@((int)VehicleType.ElectricBicycle)">@L("ElectricBicycle")</option>
+                                <option value="@((int)VehicleType.Motorcycle)">@L("Motorcycle")</option>
+                                <option value="@((int)VehicleType.ElectricMotorcycle)">@L("ElectricMotorcycle")</option>
+                                <option value="@((int)VehicleType.Car)">@L("Car")</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-3">
+                        <label class="col-md-3 col-form-label">@L("Duration")</label>
+                        <div class="col-md-9">
+                            <input type="number" class="form-control" name="Duration" min="1" placeholder="@L("Duration")" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-3">
+                        <label class="col-md-3 col-form-label">@L("Unit")</label>
+                        <div class="col-md-9">
+                            <select name="DurationUnit" class="form-control duration-unit-filter">
+                                <option value="">@L("All") @L("Unit")</option>
+                                <option value="@((int)DurationUnit.Hour)">@L("Hour")</option>
+                                <option value="@((int)DurationUnit.Day)">@L("Day")</option>
+                                <option value="@((int)DurationUnit.Week)">@L("Week")</option>
+                                <option value="@((int)DurationUnit.Month)">@L("Month")</option>
+                                <option value="@((int)DurationUnit.Year)">@L("Year")</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group row mb-3">
+                        <label class="col-md-3 col-form-label">@L("Price")</label>
+                        <div class="col-md-9">
+                            <input type="number" class="form-control" name="Price" min="1" placeholder="@L("Price")" />
+                        </div>
+                    </div>  
+                </div>
+                @await Html.PartialAsync("~/Views/Shared/Modals/_ModalFooterWithSaveAndCancel.cshtml")
+            </form>
+        </div>
+    </div>
+</div>
+
