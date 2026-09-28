@@ -1,4 +1,4 @@
-﻿using Abp.Application.Services.Dto;
+using Abp.Application.Services.Dto;
 using Abp.Authorization;
 using Abp.Domain.Repositories;
 using Abp.Linq.Extensions;
@@ -9,6 +9,7 @@ using ParkingSystem.Entities;
 using ParkingSystem.Entities.Enums;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
+using ParkingSystem.Quotations.Dto;
 using ParkingSystem.Subscriptions.Dto;
 using System.Collections.Generic;
 using System.Linq;
@@ -151,7 +152,9 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
             .WhereIf(
                 input.EndTime.HasValue,
                 x => x.EndTime <= input.EndTime);
-
+        // Total count
+        var totalCount = await query.CountAsync();
+       
         // Sorting
         if (!string.IsNullOrEmpty(input.Sorting))
         {
@@ -163,18 +166,54 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
                 nameof(Subscription.EndTime),
                 nameof(Subscription.CreationTime),
                 nameof(Subscription.QuotationId),
-                nameof(Subscription.Status)
+                nameof(Subscription.Status),
+                "customerName",
+                "duration",
+                "vehicleType",
+                "durationUnit",
+                "price"
             );
+            switch (sorting)
+            {
+                case "customerName desc":
+                    query = query.OrderByDescending(x => x.Customer.Name);
+                    break;
 
-            query = query.OrderBy(sorting);
+                case "customerName asc":
+                    query = query.OrderBy(x => x.Customer.Name);
+                    break;
+                case "duration asc":
+                    query = query.OrderBy(x => x.Quotation.Duration);
+                    break;
+                case "duration desc":
+                    query = query.OrderByDescending(x => x.Quotation.Duration);
+                    break;
+
+                case "vehicleType asc":
+                    query = query.OrderBy(x => x.Quotation.VehicleType);
+                    break;
+                case "vehicleType desc":
+                    query = query.OrderByDescending(x => x.Quotation.VehicleType);
+                    break;
+
+                case "price asc":
+                    query = query.OrderBy(x => x.Quotation.Price);
+                    break;
+                case "price desc":
+                    query = query.OrderByDescending(x => x.Quotation.Price);
+                    break;
+
+                default:
+                    query = query.OrderBy(sorting);
+                    break;
+            }
         }
         else
         {
             query = query.OrderByDescending(x => x.Id);
         }
 
-        // Total count
-        var totalCount = await query.CountAsync();
+       
 
         // Paging
         var items = await query
@@ -208,5 +247,48 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
         await CheckSubcriptionViewAccessAsync(subscription);
 
         return ObjectMapper.Map<SubscriptionDto>(subscription);
+    }
+
+    public async Task<SubscriptionDto> GetMyCurrentSubscriptionAsync()
+    {
+        var userId = AbpSession.UserId
+            ?? throw new AbpAuthorizationException("User is not logged in.");
+
+        var customer = await _customerRepository
+            .FirstOrDefaultAsync(x => x.UserId == userId);
+
+        if (customer == null)
+            return null;
+
+        var subscription = await _repository.GetAll()
+            .AsNoTracking()
+            .Include(x => x.Quotation)
+            .Include(x => x.Customer)
+            .Where(x => x.CustomerId == customer.Id &&
+                        (x.Status == SubscriptionStatus.pending ||
+                         x.Status == SubscriptionStatus.inUse))
+            .OrderByDescending(x => x.Id)
+            .FirstOrDefaultAsync();
+
+        if (subscription == null)
+            return null;
+
+        return ObjectMapper.Map<SubscriptionDto>(subscription);
+    }
+
+    public async Task<List<QuotationDto>> GetAvailableQuotationsAsync()
+    {
+        // Mirror the business rule in CreateAsync: only Week / Month / Year
+        // quotations are valid for subscription purchase.
+        var quotations = await _quotationRepository.GetAll()
+            .AsNoTracking()
+            .Where(x => x.DurationUnit == DurationUnit.Week ||
+                        x.DurationUnit == DurationUnit.Month ||
+                        x.DurationUnit == DurationUnit.Year)
+            .OrderBy(x => x.DurationUnit)
+            .ThenBy(x => x.Duration)
+            .ToListAsync();
+
+        return ObjectMapper.Map<List<QuotationDto>>(quotations);
     }
 }

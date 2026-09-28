@@ -8,5 +8,8 @@ public enum SubscriptionStatus
 
     inUse = 1,
 
-    expired = 2
+    expired = 2,
+
+    canceled = 3
+
 }

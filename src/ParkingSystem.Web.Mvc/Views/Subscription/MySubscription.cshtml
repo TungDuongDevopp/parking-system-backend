@@ -1,0 +1,231 @@
+@using ParkingSystem.Web.Startup
+
+@{
+    ViewBag.Title = L("MySubscription");
+    ViewBag.CurrentPageName = PageNames.MySubscription;
+}
+@section scripts
+{
+    <script src="~/view-resources/Views/Subscription/MySubscription.js" asp-append-version="true"></script>
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-sm-6">
+                <h1>
+                    <i class="fas fa-ticket-alt mr-2 me-2 text-primary"></i>
+                    @L("MySubscription")
+                </h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+
+        <!-- ═══════════════════════════════════════════════════════════
+             CURRENT SUBSCRIPTION CARD
+        ═══════════════════════════════════════════════════════════ -->
+        <div id="current-subscription-section">
+
+            <!-- Loading skeleton -->
+            <div id="subscription-loading" class="text-center py-4">
+                <i class="fas fa-circle-notch fa-spin fa-2x text-primary"></i>
+                <p class="text-muted mt-2">@L("PleaseWait")</p>
+            </div>
+
+            <!-- No active subscription -->
+            <div id="subscription-empty" class="card card-outline card-secondary" style="display:none;">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-parking fa-4x text-muted mb-3 d-block"></i>
+                    <h4 class="text-muted">@L("NoActiveSubscription")</h4>
+                    <p class="text-muted">@L("BuySubscription") to get started with reserved parking.</p>
+                    <button id="btn-open-buy-modal" class="btn btn-primary btn-lg mt-2">
+                        <i class="fas fa-shopping-cart mr-1 me-1"></i> @L("BuySubscription")
+                    </button>
+                </div>
+            </div>
+
+            <!-- Active subscription card -->
+            <div id="subscription-card" style="display:none;">
+                <div class="card card-outline" id="subscription-card-inner">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                        <h3 class="card-title">
+                            <i class="fas fa-id-card mr-2 me-2"></i>
+                            @L("CurrentSubscription")
+                        </h3>
+                        <span id="subscription-status-badge"></span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Vehicle Type -->
+                            <div class="col-sm-6 col-lg-4 mb-3">
+                                <div class="info-box shadow-none border mb-0">
+                                    <span class="info-box-icon bg-primary">
+                                        <i class="fas fa-car"></i>
+                                    </span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">@L("VehicleType")</span>
+                                        <span class="info-box-number" id="sub-vehicle-type">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Duration -->
+                            <div class="col-sm-6 col-lg-4 mb-3">
+                                <div class="info-box shadow-none border mb-0">
+                                    <span class="info-box-icon bg-info">
+                                        <i class="fas fa-clock"></i>
+                                    </span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">@L("Duration")</span>
+                                        <span class="info-box-number" id="sub-duration">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Price -->
+                            <div class="col-sm-6 col-lg-4 mb-3">
+                                <div class="info-box shadow-none border mb-0">
+                                    <span class="info-box-icon bg-success">
+                                        <i class="fas fa-dollar-sign"></i>
+                                    </span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">@L("Price")</span>
+                                        <span class="info-box-number" id="sub-price">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Start Time -->
+                            <div class="col-sm-6 col-lg-4 mb-3">
+                                <div class="info-box shadow-none border mb-0">
+                                    <span class="info-box-icon bg-secondary">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">@L("StartTime")</span>
+                                        <span class="info-box-number" id="sub-start-time">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- End Time -->
+                            <div class="col-sm-6 col-lg-4 mb-3">
+                                <div class="info-box shadow-none border mb-0">
+                                    <span class="info-box-icon bg-warning">
+                                        <i class="fas fa-calendar-times"></i>
+                                    </span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text">@L("EndTime")</span>
+                                        <span class="info-box-number" id="sub-end-time">—</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /#current-subscription-section -->
+
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SUBSCRIPTION HISTORY
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="card mt-3" id="history-section" style="display:none;">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-history mr-2 me-2"></i>
+                    @L("SubscriptionHistory")
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="subscription-history-table">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>@L("VehicleType")</th>
+                                <th>@L("Duration")</th>
+                                <th>@L("Price")</th>
+                                <th>@L("StartTime")</th>
+                                <th>@L("EndTime")</th>
+                                <th>@L("Status")</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-tbody">
+                        </tbody>
+                    </table>
+                </div>
+                <div id="history-empty" class="text-center text-muted py-4" style="display:none;">
+                    <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                    No past subscriptions found.
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.container-fluid -->
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     BUY SUBSCRIPTION MODAL
+═══════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="BuySubscriptionModal" tabindex="-1" role="dialog" data-backdrop="static">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-shopping-cart mr-2 me-2"></i>@L("ChoosePlan")
+                </h5>
+                <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- Quotation cards -->
+                <div id="quotation-loading" class="text-center py-4">
+                    <i class="fas fa-circle-notch fa-spin fa-2x text-primary"></i>
+                </div>
+                <div id="quotation-cards" class="row g-3" style="display:none;"></div>
+                <div id="quotation-empty" class="text-center text-muted py-4" style="display:none;">
+                    No plans are currently available. Please contact support.
+                </div>
+
+                <!-- Start date picker (shown after selecting a plan) -->
+                <div id="start-date-section" class="mt-4 p-3 bg-light rounded" style="display:none;">
+                    <hr />
+                    <h6 class="mb-3">
+                        <i class="fas fa-calendar-alt mr-1 me-1"></i>
+                        @L("SelectStartDate")
+                    </h6>
+                    <div class="row align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label" for="input-start-date">@L("StartTime") <span class="text-danger">*</span></label>
+                            <input type="date" id="input-start-date" class="form-control" />
+                            <small class="form-text text-muted">Must be today or a future date.</small>
+                        </div>
+                        <div class="col-md-6 mt-3 mt-md-0">
+                            <div id="selected-plan-summary" class="alert alert-info mb-0" style="display:none;"></div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button id="btn-confirm-purchase" class="btn btn-success">
+                            <i class="fas fa-check mr-1 me-1"></i> @L("SelectPlan")
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary ms-2 ml-2" id="btn-cancel-plan-selection">
+                            @L("Cancel")
+                        </button>
+                    </div>
+                </div>
+
+            </div><!-- /.modal-body -->
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@L("Cancel")</button>
+            </div>
+
+        </div>
+    </div>
+</div>

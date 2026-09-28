@@ -105,6 +105,24 @@ public class ParkingSystemNavigationProvider : NavigationProvider
                     permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_Quotations)
                     )
                 )
+                .AddItem(
+                new MenuItemDefinition(
+                    PageNames.Subscriptions,
+                    L("Subscription"),
+                    url: "Subscription",
+                    icon: "fas fa-id-card",
+                    permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_Subscriptions_Manager)
+                    )
+                )
+                .AddItem(
+                new MenuItemDefinition(
+                    PageNames.MySubscription,
+                    L("MySubscription"),
+                    url: "Subscription/MySubscription",
+                    icon: "fas fa-ticket-alt",
+                    permissionDependency: new CustomerSubscriptionPermissionDependency()
+                    )
+                )
             ;
 
     }
@@ -145,6 +163,38 @@ public class CustomerProfilePermissionDependency : IPermissionDependency
         return await context.PermissionChecker.IsGrantedAsync(
             context.User,
             PermissionNames.Pages_Customers
+        );
+    }
+}
+
+/// <summary>
+/// Shows "My Subscription" only to customer users — i.e. those who have
+/// Pages_Subscriptions but NOT Pages_Subscriptions_Manager.
+/// </summary>
+public class CustomerSubscriptionPermissionDependency : IPermissionDependency
+{
+    public bool IsSatisfied(IPermissionDependencyContext context)
+    {
+        return AsyncHelper.RunSync(() => IsSatisfiedAsync(context));
+    }
+
+    public async Task<bool> IsSatisfiedAsync(IPermissionDependencyContext context)
+    {
+        if (context.User == null)
+            return false;
+
+        // Managers/admins see the admin Subscription index, not this menu item.
+        var isManager = await context.PermissionChecker.IsGrantedAsync(
+            context.User,
+            PermissionNames.Pages_Subscriptions_Manager
+        );
+
+        if (isManager)
+            return false;
+
+        return await context.PermissionChecker.IsGrantedAsync(
+            context.User,
+            PermissionNames.Pages_Subscriptions
         );
     }
 }

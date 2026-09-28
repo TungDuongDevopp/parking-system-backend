@@ -21,6 +21,8 @@ public class PageNames
     public const string ParkingAreas = "ParkingAreas";
     public const string ParkingSpots = "ParkingSpots";
 
+    public const string Subscriptions = "Subscriptions";
+    public const string MySubscription = "MySubscription";
     public const string Quotations = "Quotations";
 
 }

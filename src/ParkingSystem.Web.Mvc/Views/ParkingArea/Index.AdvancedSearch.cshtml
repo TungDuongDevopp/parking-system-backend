@@ -14,7 +14,7 @@
 
         <!-- Vehicle Type -->
         <div class="col-md-2">
-            <select name="VehicleType" class="form-control vehicle-type-filter">
+            <select name="VehicleType" class="form-control vehicle-type-filter" title="@L("Type")">
                 <option value="">@L("All") @L("Type")</option>
                 <option value="@((int)VehicleType.Bicycle)">@L("Bicycle")</option>
                 <option value="@((int)VehicleType.ElectricBicycle)">@L("ElectricBicycle")</option>
@@ -26,7 +26,7 @@
 
         <!-- Parking Mode -->
         <div class="col-md-2">
-            <select name="ParkingMode" class="form-control parkingmode-type-filter">
+            <select name="ParkingMode" class="form-control parkingmode-type-filter" title="@L("ParkingMode")">
                 <option value="">@L("All") @L("ParkingMode")</option>
                 <option value="@((int)ParkingMode.individualSpot)">@L("individualSpot")</option>
                 <option value="@((int)ParkingMode.capacityBase)">@L("capacityBase")</option>

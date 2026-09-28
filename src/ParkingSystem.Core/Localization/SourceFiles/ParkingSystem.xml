@@ -81,6 +81,9 @@
 	<text name="To" value="To" />
 	<text name="Location" value="Location" />
 	<text name="Description" value="Description" />
+	<text name="MinCapacity" value="MinCapacity" />
+	  <text name="MaxCapacity" value="MaxCapacity" />
+
 
 	  //Cấu hình trang parkingSpot
 	  <text name="CreateNewParkingSpot" value="Create new parking spot" />
@@ -110,6 +113,26 @@
 	  <text name="Year" value="Year" />
 	  <text name="MinPrice" value="MinPrice" />
 	  <text name="MaxPrice" value="MaxPrice" />
+
+	  // Cấu hình trang Subscription
+	  <text name="Subscription" value="Subscription" />
+	  <text name="QuotationId" value="QuotationId" />
+	  <text name="CustomerId" value="CustomerId" />
+	  <text name="StartTime" value="Start Time" />
+	  <text name="EndTime" value="End Time" />
+	  <text name="Pending" value="Pending" />
+	  <text name="InUse" value="In Use" />
+	  <text name="Expired" value="Expired" />
+	  <text name="Canceled" value="Canceled" />
+	  <text name="MySubscription" value="My Subscription" />
+	  <text name="BuySubscription" value="Buy Subscription" />
+	  <text name="NoActiveSubscription" value="You have no active subscription." />
+	  <text name="SelectPlan" value="Select This Plan" />
+	  <text name="SubscriptionHistory" value="Subscription History" />
+	  <text name="ChoosePlan" value="Choose a Plan" />
+	  <text name="PurchaseSuccess" value="Subscription purchased successfully!" />
+	  <text name="CurrentSubscription" value="Current Subscription" />
+	  <text name="SelectStartDate" value="Select Start Date" />
 	  
 	<text name="PhoneNumber" value="Phone number"/>
 	<text name="CreationTime" value="Creation time"/>
