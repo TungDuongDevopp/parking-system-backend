@@ -6,7 +6,7 @@
 
         <!-- Vehicle Type -->
         <div class="col-md-2">
-            <select name="VehicleType" class="form-control vehicle-type-filter">
+            <select name="VehicleType" class="form-control vehicle-type-filter" title="@L("Type")">
                 <option value="">@L("All") @L("Type")</option>
                 <option value="@((int)VehicleType.Bicycle)">@L("Bicycle")</option>
                 <option value="@((int)VehicleType.ElectricBicycle)">@L("ElectricBicycle")</option>
@@ -18,7 +18,7 @@
 
         <!-- Duration Unit -->
         <div class="col-md-2">
-            <select name="DurationUnit" class="form-control duration-unit-filter">
+            <select name="DurationUnit" class="form-control duration-unit-filter" title="@L("Unit")">
                 <option value="">@L("All") @L("Unit")</option>
                 <option value="@((int)DurationUnit.Hour)">@L("Hour")</option>
                 <option value="@((int)DurationUnit.Day)">@L("Day")</option>
@@ -34,7 +34,8 @@
                    name="Duration"
                    class="form-control"
                    min="1"
-                   placeholder="@L("Duration")" />
+                   placeholder="@L("Duration")" 
+                   title="@L("Duration")" />
         </div>
 
         <!-- Min Price -->
@@ -43,7 +44,8 @@
                    name="MinPrice"
                    class="form-control"
                    min="1"
-                   placeholder="@L("MinPrice")" />
+                   placeholder="@L("MinPrice")"
+                   title="@L("MinPrice")" />
         </div>
 
         <!-- Max Price -->
@@ -52,7 +54,8 @@
                    name="MaxPrice"
                    class="form-control"
                    min="1"
-                   placeholder="@L("MaxPrice")" />
+                   placeholder="@L("MaxPrice")"
+                   title="@L("MaxPrice")" />
         </div>
 
         <!-- Filter -->

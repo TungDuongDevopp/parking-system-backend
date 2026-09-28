@@ -65,13 +65,6 @@
             },
             {
                 targets: 8,
-                data: "creationTime",
-                render: function (data) {
-                    return data ? moment(data).format("YYYY-MM-DD HH:mm:ss") : "";
-                }
-            },
-            {
-                targets: 9,
                 data: null,
                 orderable: false,
                 autoWidth: false,

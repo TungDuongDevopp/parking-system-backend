@@ -51,13 +51,6 @@
             { targets: 3, data: "email" },
             {
                 targets: 4,
-                data: "creationTime",
-                render: function (data) {
-                    return data ? moment(data).format("YYYY-MM-DD HH:mm:ss") : "";
-                }
-            },
-            {
-                targets: 5,
                 data: null,
                 orderable: false,
                 autoWidth: false,

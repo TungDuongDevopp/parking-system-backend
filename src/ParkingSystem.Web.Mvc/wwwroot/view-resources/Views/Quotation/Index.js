@@ -52,13 +52,6 @@
             { targets: 4, data: "price" },
             {
                 targets: 5,
-                data: "creationTime",
-                render: function (data) {
-                    return data ? moment(data).format("YYYY-MM-DD HH:mm:ss") : "";
-                }
-            },
-            {
-                targets: 6,
                 data: null,
                 orderable: false,
                 autoWidth: false,

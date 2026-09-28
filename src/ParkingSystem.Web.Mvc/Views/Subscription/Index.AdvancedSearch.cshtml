@@ -1,0 +1,76 @@
+﻿@using ParkingSystem.Entities.Enums
+
+<form id="SubscriptionSearchForm" class="form-horizontal">
+    <div class="row g-2 align-items-center">
+
+        <!-- Status -->
+        <div class="col-md-2">
+            <select name="Status" class="form-control subscription-status-filter" title="@L("Status")">
+                <option value="">@L("All") @L("Status")</option>
+                <option value="@((int)SubscriptionStatus.pending)">@L("Pending")</option>
+                <option value="@((int)SubscriptionStatus.inUse)">@L("InUse")</option>
+                <option value="@((int)SubscriptionStatus.expired)">@L("Expired")</option>
+                <option value="@((int)SubscriptionStatus.canceled)">@L("Canceled")</option>
+            </select>
+        </div>
+
+        <!-- Customer Id -->
+        <div class="col-md-2">
+            <input type="text"
+                   name="CustomerId"
+                   class="form-control"
+                   min="1"
+                   placeholder="@L("CustomerId")"
+                   title="@L("CustomerId")" />
+        </div>
+        <!-- Quotation Id -->
+        <div class="col-md-2">
+            <input type="text"
+                   name="QuotationId"
+                   class="form-control"
+                   min="1"
+                   placeholder="@L("QuotationId")"
+                   title="@L("QuotationId")" />
+        </div>
+
+        <!-- Start Time -->
+        <div class="col-md-2">
+            <input type="date"
+                   name="StartTime"
+                   class="form-control"
+                   min="1"
+                   placeholder="@L("StartTime")"
+                   title="@L("StartTime")" />
+        </div>
+
+        <!-- End Time-->
+        <div class="col-md-2">
+            <input type="date"
+                   name="EndTime"
+                   class="form-control"
+                   min="1"
+                   placeholder="@L("EndTime")"
+                   title="@L("EndTime")"  />
+        </div>
+
+        <!-- Filter -->
+        <div class="col-md-1">
+            <button type="button"
+                    class="btn btn-primary w-100 btn-search"
+                    title="@L("Filter")">
+                <i class="fas fa-filter"></i>
+            </button>
+        </div>
+
+        <!-- Clear -->
+        <div class="col-md-1">
+            <button type="button"
+                    class="btn btn-outline-secondary w-100 btn-clear-search"
+                    title="@L("Clear")">
+                <i class="fas fa-undo"></i>
+            </button>
+        </div>
+
+    </div>
+</form>
+
