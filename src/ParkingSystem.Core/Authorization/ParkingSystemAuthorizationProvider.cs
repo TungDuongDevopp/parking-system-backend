@@ -20,6 +20,7 @@ public class ParkingSystemAuthorizationProvider : AuthorizationProvider
         context.CreatePermission(PermissionNames.Pages_Customers, L("Customers"));
         context.CreatePermission(PermissionNames.Pages_Customers_ViewAll, L("Customers_ViewAll"));
         context.CreatePermission(PermissionNames.Pages_Customers_ModifyAll, L("Customers_ModifyAll"));
+        context.CreatePermission(PermissionNames.Pages_Customers_ModifyOwn, L("Customers_ModifyOwn"));
         //Staff
         context.CreatePermission(PermissionNames.Pages_Staffs, L("Staffs"));
         context.CreatePermission(PermissionNames.Pages_Staffs_Manager, L("Staffs_Manager"));
@@ -27,6 +28,7 @@ public class ParkingSystemAuthorizationProvider : AuthorizationProvider
         context.CreatePermission(PermissionNames.Pages_Vehicles, L("Vehicles"));
         context.CreatePermission(PermissionNames.Pages_Vehicles_ModifyAll, L("Vehicles_ModifyAll"));
         context.CreatePermission(PermissionNames.Pages_Vehicles_ViewAll, L("Vehicles_ViewAll"));
+        context.CreatePermission(PermissionNames.Pages_Vehicles_ModifyOwn, L("Vehicles_ModifyOwn"));
         //Parking Area
         context.CreatePermission(PermissionNames.Pages_ParkingAreas, L("ParkingAreas"));
         context.CreatePermission(PermissionNames.Pages_ParkingAreas_Manager, L("ParkingAreas_Manager"));

@@ -1,4 +1,4 @@
-﻿
+
 
 using ParkingSystem.Entities.Enums;
 using System.ComponentModel.DataAnnotations;
@@ -20,4 +20,6 @@ public class CreateVehicleDto
     [StringLength(255)]
     [Required]
     public string Color { get; set; }
+
+    public long? CustomerId { get; set; }
 }

@@ -1,0 +1,72 @@
+@using ParkingSystem.Web.Startup
+@using ParkingSystem.Customers.Dto
+@model CustomerDto
+@{
+    ViewBag.Title = L("MyProfile");
+    ViewBag.CurrentPageName = PageNames.CustomerProfile;
+}
+@section scripts
+{
+    <script src="~/view-resources/Views/Customer/Profile.js" asp-append-version="true"></script>
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1>@L("MyProfile")</h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 col-lg-6">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-id-card mr-1 me-1"></i>
+                            @L("CustomerProfile")
+                        </h3>
+                    </div>
+                    <form id="CustomerProfileForm" role="form" class="form-horizontal">
+                        <input type="hidden" name="Id" value="@Model.Id" />
+                        <div class="card-body">
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-3 col-form-label">@L("Name") <span class="text-danger">*</span></label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="Name" value="@Model.Name" maxlength="100" required>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-3 col-form-label">@L("PhoneNumber") <span class="text-danger">*</span></label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="PhoneNumber" value="@Model.PhoneNumber" maxlength="20" required>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-3 col-form-label">@L("EmailAddress")</label>
+                                <div class="col-sm-9">
+                                    <input type="email" class="form-control" name="Email" value="@Model.Email" maxlength="255">
+                                </div>
+                            </div>
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-3 col-form-label text-muted">@L("CreationTime")</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control-plaintext text-muted" readonly value="@Model.CreationTime.ToString("yyyy-MM-dd HH:mm:ss")">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary save-button">
+                                <i class="fas fa-save mr-1 me-1"></i> @L("Save")
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

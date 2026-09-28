@@ -26,12 +26,32 @@ public class CustomerAppService : AsyncCrudAppService<Customer, CustomerDto, lon
     {
      
     }
+
+    public async Task<CustomerDto> GetMyProfileAsync()
+    {
+        var userId = AbpSession.UserId
+            ?? throw new AbpAuthorizationException("User is not logged in.");
+
+        var customer = await Repository.FirstOrDefaultAsync(x => x.UserId == userId);
+        if (customer == null)
+        {
+            throw new ResourceNotFoundException("Customer profile not found for current user.");
+        }
+
+        return ObjectMapper.Map<CustomerDto>(customer);
+    }
+
     private async Task CheckCustomerModifyAccessAsync(Customer customer)
     {
-        if (await PermissionChecker.IsGrantedAsync(
-            PermissionNames.Pages_Customers_ModifyAll))
+        if (await PermissionChecker.IsGrantedAsync(PermissionNames.Pages_Customers_ModifyAll))
         {
             return;
+        }
+
+        var canModifyOwn = await PermissionChecker.IsGrantedAsync(PermissionNames.Pages_Customers_ModifyOwn);
+        if (!canModifyOwn)
+        {
+            throw new AbpAuthorizationException("You do not have permission to modify customer profile.");
         }
 
         var userId = AbpSession.UserId
@@ -200,6 +220,7 @@ public class CustomerAppService : AsyncCrudAppService<Customer, CustomerDto, lon
         return MapToEntityDto(entity);
     }
 
+    [AbpAuthorize(PermissionNames.Pages_Customers_ModifyAll)]
     public override async Task DeleteAsync(EntityDto<long> input)
     {
         // Load entity including soft-deleted ones so we can return proper errors
@@ -208,9 +229,7 @@ public class CustomerAppService : AsyncCrudAppService<Customer, CustomerDto, lon
         {
             throw new ResourceNotFoundException("Customer not found with id: " + input.Id);
         }
-        await CheckCustomerModifyAccessAsync(entity);
         await Repository.DeleteAsync(entity);
         await CurrentUnitOfWork.SaveChangesAsync();
-
     }
 }

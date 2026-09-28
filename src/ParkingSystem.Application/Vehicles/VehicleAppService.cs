@@ -44,13 +44,15 @@ public class VehicleAppService : AsyncCrudAppService<Vehicle, VehicleDto, long, 
     }
     private async Task CheckVehicleAccessAsync(Vehicle vehicle)
     {
-        var canModifyAll = await PermissionChecker.IsGrantedAsync(
-            PermissionNames.Pages_Vehicles_ModifyAll
-);
-
-        if (canModifyAll)
+        if (await PermissionChecker.IsGrantedAsync(PermissionNames.Pages_Vehicles_ModifyAll))
         {
             return;
+        }
+
+        var canModifyOwn = await PermissionChecker.IsGrantedAsync(PermissionNames.Pages_Vehicles_ModifyOwn);
+        if (!canModifyOwn)
+        {
+            throw new AbpAuthorizationException("You do not have permission to modify this vehicle.");
         }
 
         var userId = AbpSession.UserId
@@ -149,19 +151,35 @@ public class VehicleAppService : AsyncCrudAppService<Vehicle, VehicleDto, long, 
     }
 
     public override async Task<VehicleDto> CreateAsync(CreateVehicleDto input)
-
     {
-
         var userId = AbpSession.UserId
-     ?? throw new AbpAuthorizationException("User is not logged in.");
+            ?? throw new AbpAuthorizationException("User is not logged in.");
 
-        var customer = await _customerRepository
-            .FirstOrDefaultAsync(x => x.UserId == userId);
+        long customerId;
+        var canModifyAll = await PermissionChecker.IsGrantedAsync(PermissionNames.Pages_Vehicles_ModifyAll);
+        if (canModifyAll && input.CustomerId.HasValue)
+        {
+            var targetCustomer = await _customerRepository.FirstOrDefaultAsync(input.CustomerId.Value);
+            if (targetCustomer == null)
+            {
+                throw new ResourceNotFoundException("Customer not found with id: " + input.CustomerId.Value);
+            }
+            customerId = targetCustomer.Id;
+        }
+        else
+        {
+            var customer = await _customerRepository
+                .FirstOrDefaultAsync(x => x.UserId == userId);
 
-        if (customer == null)
-            throw new ResourceNotFoundException(
-     "Customer profile not found for current user."
- );
+            if (customer == null)
+            {
+                throw new ResourceNotFoundException(
+                    "Customer profile not found for current user."
+                );
+            }
+            customerId = customer.Id;
+        }
+
         if (!string.IsNullOrWhiteSpace(input.LicensePlate))
         {
             var duplicated = await Repository.GetAll()      
@@ -173,7 +191,7 @@ public class VehicleAppService : AsyncCrudAppService<Vehicle, VehicleDto, long, 
         }
 
         var entity = ObjectMapper.Map<Vehicle>(input);
-        entity.CustomerId = customer.Id;
+        entity.CustomerId = customerId;
         entity.VehicleCode = GenerateVehicleCode(input.VehicleType);
 
         var created = await Repository.InsertAsync(entity);

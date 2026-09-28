@@ -14,6 +14,7 @@ public class PageNames
     public const string Users = "Users";
     public const string Roles = "Roles";
     public const string Customers = "Customers";
+    public const string CustomerProfile = "CustomerProfile";
 
     public const string Staffs = "Staffs";
     public const string Vehicles = "Vehicles";

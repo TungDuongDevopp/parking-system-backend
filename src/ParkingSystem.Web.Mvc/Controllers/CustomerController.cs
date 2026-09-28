@@ -19,8 +19,21 @@ namespace ParkingSystem.Web.Controllers
             _customerAppService = customerAppService;
         }
 
-        public IActionResult Index() => View();
-        
+        public async Task<IActionResult> Index()
+        {
+            if (!await IsGrantedAsync(PermissionNames.Pages_Customers_ViewAll))
+            {
+                return RedirectToAction(nameof(Profile));
+            }
+
+            return View();
+        }
+
+        public async Task<IActionResult> Profile()
+        {
+            var customer = await _customerAppService.GetMyProfileAsync();
+            return View(customer);
+        }
 
         public async Task<ActionResult> EditModal(long customerId)
         {

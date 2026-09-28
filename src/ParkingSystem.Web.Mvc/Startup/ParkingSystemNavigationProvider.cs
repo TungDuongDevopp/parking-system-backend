@@ -1,6 +1,8 @@
+using System.Threading.Tasks;
 using Abp.Application.Navigation;
 using Abp.Authorization;
 using Abp.Localization;
+using Abp.Threading;
 using ParkingSystem.Authorization;
 
 namespace ParkingSystem.Web.Startup;
@@ -51,7 +53,15 @@ public class ParkingSystemNavigationProvider : NavigationProvider
                     L("Customers"),
                     url: "Customer",
                     icon: "fas fa-address-book",
-                    permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_Customers)
+                    permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_Customers_ViewAll)
+                )
+            ).AddItem(
+                new MenuItemDefinition(
+                    PageNames.CustomerProfile,
+                    L("MyProfile"),
+                    url: "Customer/Profile",
+                    icon: "fas fa-id-card",
+                    permissionDependency: new CustomerProfilePermissionDependency()
                 )
             ).AddItem(
                 new MenuItemDefinition(
@@ -102,5 +112,39 @@ public class ParkingSystemNavigationProvider : NavigationProvider
     private static ILocalizableString L(string name)
     {
         return new LocalizableString(name, ParkingSystemConsts.LocalizationSourceName);
+    }
+}
+
+public class CustomerProfilePermissionDependency : IPermissionDependency
+{
+    public bool IsSatisfied(IPermissionDependencyContext context)
+    {
+        return AsyncHelper.RunSync(() => IsSatisfiedAsync(context));
+    }
+
+    public async Task<bool> IsSatisfiedAsync(IPermissionDependencyContext context)
+    {
+        if (context.User == null)
+        {
+            return false;
+        }
+
+        // If the user has permission to view all customers (Staff, Manager, Admin),
+        // they should see "Customers" management, not "My Profile".
+        var canViewAll = await context.PermissionChecker.IsGrantedAsync(
+            context.User,
+            PermissionNames.Pages_Customers_ViewAll
+        );
+
+        if (canViewAll)
+        {
+            return false;
+        }
+
+        // Customer user must have base Customer permission
+        return await context.PermissionChecker.IsGrantedAsync(
+            context.User,
+            PermissionNames.Pages_Customers
+        );
     }
 }
