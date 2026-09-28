@@ -11,8 +11,11 @@
         _$editModal = $("#VehicleEditModal");
 
     // 3. PERMISSIONS (UX only)
-    var canEdit = abp.auth.isGranted("Pages.Vehicles"),
-        canDelete = canEdit;
+    var canViewAll = abp.auth.isGranted("Pages.Vehicles.ViewAll"),
+        canModifyAll = abp.auth.isGranted("Pages.Vehicles.ModifyAll"),
+        canModifyOwn = abp.auth.isGranted("Pages.Vehicles.ModifyOwn"),
+        canEdit = canModifyAll || canModifyOwn,
+        canDelete = canModifyAll;
 
     // 4. DATATABLE INITIALIZATION
     var _$vehicleTable = _$table.DataTable({
@@ -45,23 +48,31 @@
         },
         columnDefs: [
             { targets: 0, className: "control", defaultContent: "", orderable: false },
-            { targets: 1, data: "vehicleTypeName" ,name:"vehicleType" },
+            { targets: 1, data: "vehicleTypeName", name: "vehicleType" },
             { targets: 2, data: "licensePlate" },
             { targets: 3, data: "brand" },
             { targets: 4, data: "color" },
             {
                 targets: 5,
+                data: "customerName",
+                name: "customerName",
+                defaultContent: "",
+                visible: canViewAll
+            },
+            {
+                targets: 6,
                 data: "creationTime",
                 render: function (data) {
                     return data ? moment(data).format("YYYY-MM-DD HH:mm:ss") : "";
                 }
             },
             {
-                targets: 6,
+                targets: 7,
                 data: null,
                 orderable: false,
                 autoWidth: false,
                 defaultContent: "",
+                visible: canEdit || canDelete,
                 render: function (data, type, row) {
                     var actions = [];
 

@@ -20,6 +20,8 @@ public static class PermissionNames
 
     public const string Pages_Customers_ModifyAll = "Pages.Customers.ModifyAll";
 
+    public const string Pages_Customers_ModifyOwn = "Pages.Customers.ModifyOwn";
+
 
     //Staff
     public const string Pages_Staffs = "Pages.Staffs";
@@ -32,6 +34,7 @@ public static class PermissionNames
     public const string Pages_Vehicles_ModifyAll = "Pages.Vehicles.ModifyAll";
 
     public const string Pages_Vehicles_ViewAll = "Pages.Vehicles.ViewAll";
+    public const string Pages_Vehicles_ModifyOwn = "Pages.Vehicles.ModifyOwn";
 
     //Parking Area
     public const string Pages_ParkingAreas = "Pages.ParkingAreas";

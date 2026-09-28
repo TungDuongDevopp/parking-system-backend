@@ -9,11 +9,13 @@
 	<text name="Customers" value="Customers"/>
 	<text name="Customers_ViewAll" value="Customers ViewAll"/>
 	<text name="Customers_ModifyAll" value="Customers ModifyAll"/>
+	<text name="Customers_ModifyOwn" value="Customers ModifyOwn"/>  
 	<text name="Staffs" value="Staffs"/>
 	<text name="Staffs_Manager" value="Staffs Manager"/>
 	<text name="Vehicles" value="Vehicles"/>
 	<text name="Vehicles_ViewAll" value="Vehicles ViewAll"/>
 	<text name="Vehicles_ModifyAll" value="Vehicles ModifyAll"/>
+	<text name="Vehicles_ModifyOwn" value="Vehicles ModifyOwn"/>  
 	<text name="ParkingAreas" value="Parking Areas"/>
 	<text name="ParkingAreas_Manager" value="Parking Areas Manager"/>
 	<text name="ParkingSpots" value="Parking Spots"/>
@@ -142,6 +144,8 @@
 	<text name="Customer" value="Customer"/>
 	<text name="CreateNewCustomer" value="Create new customer"/>  
 	<text name="EditCustomer" value="Edit customer"/>  
+	<text name="MyProfile" value="My Profile"/>  
+	<text name="CustomerProfile" value="Customer Profile"/>  
     <text name="Save" value="Save" />
     <text name="Cancel" value="Cancel" />
     <text name="TenantName_Regex_Description" value="Tenant name must be at least 2 chars, starts with a letter and continue with letter, number, dash or underscore." />

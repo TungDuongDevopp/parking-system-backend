@@ -11,8 +11,9 @@
         _$editModal = $("#CustomerEditModal");
 
     // 3. PERMISSIONS (UX only)
-    var canEdit = abp.auth.isGranted("Pages.Customers"),
-        canDelete = canEdit;
+    var canModifyAll = abp.auth.isGranted("Pages.Customers.ModifyAll"),
+        canEdit = canModifyAll,
+        canDelete = canModifyAll;
 
     // 4. DATATABLE INITIALIZATION
     var _$customerTable = _$table.DataTable({
@@ -61,6 +62,7 @@
                 orderable: false,
                 autoWidth: false,
                 defaultContent: "",
+                visible: canModifyAll,
                 render: function (data, type, row) {
                     var actions = [];
 
