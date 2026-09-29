@@ -1,6 +1,7 @@
 
 
 using ParkingSystem.Entities.Enums;
+using ParkingSystem.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace ParkingSystem.Vehicles.Dto;
@@ -21,5 +22,6 @@ public class CreateVehicleDto
     [Required]
     public string Color { get; set; }
 
+    [GreaterThanZero]
     public long? CustomerId { get; set; }
 }

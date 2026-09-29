@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ParkingSystem.EntityFrameworkCore;
 
@@ -11,9 +12,11 @@ using ParkingSystem.EntityFrameworkCore;
 namespace ParkingSystem.Migrations
 {
     [DbContext(typeof(ParkingSystemDbContext))]
-    partial class ParkingSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260928085137_Remove VehicleType form Reservation")]
+    partial class RemoveVehicleTypeformReservation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1648,9 +1651,6 @@ namespace ParkingSystem.Migrations
                     b.Property<DateTime>("CreationTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CurrentOccupancy")
-                        .HasColumnType("int");
-
                     b.Property<string>("Description")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
@@ -2190,17 +2190,11 @@ namespace ParkingSystem.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId")
-                        .IsUnique()
-                        .HasDatabaseName("UX_Reservations_ActiveCustomer")
-                        .HasFilter("[Status] = 1 AND [IsDeleted] = 0");
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("ParkingAreaId");
 
-                    b.HasIndex("ParkingSpotId")
-                        .IsUnique()
-                        .HasDatabaseName("UX_Reservations_ActiveParkingSpot")
-                        .HasFilter("[ParkingSpotId] IS NOT NULL AND [Status] = 1 AND [IsDeleted] = 0");
+                    b.HasIndex("ParkingSpotId");
 
                     b.ToTable("Reservations");
                 });

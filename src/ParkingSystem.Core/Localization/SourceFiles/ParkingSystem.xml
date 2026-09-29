@@ -24,9 +24,13 @@
 	<text name="Quotations_Manager" value="Quotations Manager"/>
 	<text name="Subscriptions" value="Subscriptions"/>
 	<text name="Subscriptions_Manager" value="Subscriptions Manager"/>
+	<text name="Reservations" value="Reservations"/>
+	<text name="Reservations_ModifyAll" value="Reservations ModifyAll"/>
+	<text name="Reservations_ModifyOwn" value="Reservations_ModifyOwn"/>
+	<text name="Reservations_ViewAll" value="Reservations_ViewAll"/>
 
-	    // Cấu hình trang staff
-	<text name="Staff">Staff</text>
+	  // Cấu hình trang staff
+	  <text name="Staff">Staff</text>
 	<text name="CreateNewStaff">Create new staff</text>
 	<text name="EditStaff">Edit staff</text>
 	<text name="Gender">Gender</text>
