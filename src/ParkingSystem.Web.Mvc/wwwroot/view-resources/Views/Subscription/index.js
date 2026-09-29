@@ -8,8 +8,6 @@
         _$createForm = _$createModal.find("form"),
         _$table = $("#SubscriptionTable"),
         _$searchForm = $("#SubscriptionSearchForm");
-     
-      canDelete = isManager;
 
     // 3. DATATABLE INITIALIZATION
     var _$subscriptionTable = _$table.DataTable({
@@ -89,50 +87,9 @@
         ]
     });
 
-    // 4. FORM VALIDATION (CREATE) - Validated entirely in JS
-    // _$createForm.validate({
-    //     rules: {
-    //         VehicleType: {
-    //             required: true,   
-    //         },
-    //         DurationUnit: {
-    //             required: true,  
-    //         },
-    //         Duration: {
-    //             required: true,
-    //             number: true,
-    //             min: 1
-    //         },
-    //         Price: {
-    //             required: true,
-    //             number: true,
-    //             min: 1
-    //         }
-    //     }
-    // });
+   
 
-    // 6. CREATE (SAVE)
-    // _$createForm.find(".save-button").on("click", function (e) {
-    //     e.preventDefault();
-    //     if (!_$createForm.valid()) {
-    //         return;
-    //     }
-
-    //     var quotation = _$createForm.serializeFormToObject();
-
-    //     abp.ui.setBusy(_$createModal);
-    //     _quotationService.create(quotation).done(function () {
-    //         _$createModal.modal("hide");
-    //         _$createForm[0].reset();
-    //         abp.notify.info(l("SavedSuccessfully"));
-    //         _$quotationTable.ajax.reload();
-    //     }).always(function () {
-    //         abp.ui.clearBusy(_$createModal);
-    //     });
-    // });
-
-
-    // 7. SEARCH & FILTERS
+    // 4. SEARCH & FILTERS
     _$searchForm.find(".btn-search").on("click", function () {
         _$subscriptionTable.ajax.reload();
     });
@@ -153,11 +110,4 @@
         _$subscriptionTable.ajax.reload();
     });
 
-    // 8. MODAL EVENTS & ABP EVENT LISTENERS
-    // _$createModal.on("shown.bs.modal", function () {
-    //     _$createModal.find("input:not([type=hidden]):first").focus();
-    // }).on("hidden.bs.modal", function () {
-    //     _$createForm[0].reset();
-    //     _$createForm.validate().resetForm();
-    // });
 })(jQuery);

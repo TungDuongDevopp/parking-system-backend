@@ -1,5 +1,6 @@
 ﻿
 
+using ParkingSystem.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace ParkingSystem.ParkingSpots.Dto;
@@ -12,5 +13,6 @@ public class CreateParkingSpotDto
     public string SpotCode { get; set; }
 
     [Required]
+    [GreaterThanZero]
     public long ParkingAreaId { get; set; }
 }

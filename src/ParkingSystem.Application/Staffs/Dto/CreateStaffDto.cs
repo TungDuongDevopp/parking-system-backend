@@ -11,7 +11,10 @@ namespace ParkingSystem.Staffs.Dto;
 [AutoMapTo(typeof(Staff))]
 public class CreateStaffDto
 {
+    [Required]
+    [GreaterThanZero]
     public long UserId { get; set; }
+   
     [Required]
     [StringLength(100)]
     public string Name { get; set; }

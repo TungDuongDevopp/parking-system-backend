@@ -4,10 +4,6 @@ using ParkingSystem.Authorization.Users;
 using ParkingSystem.MultiTenancy;
 using ParkingSystem.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Linq;
-
 namespace ParkingSystem.EntityFrameworkCore;
 
 public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> options) : AbpZeroDbContext<Tenant, Role, User, ParkingSystemDbContext>(options)
@@ -212,5 +208,17 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
             .WithMany()
             .HasForeignKey(r => r.ParkingSpotId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Reservation>()
+            .HasIndex(r => r.CustomerId)
+            .HasDatabaseName("UX_Reservations_ActiveCustomer")
+            .IsUnique()
+            .HasFilter("[Status] = 1 AND [IsDeleted] = 0");
+
+        modelBuilder.Entity<Reservation>()
+            .HasIndex(r => r.ParkingSpotId)
+            .HasDatabaseName("UX_Reservations_ActiveParkingSpot")
+            .IsUnique()
+            .HasFilter("[ParkingSpotId] IS NOT NULL AND [Status] = 1 AND [IsDeleted] = 0");
     }
 }

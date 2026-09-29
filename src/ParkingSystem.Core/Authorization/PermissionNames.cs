@@ -56,6 +56,11 @@ public static class PermissionNames
 
     public const string Pages_Subscriptions_Manager = "Pages.Subscriptions.Manager";
 
+    //Reservation
+    public const string Pages_Reservations = "Pages.Reservations";
+    public const string Pages_Reservations_ModifyAll= "Pages.Reservations.ModifyAll";
+    public const string Pages_Reservations_ViewAll = "Pages.Reservations.ViewAll";
+    public const string Pages_Reservations_ModifyOwn = "Pages.Reservations.ModifyOwn";
 
 
 

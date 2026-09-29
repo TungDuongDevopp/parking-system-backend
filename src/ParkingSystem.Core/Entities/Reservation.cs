@@ -23,8 +23,6 @@ public class Reservation :
     public long? ParkingSpotId { get; set; }
     public ParkingSpot? ParkingSpot { get; set; }
 
-    [Required]
-    public VehicleType VehicleType { get; set; }
 
     [Required]
     public DateTime ReservedAt { get; set; }

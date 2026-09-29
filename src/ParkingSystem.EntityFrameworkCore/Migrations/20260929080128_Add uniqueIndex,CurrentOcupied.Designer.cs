@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ParkingSystem.EntityFrameworkCore;
 
@@ -11,9 +12,11 @@ using ParkingSystem.EntityFrameworkCore;
 namespace ParkingSystem.Migrations
 {
     [DbContext(typeof(ParkingSystemDbContext))]
-    partial class ParkingSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260929080128_Add uniqueIndex,CurrentOcupied")]
+    partial class AdduniqueIndexCurrentOcupied
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2192,14 +2195,12 @@ namespace ParkingSystem.Migrations
 
                     b.HasIndex("CustomerId")
                         .IsUnique()
-                        .HasDatabaseName("UX_Reservations_ActiveCustomer")
                         .HasFilter("[Status] = 1 AND [IsDeleted] = 0");
 
                     b.HasIndex("ParkingAreaId");
 
                     b.HasIndex("ParkingSpotId")
                         .IsUnique()
-                        .HasDatabaseName("UX_Reservations_ActiveParkingSpot")
                         .HasFilter("[ParkingSpotId] IS NOT NULL AND [Status] = 1 AND [IsDeleted] = 0");
 
                     b.ToTable("Reservations");
