@@ -25,4 +25,7 @@ public class PageNames
     public const string MySubscription = "MySubscription";
     public const string Quotations = "Quotations";
 
+    public const string Reservations = "Reservations";
+    public const string MyReservations = "MyReservations";
+
 }

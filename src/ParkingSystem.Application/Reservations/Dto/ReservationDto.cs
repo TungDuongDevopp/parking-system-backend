@@ -1,4 +1,4 @@
-﻿
+
 using Abp.Application.Services.Dto;
 using ParkingSystem.Entities.Enums;
 using System;
@@ -25,4 +25,8 @@ public class ReservationDto: EntityDto<long>
     public ReservationStatus Status { get; set; }
 
     public DateTime EndTime { get; set; }
+
+    public VehicleType? VehicleType { get; set; }
+
+    public string? VehicleTypeName => VehicleType?.ToString();
 }

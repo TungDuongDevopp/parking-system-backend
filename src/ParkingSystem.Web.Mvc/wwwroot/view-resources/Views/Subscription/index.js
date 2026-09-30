@@ -1,11 +1,9 @@
-﻿(function ($) {
+(function ($) {
     // 1. SERVICES & LOCALIZATION
     var _subscriptionService = abp.services.app.subscription,
         l = abp.localization.getSource("ParkingSystem");
 
-    // 2. DOM ELEMENTS
-    var _$createModal = $("#QuotationCreateModal"),
-        _$createForm = _$createModal.find("form"),
+    // 2. DOM ELEMENTS  
         _$table = $("#SubscriptionTable"),
         _$searchForm = $("#SubscriptionSearchForm");
 
@@ -101,7 +99,7 @@
         }
     });
 
-    _$searchForm.find("select, input[type='number']").on("change", function () {
+    _$searchForm.find("select, input[type='number'], input[type='date']").on("change", function () {
         _$subscriptionTable.ajax.reload();
     });
 

@@ -32,6 +32,8 @@ public class ParkingAreaDto : EntityDto<long>
 
     public ParkingAreaStatus Status { get; set; }
 
+    public int CurrentOccupancy { get; set; }
+
     public string ParkingAreaStatusName => Status.ToString();
 
 }

@@ -52,10 +52,11 @@
             { targets: 2, data: "name" },
             { targets: 3, data: "vehicleTypeName" },
             { targets: 4, data: "capacity" },
-            { targets: 5, data: "parkingModeName" },
-            { targets: 6, data: "location" },
+            { targets: 5, data: "currentOccupancy" },
+            { targets: 6, data: "parkingModeName" },
+            { targets: 7, data: "location" },
             {
-                targets: 7,
+                targets: 8,
                 data: "parkingAreaStatusName", name: "status",
                 render: function (data, type, row) {
                     var isAct = (row.status === 1 || data === "Active");
@@ -64,7 +65,7 @@
                 }
             },
             {
-                targets: 8,
+                targets: 9,
                 data: null,
                 orderable: false,
                 autoWidth: false,

@@ -86,7 +86,8 @@
 	<text name="Location" value="Location" />
 	<text name="Description" value="Description" />
 	<text name="MinCapacity" value="MinCapacity" />
-	  <text name="MaxCapacity" value="MaxCapacity" />
+	<text name="MaxCapacity" value="MaxCapacity" />
+	<text name="CurrentOccupancy" value="Current Occupancy" />
 
 
 	  //Cấu hình trang parkingSpot
@@ -119,7 +120,6 @@
 	  <text name="MaxPrice" value="MaxPrice" />
 
 	  // Cấu hình trang Subscription
-	  <text name="Subscription" value="Subscription" />
 	  <text name="QuotationId" value="QuotationId" />
 	  <text name="CustomerId" value="CustomerId" />
 	  <text name="StartTime" value="Start Time" />
@@ -137,6 +137,34 @@
 	  <text name="PurchaseSuccess" value="Subscription purchased successfully!" />
 	  <text name="CurrentSubscription" value="Current Subscription" />
 	  <text name="SelectStartDate" value="Select Start Date" />
+
+	  // Cấu hình trang Reservation
+		<text name="ReservedAt" value="ReservedAt"/>
+		<text name="ParkingSpotId" value="Parking Spot Id"/>
+		<text name="Invalid" value="Invalid"/>
+		<text name="Completed" value="Completed"/>
+		<text name="Cancelled" value="Cancelled"/>
+	  <text name="Areas" value="Areas"/>
+	  <text name="Spots" value="Spots"/>
+	  <text name="MyReservations" value="My Reservations" />
+	  <text name="CreateReservation" value="Create Reservation" />
+	  <text name="NewReservation" value="New Reservation" />
+	  <text name="CancelReservation" value="Cancel Reservation" />
+	  <text name="CancelReservationConfirmation" value="Are you sure you want to cancel this reservation?" />
+	  <text name="ReservationCancelledSuccessfully" value="Reservation cancelled successfully!" />
+	  <text name="ReservationCreatedSuccessfully" value="Reservation created successfully!" />
+	  <text name="SelectParkingArea" value="Select Parking Area" />
+	  <text name="SelectParkingSpot" value="Select Parking Spot" />
+	  <text name="SelectVehicle" value="Select Vehicle" />
+	  <text name="ActiveReservation" value="Active Reservation" />
+	  <text name="NoActiveReservation" value="You have no active reservation." />
+	  <text name="ReservationHistory" value="Reservation History" />
+	  <text name="CapacityBasedAutoAssigned" value="Auto-assigned upon arrival (Capacity-based area)" />
+	  <text name="ActiveSubscriptionRequired" value="Active Subscription Required" />
+	  <text name="ActiveSubscriptionRequiredMessage" value="You must have an active subscription package to reserve a parking spot." />
+	  <text name="ManageSubscription" value="Manage Subscription" />
+	  <text name="ReservationNotice" value="Reservations must be made for the current day. Valid for 3 hours with a 15-minute grace period." />
+	  
 	  
 	<text name="PhoneNumber" value="Phone number"/>
 	<text name="CreationTime" value="Creation time"/>

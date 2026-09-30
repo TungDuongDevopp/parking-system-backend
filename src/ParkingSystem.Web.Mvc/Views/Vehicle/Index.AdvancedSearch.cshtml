@@ -1,8 +1,8 @@
 @using ParkingSystem.Entities.Enums
 
 <form id="VehicleSearchForm" class="form-horizontal">
-    <div class="row g-2 align-items-center">
-        <div class="col-md-5">
+    <div class="row g-2 mb-2">
+        <div class="col-8 col-md-6">
             <div class="input-group">
                 <input type="text" name="Keyword" class="form-control txt-search" placeholder="@L("SearchWithThreeDot")" />
                 <button type="button" class="btn bg-blue btn-search" title="@L("Search")">
@@ -10,7 +10,8 @@
                 </button>
             </div>
         </div>
-        <div class="col-md-3">
+
+        <div class="col-4 col-md-3">
             <select name="VehicleType" class="form-control vehicle-type-filter" title="@L("Type")">
                 <option value="">@L("All") @L("Type")</option>
                 <option value="@((int)VehicleType.Bicycle)">@L("Bicycle")</option>
@@ -20,20 +21,20 @@
                 <option value="@((int)VehicleType.Car)">@L("Car")</option>
             </select>
         </div>
-        <div class="col-md-2">
+
+        <div class="col-6 col-md-3 d-md-flex justify-content-end gap-2">
             <button type="button"
                     class="btn btn-primary w-100 btn-search"
                     title="@L("Filter")">
                 <i class="fas fa-filter"></i>
+                <span class="d-none d-md-inline"> @L("Filter")</span>
             </button>
-        </div>
 
-        <!-- Clear -->
-        <div class="col-md-2">
             <button type="button"
                     class="btn btn-outline-secondary w-100 btn-clear-search"
                     title="@L("Clear")">
                 <i class="fas fa-undo"></i>
+                <span class="d-none d-md-inline"> @L("Clear")</span>
             </button>
         </div>
     </div>

@@ -1,0 +1,333 @@
+@using ParkingSystem.Web.Startup
+
+@{
+    ViewBag.Title = L("MyReservations");
+    ViewBag.CurrentPageName = PageNames.MyReservations;
+}
+@section scripts
+{
+    <script src="~/view-resources/Views/Reservation/MyReservations.js" asp-append-version="true"></script>
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row align-items-center">
+            <div class="col-sm-6">
+                <h1 class="m-0">
+                    <i class="fas fa-calendar-check mr-2 me-2 text-primary"></i>
+                    @L("MyReservations")
+                </h1>
+            </div>
+            <div class="col-sm-6 text-end text-sm-right mt-2 mt-sm-0">
+                <button type="button" id="btn-open-create-modal" class="btn btn-primary shadow-sm">
+                    <i class="fas fa-plus-circle mr-1 me-1"></i> @L("NewReservation")
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SUBSCRIPTION NOTICE (Shown if no active subscription)
+        ═══════════════════════════════════════════════════════════ -->
+        <div id="subscription-alert-box" class="alert alert-warning border-left-warning shadow-sm" style="display:none;">
+            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                <div class="d-flex align-items-center mb-2 mb-md-0">
+                    <i class="fas fa-exclamation-triangle fa-2x text-warning mr-3 me-3"></i>
+                    <div>
+                        <h6 class="mb-1 font-weight-bold fw-bold">@L("ActiveSubscriptionRequired")</h6>
+                        <span class="text-muted">@L("ActiveSubscriptionRequiredMessage")</span>
+                    </div>
+                </div>
+                <a href="@Url.Action("MySubscription", "Subscription")" class="btn btn-warning btn-sm text-dark font-weight-bold fw-bold">
+                    <i class="fas fa-ticket-alt mr-1 me-1"></i> @L("ManageSubscription")
+                </a>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             ACTIVE RESERVATION SECTION
+        ═══════════════════════════════════════════════════════════ -->
+        <div id="active-reservation-section" class="mb-4">
+
+            <!-- Loading indicator -->
+            <div id="active-reservation-loading" class="text-center py-4">
+                <i class="fas fa-circle-notch fa-spin fa-2x text-primary"></i>
+                <p class="text-muted mt-2">@L("PleaseWait")</p>
+            </div>
+
+            <!-- Empty state: No active reservation -->
+            <div id="active-reservation-empty" class="card card-outline card-secondary shadow-sm" style="display:none;">
+                <div class="card-body text-center py-5">
+                    <div class="mb-3">
+                        <span class="rounded-circle bg-light p-4 d-inline-block text-muted">
+                            <i class="fas fa-parking fa-3x"></i>
+                        </span>
+                    </div>
+                    <h4 class="text-dark font-weight-bold fw-bold">@L("NoActiveReservation")</h4>
+                    <p class="text-muted mx-auto" style="max-width: 500px;">
+                        @L("ReservationNotice")
+                    </p>
+                    <button type="button" class="btn btn-primary btn-lg mt-2 btn-trigger-create">
+                        <i class="fas fa-plus mr-1 me-1"></i> @L("CreateReservation")
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card: Current Active Reservation -->
+            <div id="active-reservation-card" style="display:none;">
+                <div class="card card-outline card-primary shadow-sm">
+                    <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
+                        <h5 class="card-title mb-0 font-weight-bold fw-bold text-primary">
+                            <i class="fas fa-calendar-check mr-2 me-2"></i>
+                            @L("ActiveReservation")
+                        </h5>
+                        <div class="d-flex align-items-center">
+                            <span id="active-status-badge" class="mr-3 me-3"></span>
+                            <button type="button" id="btn-cancel-active-reservation" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-times-circle mr-1 me-1"></i> @L("CancelReservation")
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body py-4">
+                        <div class="row g-3">
+                            <!-- Parking Area -->
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="info-box bg-light shadow-none border mb-0 h-100">
+                                    <span class="info-box-icon bg-primary text-white rounded">
+                                        <i class="fas fa-parking"></i>
+                                    </span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text text-muted">@L("ParkingAreaCode")</span>
+                                        <span class="info-box-number text-dark" id="active-area-code">—</span>
+                                        <small class="text-muted text-truncate" id="active-area-name"></small>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Parking Spot -->
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="info-box bg-light shadow-none border mb-0 h-100">
+                                    <span class="info-box-icon bg-info text-white rounded">
+                                        <i class="fas fa-map-pin"></i>
+                                    </span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text text-muted">@L("SpotCode")</span>
+                                        <span class="info-box-number text-dark" id="active-spot-code">—</span>
+                                        <small class="text-muted" id="active-spot-desc"></small>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Vehicle Type -->
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="info-box bg-light shadow-none border mb-0 h-100">
+                                    <span class="info-box-icon bg-success text-white rounded">
+                                        <i class="fas fa-car" id="active-vehicle-icon"></i>
+                                    </span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text text-muted">@L("Vehicles")</span>
+                                        <span class="info-box-number text-dark" id="active-vehicle-type">—</span>
+                                        <small class="text-muted">Type allowed</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Reserved Time & Expire Time -->
+                            <div class="col-sm-6 col-lg-3">
+                                <div class="info-box bg-light shadow-none border mb-0 h-100">
+                                    <span class="info-box-icon bg-warning text-dark rounded">
+                                        <i class="fas fa-clock"></i>
+                                    </span>
+                                    <div class="info-box-content">
+                                        <span class="info-box-text text-muted">@L("ReservedAt")</span>
+                                        <span class="info-box-number text-dark" id="active-reserved-at" style="font-size: 0.95rem;">—</span>
+                                        <small class="text-danger font-weight-bold" id="active-end-time"></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /#active-reservation-section -->
+
+        <!-- ═══════════════════════════════════════════════════════════
+             RESERVATION HISTORY TABLE
+        ═══════════════════════════════════════════════════════════ -->
+        <div class="card card-outline card-secondary shadow-sm" id="history-section">
+            <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
+                <h5 class="card-title mb-0 font-weight-bold fw-bold text-dark">
+                    <i class="fas fa-history mr-2 me-2 text-secondary"></i>
+                    @L("ReservationHistory")
+                </h5>
+                <div class="card-tools d-flex align-items-center">
+                    <select id="history-status-filter" class="form-control form-control-sm mr-2 me-2" style="width: auto;">
+                        <option value="">@L("All") @L("Status")</option>
+                        <option value="1">@L("Reserved")</option>
+                        <option value="2">@L("Completed")</option>
+                        <option value="3">@L("Cancelled")</option>
+                        <option value="4">@L("Expired")</option>
+                        <option value="5">@L("Invalid")</option>
+                    </select>
+                    <button type="button" id="btn-refresh-history" class="btn btn-outline-secondary btn-sm" title="@L("Refresh")">
+                        <i class="fas fa-redo-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0 w-100" id="ReservationHistoryTable">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>#</th>
+                                <th>@L("ParkingAreaCode")</th>
+                                <th>@L("ParkingAreaName")</th>
+                                <th>@L("SpotCode")</th>
+                                <th>@L("Vehicle")</th>
+                                <th>@L("ReservedAt")</th>
+                                <th>@L("EndTime")</th>
+                                <th>@L("Status")</th>
+                                <th class="text-center">@L("Actions")</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-tbody">
+                        </tbody>
+                    </table>
+                </div>
+                <div id="history-empty" class="text-center text-muted py-5" style="display:none;">
+                    <i class="fas fa-inbox fa-3x mb-2 text-muted d-block"></i>
+                    <p class="mb-0">No reservation history found.</p>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.container-fluid -->
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     NEW RESERVATION MODAL
+═══════════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="CreateReservationModal" tabindex="-1" role="dialog" data-backdrop="static" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content border-0 shadow">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title font-weight-bold fw-bold">
+                    <i class="fas fa-calendar-plus mr-2 me-2"></i>@L("NewReservation")
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body p-4">
+
+                <!-- Info Alert -->
+                <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center">
+                    <i class="fas fa-info-circle mr-2 me-2 fa-lg text-info"></i>
+                    <span class="small">@L("ReservationNotice")</span>
+                </div>
+
+                <!-- Subscription info badge inside modal -->
+                <div id="modal-sub-info" class="alert alert-light border py-2 px-3 mb-3" style="display:none;">
+                    <i class="fas fa-ticket-alt mr-2 me-2 text-success"></i>
+                    <span class="small font-weight-bold" id="modal-sub-text"></span>
+                </div>
+
+                <form id="CreateReservationForm" novalidate>
+
+                    <!-- 1. Customer Vehicle Selection -->
+                    <div class="form-group mb-3">
+                        <label for="res-vehicle-select" class="form-label font-weight-bold fw-bold">
+                            <i class="fas fa-car mr-1 me-1 text-primary"></i> @L("SelectVehicle")
+                        </label>
+                        <select id="res-vehicle-select" class="form-control form-select">
+                            <option value="">-- @L("SelectVehicle") --</option>
+                        </select>
+                        <small class="form-text text-muted">
+                            Selecting your vehicle will highlight compatible parking areas.
+                        </small>
+                    </div>
+
+                    <!-- 2. Parking Area Selection -->
+                    <div class="form-group mb-3">
+                        <label for="res-area-select" class="form-label font-weight-bold fw-bold">
+                            <i class="fas fa-parking mr-1 me-1 text-primary"></i> @L("SelectParkingArea") <span class="text-danger">*</span>
+                        </label>
+                        <select id="res-area-select" class="form-control form-select" required>
+                            <option value="">-- @L("SelectParkingArea") --</option>
+                        </select>
+                        <div id="area-details-badge" class="mt-2 small text-muted" style="display:none;"></div>
+                    </div>
+
+                    <!-- 3. Parking Spot Selection (Dynamic based on ParkingMode) -->
+                    <div class="form-group mb-3" id="spot-selection-container" style="display:none;">
+                        <label for="res-spot-select" class="form-label font-weight-bold fw-bold">
+                            <i class="fas fa-map-pin mr-1 me-1 text-primary"></i> @L("SelectParkingSpot") <span class="text-danger">*</span>
+                        </label>
+                        <select id="res-spot-select" class="form-control form-select">
+                            <option value="">-- @L("SelectParkingSpot") --</option>
+                        </select>
+                        <div id="spot-loading" class="text-muted small mt-1" style="display:none;">
+                            <i class="fas fa-circle-notch fa-spin mr-1 me-1"></i> Loading available spots...
+                        </div>
+                        <div id="no-spots-alert" class="alert alert-warning py-1 px-2 mt-2 small" style="display:none;">
+                            <i class="fas fa-exclamation-circle mr-1 me-1"></i> No available spots in this parking area right now.
+                        </div>
+                    </div>
+
+                    <!-- Notice for Capacity-based mode -->
+                    <div id="capacity-mode-notice" class="alert alert-secondary py-2 px-3 mb-3" style="display:none;">
+                        <i class="fas fa-info-circle mr-2 me-2 text-info"></i>
+                        <span class="small font-weight-bold">@L("CapacityBasedAutoAssigned")</span>
+                    </div>
+
+                    <!-- 4. Reservation Date & Time -->
+                    <div class="form-group mb-3">
+                        <label for="res-reserved-at" class="form-label font-weight-bold fw-bold">
+                            <i class="fas fa-clock mr-1 me-1 text-primary"></i> @L("ReservedAt") <span class="text-danger">*</span>
+                        </label>
+                        <input type="datetime-local" id="res-reserved-at" class="form-control" required />
+                        <small class="form-text text-muted">
+                            Reservation must be scheduled for today. Expire time is 3 hours 15 minutes after start time.
+                        </small>
+                    </div>
+
+                    <!-- 5. Reservation Summary -->
+                    <div id="reservation-summary" class="card bg-light border-0 shadow-none mb-0" style="display:none;">
+                        <div class="card-body py-2 px-3 small">
+                            <div class="row">
+                                <div class="col-6">
+                                    <span class="text-muted">Parking Area:</span> <strong id="summary-area-code">—</strong>
+                                </div>
+                                <div class="col-6">
+                                    <span class="text-muted">Spot:</span> <strong id="summary-spot-code">—</strong>
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <span class="text-muted">Start:</span> <strong id="summary-start-time">—</strong>
+                                </div>
+                                <div class="col-6 mt-1">
+                                    <span class="text-muted">Expire:</span> <strong id="summary-expire-time" class="text-danger">—</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+
+            </div><!-- /.modal-body -->
+
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">
+                    @L("Cancel")
+                </button>
+                <button type="button" id="btn-submit-reservation" class="btn btn-primary font-weight-bold">
+                    <i class="fas fa-check-circle mr-1 me-1"></i> @L("CreateReservation")
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>

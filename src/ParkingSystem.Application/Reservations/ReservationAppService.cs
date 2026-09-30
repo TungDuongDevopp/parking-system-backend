@@ -342,7 +342,11 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
                 x => x.ReservedAt >= input.ReservedAt)
             .WhereIf(
                 input.ExpireAt.HasValue,
-                x => x.ExpireAt <= input.ExpireAt);
+                x => x.ExpireAt <= input.ExpireAt)
+            .WhereIf(
+                input.Status.HasValue,
+                x=> x.Status == input.Status
+            );
 
             // Total count
            var totalCount = await query.CountAsync();
