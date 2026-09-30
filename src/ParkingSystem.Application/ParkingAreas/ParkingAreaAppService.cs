@@ -1,5 +1,3 @@
-
-
 using Abp.Application.Services;
 using Abp.Application.Services.Dto;
 using Abp.Authorization;
@@ -52,7 +50,8 @@ public class ParkingAreaAppService: AsyncCrudAppService<ParkingArea,ParkingAreaD
               nameof(ParkingArea.Status),
               nameof(ParkingArea.Capacity),
               nameof(ParkingArea.ParkingMode),
-              nameof(ParkingArea.VehicleType)
+              nameof(ParkingArea.VehicleType),
+              nameof(ParkingArea.CurrentOccupancy)
                );
 
             return query.OrderBy(sorting);
@@ -77,7 +76,8 @@ public class ParkingAreaAppService: AsyncCrudAppService<ParkingArea,ParkingAreaD
         .WhereIf(input.MinCapacity.HasValue,
             x=>x.Capacity >=input.MinCapacity.Value)
         .WhereIf(input.MaxCapacity.HasValue,
-            x => x.Capacity <= input.MaxCapacity.Value);
+            x => x.Capacity <= input.MaxCapacity.Value)
+        .WhereIf(input.Status.HasValue, x=> x.Status == input.Status.Value);
     }
 
     [AbpAuthorize(PermissionNames.Pages_ParkingAreas_Manager)]

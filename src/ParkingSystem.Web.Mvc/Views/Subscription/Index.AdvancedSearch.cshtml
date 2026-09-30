@@ -1,10 +1,10 @@
-﻿@using ParkingSystem.Entities.Enums
+@using ParkingSystem.Entities.Enums
+@using ParkingSystem.Web.Models.Subscription
+@model SubscriptionListViewModel
 
 <form id="SubscriptionSearchForm" class="form-horizontal">
-    <div class="row g-2 align-items-center">
-
-        <!-- Status -->
-        <div class="col-md-2">
+    <div class="row g-2 mb-2">
+        <div class="col-6 col-md-4">
             <select name="Status" class="form-control subscription-status-filter" title="@L("Status")">
                 <option value="">@L("All") @L("Status")</option>
                 <option value="@((int)SubscriptionStatus.pending)">@L("Pending")</option>
@@ -14,63 +14,67 @@
             </select>
         </div>
 
-        <!-- Customer Id -->
-        <div class="col-md-2">
-            <input type="text"
-                   name="CustomerId"
-                   class="form-control"
-                   min="1"
-                   placeholder="@L("CustomerId")"
-                   title="@L("CustomerId")" />
-        </div>
-        <!-- Quotation Id -->
-        <div class="col-md-2">
-            <input type="text"
-                   name="QuotationId"
-                   class="form-control"
-                   min="1"
-                   placeholder="@L("QuotationId")"
-                   title="@L("QuotationId")" />
+        <div class="col-6 col-md-4">
+            <select name="CustomerId" class="form-control subscription-customer-filter" title="@L("Customer")">
+                <option value="">@L("All") @L("Customers")</option>
+                @if (Model?.Customers != null)
+                {
+                    foreach (var customer in Model.Customers)
+                    {
+                        <option value="@customer.Id">@customer.DisplayText</option>
+                    }
+                }
+            </select>
         </div>
 
-        <!-- Start Time -->
-        <div class="col-md-2">
+        <div class="col-6 col-md-4">
+            <select name="QuotationId" class="form-control subscription-quotation-filter" title="@L("Quotations")">
+                <option value="">@L("All") @L("Quotations")</option>
+                @if (Model?.Quotations != null)
+                {
+                    foreach (var quotation in Model.Quotations)
+                    {
+                        <option value="@quotation.Id">@quotation.DisplayText</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="row g-2 align-items-end">
+        <div class="col-6 col-md-3">
             <input type="date"
                    name="StartTime"
                    class="form-control"
-                   min="1"
                    placeholder="@L("StartTime")"
                    title="@L("StartTime")" />
         </div>
 
-        <!-- End Time-->
-        <div class="col-md-2">
+        <div class="col-6 col-md-3">
             <input type="date"
                    name="EndTime"
                    class="form-control"
-                   min="1"
                    placeholder="@L("EndTime")"
-                   title="@L("EndTime")"  />
+                   title="@L("EndTime")" />
         </div>
 
-        <!-- Filter -->
-        <div class="col-md-1">
+        <div class="col-6 col-md-3">
             <button type="button"
                     class="btn btn-primary w-100 btn-search"
                     title="@L("Filter")">
                 <i class="fas fa-filter"></i>
+                <span class="d-none d-md-inline"> @L("Filter")</span>
             </button>
         </div>
 
-        <!-- Clear -->
-        <div class="col-md-1">
+        <div class="col-6 col-md-3">
             <button type="button"
                     class="btn btn-outline-secondary w-100 btn-clear-search"
                     title="@L("Clear")">
                 <i class="fas fa-undo"></i>
+                <span class="d-none d-md-inline"> @L("Clear")</span>
             </button>
         </div>
-
     </div>
 </form>
 

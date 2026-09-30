@@ -23,4 +23,7 @@ public class PagedParkingAreaResultRequestDto: PagedResultRequestDto, ISortedRes
 
     [EnumDataType(typeof(ParkingMode))]
     public ParkingMode? ParkingMode { get; set; }
+
+    [EnumDataType(typeof(ParkingAreaStatus))]
+    public ParkingAreaStatus? Status { get; set; }
 }

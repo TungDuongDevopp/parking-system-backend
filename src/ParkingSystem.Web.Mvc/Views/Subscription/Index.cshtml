@@ -1,4 +1,6 @@
-﻿@using ParkingSystem.Web.Startup
+@using ParkingSystem.Web.Startup
+@using ParkingSystem.Web.Models.Subscription
+@model SubscriptionListViewModel
 
 @{
     ViewBag.Title = L("Subscriptions");
@@ -23,7 +25,7 @@
     <div class="container-fluid">
         <div class="card">
             <div class="card-header">
-                @await Html.PartialAsync("~/Views/Subscription/Index.AdvancedSearch.cshtml")
+                @await Html.PartialAsync("~/Views/Subscription/Index.AdvancedSearch.cshtml", Model)
             </div>
             <div class="card-body">
                 <div class="table-responsive">

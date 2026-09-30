@@ -108,7 +108,7 @@ public class ParkingSystemNavigationProvider : NavigationProvider
                 .AddItem(
                 new MenuItemDefinition(
                     PageNames.Subscriptions,
-                    L("Subscription"),
+                    L("Subscriptions"),
                     url: "Subscription",
                     icon: "fas fa-id-card",
                     permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_Subscriptions_Manager)
@@ -123,7 +123,24 @@ public class ParkingSystemNavigationProvider : NavigationProvider
                     permissionDependency: new CustomerSubscriptionPermissionDependency()
                     )
                 )
-            ;
+                 .AddItem(
+                new MenuItemDefinition(
+                    PageNames.Reservations,
+                    L("Reservations"),
+                    url: "Reservation",
+                    icon: "fas fa-calendar-check",
+                    permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_Reservations_ViewAll)
+                    )
+                )
+                .AddItem(
+                new MenuItemDefinition(
+                    PageNames.MyReservations,
+                    L("MyReservations"),
+                    url: "Reservation/MyReservations",
+                    icon: "fas fa-calendar-alt",
+                    permissionDependency: new CustomerReservationPermissionDependency()
+                    )
+                );
 
     }
 
@@ -195,6 +212,38 @@ public class CustomerSubscriptionPermissionDependency : IPermissionDependency
         return await context.PermissionChecker.IsGrantedAsync(
             context.User,
             PermissionNames.Pages_Subscriptions
+        );
+    }
+}
+
+/// <summary>
+/// Shows "My Reservations" only to customer users — i.e. those who have
+/// Pages_Reservations but NOT Pages_Reservations_ViewAll.
+/// </summary>
+public class CustomerReservationPermissionDependency : IPermissionDependency
+{
+    public bool IsSatisfied(IPermissionDependencyContext context)
+    {
+        return AsyncHelper.RunSync(() => IsSatisfiedAsync(context));
+    }
+
+    public async Task<bool> IsSatisfiedAsync(IPermissionDependencyContext context)
+    {
+        if (context.User == null)
+            return false;
+
+        // Managers/admins see the admin Reservations index, not this menu item.
+        var canViewAll = await context.PermissionChecker.IsGrantedAsync(
+            context.User,
+            PermissionNames.Pages_Reservations_ViewAll
+        );
+
+        if (canViewAll)
+            return false;
+
+        return await context.PermissionChecker.IsGrantedAsync(
+            context.User,
+            PermissionNames.Pages_Reservations
         );
     }
 }

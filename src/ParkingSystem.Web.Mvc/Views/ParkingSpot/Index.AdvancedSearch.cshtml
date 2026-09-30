@@ -1,9 +1,9 @@
 ﻿@using ParkingSystem.Entities.Enums
-
+@using ParkingSystem.Web.Models.ParkingSpot
+@model ParkingSpotListViewModel
 <form id="ParkingSpotSearchForm" class="form-horizontal">
-    <div class="row g-2 align-items-center">
-        <!-- Search -->
-        <div class="col-md-3">
+    <div class="row g-2 mb-2">
+        <div class="col-6 col-md-3">
             <div class="input-group">
                 <input type="text" name="Keyword" class="form-control txt-search" placeholder="@L("SearchWithThreeDot")" />
                 <button type="button" class="btn bg-blue btn-search" title="@L("Search")">
@@ -12,9 +12,8 @@
             </div>
         </div>
 
-        <!-- Parking Spot Status -->
-        <div class="col-md-2">
-            <select name="Status" class="form-control vehicle-type-filter">
+        <div class="col-6 col-md-3">
+            <select name="Status" class="form-control parkingspot-status-filter">
                 <option value="">@L("All") @L("Status")</option>
                 <option value="@((int)ParkingSpotStatus.Available)">@L("Available")</option>
                 <option value="@((int)ParkingSpotStatus.Occupied)">@L("Occupied")</option>
@@ -23,27 +22,34 @@
             </select>
         </div>
 
-      
-        <!-- Parking Area Id -->
-        <div class="col-md-3 d-flex gap-1">
-            <input type="number" name="ParkingAreaId" class="form-control" title="@L("ParkingAreaId")" min="1" placeholder="@L("ParkingAreaId")" />
+        <div class="col-6 col-md-3">
+            <select name="ParkingAreaId" class="form-control reservation-parkingArea-filter" title="@L("Areas")">
+                <option value="">@L("All") @L("Areas")</option>
+                @if (Model?.ParkingAreas != null)
+                {
+                    foreach (var parkingArea in Model.ParkingAreas)
+                    {
+                        <option value="@parkingArea.Id">@parkingArea.DisplayText</option>
+                    }
+                }
+            </select>
         </div>
 
-        <div class="col-md-2">
-            <button type="button"
-                    class="btn btn-primary w-100 btn-search"
-                    title="@L("Filter")">
-                <i class="fas fa-filter"></i>
-            </button>
-        </div>
-
-        <!-- Clear -->
-        <div class="col-md-2">
-            <button type="button"
-                    class="btn btn-outline-secondary w-100 btn-clear-search"
-                    title="@L("Clear")">
-                <i class="fas fa-undo"></i>
-            </button>
+        <div class="col-6 col-md-3 text-md-end">
+            <div class="d-flex gap-2">
+                <button type="button"
+                        class="btn btn-primary w-100 btn-search"
+                        title="@L("Filter")">
+                    <i class="fas fa-filter"></i>
+                    <span class="d-none d-md-inline"> @L("Filter")</span>
+                </button>
+                <button type="button"
+                        class="btn btn-outline-secondary w-100 btn-clear-search"
+                        title="@L("Clear")">
+                    <i class="fas fa-undo"></i>
+                    <span class="d-none d-md-inline"> @L("Clear")</span>
+                </button>
+            </div>
         </div>
     </div>
 </form>
