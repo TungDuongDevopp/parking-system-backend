@@ -32,7 +32,16 @@ namespace ParkingSystem.Web.Controllers
         public async Task<IActionResult> Profile()
         {
             var customer = await _customerAppService.GetMyProfileAsync();
+            if (customer == null)
+            {
+                return RedirectToAction(nameof(CreateProfile));
+            }
             return View(customer);
+        }
+
+        public IActionResult CreateProfile()
+        {
+            return View();
         }
 
         public async Task<ActionResult> EditModal(long customerId)

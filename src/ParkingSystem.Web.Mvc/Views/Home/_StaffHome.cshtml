@@ -1,0 +1,254 @@
+@using ParkingSystem.Entities.Enums
+@model ParkingSystem.Web.Models.Home.HomeViewModel
+
+<!-- STAFF WORKSPACE HEADER -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card shadow-sm border-0" style="border-radius: 12px; background: linear-gradient(135deg, #2b5876 0%, #4e4376 100%); color: white;">
+            <div class="card-body p-4 d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <h3 class="font-weight-bold mb-1">
+                        <i class="fas fa-parking text-warning mr-2"></i> Trực Ca Bãi Xe - Nghiệp Vụ Gửi & Đỗ Xe
+                    </h3>
+                    <p class="mb-0 text-light opacity-90">
+                        Nhân viên trực ca: <strong>@Model.DisplayUserName</strong> | Giám sát vị trí đỗ, hỗ trợ check-in và đón xe đặt trước
+                    </p>
+                </div>
+                <div class="mt-3 mt-md-0">
+                    <a href="@Url.Action("Index", "ParkingSpot")" class="btn btn-warning font-weight-bold shadow-sm mr-2 text-dark">
+                        <i class="fas fa-th mr-1"></i> Sơ Đồ Chỗ Đỗ
+                    </a>
+                    <a href="@Url.Action("Index", "Reservation")" class="btn btn-light font-weight-bold shadow-sm">
+                        <i class="fas fa-calendar-check mr-1"></i> Đơn Đặt Chỗ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LIVE SPOTS METRICS (ROW 1: Real-time Parking Spot Availability) -->
+<div class="row mb-3">
+    <!-- Available Spots (Trống - Sẵn sàng nhận xe) -->
+    <div class="col-6 col-lg-3">
+        <div class="card shadow-sm border-0 text-center p-3" style="border-radius: 12px; border-bottom: 5px solid #28a745 !important;">
+            <div class="text-success mb-1">
+                <i class="fas fa-check-circle fa-2x"></i>
+            </div>
+            <h2 class="font-weight-bold text-success mb-0" style="font-size: 2.2rem;">@Model.StaffStats.AvailableSpots</h2>
+            <div class="font-weight-bold text-dark">Chỗ Trống Sẵn Sàng</div>
+            <small class="text-muted">Có thể tiếp nhận xe ngay</small>
+        </div>
+    </div>
+
+    <!-- Occupied Spots (Đang có xe đỗ) -->
+    <div class="col-6 col-lg-3">
+        <div class="card shadow-sm border-0 text-center p-3" style="border-radius: 12px; border-bottom: 5px solid #dc3545 !important;">
+            <div class="text-danger mb-1">
+                <i class="fas fa-car-side fa-2x"></i>
+            </div>
+            <h2 class="font-weight-bold text-danger mb-0" style="font-size: 2.2rem;">@Model.StaffStats.OccupiedSpots</h2>
+            <div class="font-weight-bold text-dark">Xe Đang Đỗ</div>
+            <small class="text-muted">Đang chiếm chỗ trong bãi</small>
+        </div>
+    </div>
+
+    <!-- Reserved Spots (Đã đặt trước) -->
+    <div class="col-6 col-lg-3">
+        <div class="card shadow-sm border-0 text-center p-3" style="border-radius: 12px; border-bottom: 5px solid #ffc107 !important;">
+            <div class="text-warning mb-1">
+                <i class="fas fa-clock fa-2x"></i>
+            </div>
+            <h2 class="font-weight-bold text-warning mb-0" style="font-size: 2.2rem;">@Model.StaffStats.ReservedSpots</h2>
+            <div class="font-weight-bold text-dark">Khách Đã Đặt Trước</div>
+            <small class="text-muted">Đang giữ chỗ chờ khách đến</small>
+        </div>
+    </div>
+
+    <!-- Unavailable Spots (Bảo trì / Tạm khóa) -->
+    <div class="col-6 col-lg-3">
+        <div class="card shadow-sm border-0 text-center p-3" style="border-radius: 12px; border-bottom: 5px solid #6c757d !important;">
+            <div class="text-secondary mb-1">
+                <i class="fas fa-ban fa-2x"></i>
+            </div>
+            <h2 class="font-weight-bold text-secondary mb-0" style="font-size: 2.2rem;">@Model.StaffStats.UnavailableSpots</h2>
+            <div class="font-weight-bold text-dark">Chỗ Tạm Khóa</div>
+            <small class="text-muted">Đang bảo trì / ngưng dùng</small>
+        </div>
+    </div>
+</div>
+
+<!-- STAFF ACTION WORKSPACE -->
+<div class="row">
+    <!-- CÁC BÃI ĐỖ VÀ SỨC CHỨA HIỆN TẠI -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm border-0 h-100" style="border-radius: 12px;">
+            <div class="card-header bg-white border-bottom-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
+                <h5 class="card-title font-weight-bold mb-0 text-dark">
+                    <i class="fas fa-warehouse text-primary mr-2"></i> Giám Sát Sức Chứa Các Bãi Xe
+                </h5>
+                <a href="@Url.Action("Index", "ParkingArea")" class="btn btn-sm btn-outline-primary">
+                    Chi tiết bãi
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Bãi Đỗ Xe</th>
+                                <th>Loại Xe</th>
+                                <th>Đang Đỗ / Sức Chứa</th>
+                                <th>Tình Trạng</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.StaffStats.ParkingAreas != null && Model.StaffStats.ParkingAreas.Any())
+                            {
+                                foreach (var area in Model.StaffStats.ParkingAreas)
+                                {
+                                    var percent = area.Capacity > 0 ? (area.CurrentOccupancy * 100 / area.Capacity) : 0;
+                                    var isFull = percent >= 95;
+                                    <tr>
+                                        <td>
+                                            <strong>@area.Name</strong>
+                                            <div class="small text-muted">Mã: @area.ParkingCode</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-light">@area.VehicleTypeName</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1 mr-2" style="height: 6px;">
+                                                    <div class="progress-bar @(isFull ? "bg-danger" : "bg-primary")" style="width: @percent%"></div>
+                                                </div>
+                                                <span class="small font-weight-bold">@area.CurrentOccupancy/@area.Capacity</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            @if (isFull)
+                                            {
+                                                <span class="badge badge-danger">Gần đầy</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-success">Còn trống</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        Chưa có thông tin bãi đỗ xe
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHÁCH ĐẶT CHỖ CHUẨN BỊ ĐẾN -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow-sm border-0 h-100" style="border-radius: 12px;">
+            <div class="card-header bg-white border-bottom-0 pt-3 pb-2 d-flex justify-content-between align-items-center">
+                <h5 class="card-title font-weight-bold mb-0 text-dark">
+                    <i class="fas fa-user-clock text-warning mr-2"></i> Khách Đặt Chỗ Chờ Đón
+                </h5>
+                <a href="@Url.Action("Index", "Reservation")" class="btn btn-sm btn-outline-warning text-dark font-weight-bold">
+                    Quản lý đặt chỗ
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Mã Đơn</th>
+                                <th>Khách Hàng</th>
+                                <th>Bãi / Vị Trí</th>
+                                <th>Giờ Đặt</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.StaffStats.TodayReservations != null && Model.StaffStats.TodayReservations.Any())
+                            {
+                                foreach (var r in Model.StaffStats.TodayReservations.Take(8))
+                                {
+                                    <tr>
+                                        <td><strong>#@r.Id</strong></td>
+                                        <td>
+                                            <div class="font-weight-bold">@(string.IsNullOrEmpty(r.CustomerName) ? "Khách #" + r.CustomerId : r.CustomerName)</div>
+                                            <small class="text-muted">Loại xe: @(r.VehicleTypeName ?? "Xe")</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info">@r.ParkingAreaName</span>
+                                            @if (!string.IsNullOrEmpty(r.ParkingSpotCode))
+                                            {
+                                                <div class="small font-weight-bold text-primary">Ô: @r.ParkingSpotCode</div>
+                                            }
+                                        </td>
+                                        <td class="small">
+                                            @r.ReservedAt.ToString("dd/MM/yyyy HH:mm")
+                                        </td>
+                                        <td>
+                                            <a href="@Url.Action("Index", "Reservation")" class="btn btn-xs btn-outline-primary" title="Xem chi tiết đơn">
+                                                <i class="fas fa-eye"></i> Kiểm tra
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        <i class="fas fa-check-circle text-success fa-2x mb-2 d-block"></i> Hiện không có đơn đặt chỗ nào đang chờ đón
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LỐI TẮT TÁC NGHIỆP TRỰC CA -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0" style="border-radius: 12px;">
+            <div class="card-body p-3">
+                <div class="d-flex flex-wrap align-items-center justify-content-between">
+                    <div class="font-weight-bold text-muted mb-2 mb-md-0">
+                        <i class="fas fa-tools mr-1"></i> Tác vụ nhanh cho nhân viên trực ca:
+                    </div>
+                    <div>
+                        <a href="@Url.Action("Index", "ParkingSpot")" class="btn btn-outline-primary btn-sm mr-2 mb-1">
+                            <i class="fas fa-square mr-1"></i> Quản Lý Chỗ Đỗ
+                        </a>
+                        <a href="@Url.Action("Index", "ParkingArea")" class="btn btn-outline-success btn-sm mr-2 mb-1">
+                            <i class="fas fa-parking mr-1"></i> Quản Lý Bãi Đỗ
+                        </a>
+                        <a href="@Url.Action("Index", "Reservation")" class="btn btn-outline-warning text-dark btn-sm mr-2 mb-1">
+                            <i class="fas fa-calendar-check mr-1"></i> Kiểm Tra Đặt Chỗ
+                        </a>
+                        <a href="@Url.Action("Index", "Vehicle")" class="btn btn-outline-info btn-sm mr-2 mb-1">
+                            <i class="fas fa-car mr-1"></i> Tra Cứu Biển Số Xe
+                        </a>
+                        <a href="@Url.Action("Index", "Customer")" class="btn btn-outline-secondary btn-sm mb-1">
+                            <i class="fas fa-address-book mr-1"></i> Tra Cứu Khách Hàng
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

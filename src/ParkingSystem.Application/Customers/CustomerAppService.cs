@@ -35,7 +35,7 @@ public class CustomerAppService : AsyncCrudAppService<Customer, CustomerDto, lon
         var customer = await Repository.FirstOrDefaultAsync(x => x.UserId == userId);
         if (customer == null)
         {
-            throw new ResourceNotFoundException("Customer profile not found for current user.");
+            return null;
         }
 
         return ObjectMapper.Map<CustomerDto>(customer);

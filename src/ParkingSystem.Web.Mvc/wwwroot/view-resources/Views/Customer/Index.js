@@ -4,9 +4,7 @@
         l = abp.localization.getSource("ParkingSystem");
 
     // 2. DOM ELEMENTS
-    var _$createModal = $("#CustomerCreateModal"),
-        _$createForm = _$createModal.find("form"),
-        _$table = $("#CustomerTable"),
+    var _$table = $("#CustomerTable"),
         _$searchForm = $("#CustomerSearchForm"),
         _$editModal = $("#CustomerEditModal");
 
@@ -81,43 +79,7 @@
         ]
     });
 
-    // 5. FORM VALIDATION (CREATE) - Validated entirely in JS
-    _$createForm.validate({
-        rules: {
-            Name: {
-                required: true,
-                maxlength: 100
-            },
-            PhoneNumber: {
-                required: true,
-                maxlength: 20
-            },
-            Email: {
-                email: true,
-                maxlength: 255
-            }
-        }
-    });
 
-    // 6. CREATE (SAVE)
-    _$createForm.find(".save-button").on("click", function (e) {
-        e.preventDefault();
-        if (!_$createForm.valid()) {
-            return;
-        }
-
-        var customer = _$createForm.serializeFormToObject();
-
-        abp.ui.setBusy(_$createModal);
-        _customerService.create(customer).done(function () {
-            _$createModal.modal("hide");
-            _$createForm[0].reset();
-            abp.notify.info(l("SavedSuccessfully"));
-            _$customerTable.ajax.reload();
-        }).always(function () {
-            abp.ui.clearBusy(_$createModal);
-        });
-    });
 
     // 7. EDIT MODAL OPEN
     $(document).on("click", ".edit-customer", function (e) {
@@ -173,13 +135,7 @@
         _$customerTable.ajax.reload();
     });
 
-    // 10. MODAL EVENTS & ABP EVENT LISTENERS
-    _$createModal.on("shown.bs.modal", function () {
-        _$createModal.find("input:not([type=hidden]):first").focus();
-    }).on("hidden.bs.modal", function () {
-        _$createForm[0].reset();
-        _$createForm.validate().resetForm();
-    });
+    // 10. ABP EVENT LISTENERS
 
     abp.event.on("customer.edited", function () {
         _$customerTable.ajax.reload();

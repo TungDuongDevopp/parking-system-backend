@@ -16,12 +16,6 @@
                 <h1>@L("Customers")</h1>
             </div>
             <div class="col-sm-6">
-                @if (IsGranted(PermissionNames.Pages_Customers_ModifyAll))
-                {
-                    <a href="javascript:;" data-bs-toggle="modal" data-bs-target="#CustomerCreateModal" class="btn bg-blue float-sm-right">
-                        <i class="fa fa-plus-square"></i> @L("Create")
-                    </a>
-                }
             </div>
         </div>
     </div>
@@ -53,10 +47,7 @@
     </div>
 </section>
 
-@if (IsGranted(PermissionNames.Pages_Customers_ModifyAll))
-{
-    @await Html.PartialAsync("~/Views/Customer/_CreateModal.cshtml")
-}
+
 
 <div class="modal fade" id="CustomerEditModal" tabindex="-1" role="dialog" data-backdrop="static">
     <div class="modal-dialog modal-lg" role="document">

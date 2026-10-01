@@ -1,100 +1,95 @@
+@using ParkingSystem.Web.Models.Home
 @using ParkingSystem.Web.Startup
+@model ParkingSystem.Web.Models.Home.HomeViewModel
+
 @{
-    ViewBag.Title = L("HomePage");
+    ViewBag.Title = Model.Role == UserHomeRole.Admin 
+        ? "Admin Dashboard - Hệ Thống Bãi Đỗ Xe" 
+        : (Model.Role == UserHomeRole.Staff 
+            ? "Trực Ca Bãi Xe - Nhân Viên" 
+            : "Trang Chủ - Đặt Chỗ Đỗ Xe Thông Minh");
     ViewBag.CurrentPageName = PageNames.Home;
 }
 
-<div class="content-header">
+<style>
+    .hover-shadow {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hover-shadow:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .5rem 1.2rem rgba(0,0,0,.12) !important;
+    }
+    .role-badge-btn {
+        border-radius: 20px;
+        font-size: 0.85rem;
+        padding: 4px 14px;
+        font-weight: 600;
+    }
+</style>
+
+<!-- CONTENT HEADER & ROLE SWITCHER (FOR ADMIN) -->
+<div class="content-header pb-2">
     <div class="container-fluid">
-        <div class="row mb-2">
+        <div class="row align-items-center">
             <div class="col-sm-6">
-                <h1 class="m-0 text-dark">@L("HomePage") - Hệ Thống Quản Lý Bãi Đỗ Xe</h1>
+                <h1 class="m-0 text-dark font-weight-bold" style="font-size: 1.6rem;">
+                    @if (Model.Role == UserHomeRole.Admin)
+                    {
+                        <i class="fas fa-chart-line text-primary mr-2"></i>
+                        <span>Tổng Quan Quản Trị Hệ Thống</span>
+                    }
+                    else if (Model.Role == UserHomeRole.Staff)
+                    {
+                        <i class="fas fa-tasks text-warning mr-2"></i>
+                        <span>Bảng Tác Nghiệp Đỗ Xe</span>
+                    }
+                    else
+                    {
+                        <i class="fas fa-parking text-primary mr-2"></i>
+                        <span>Cổng Dịch Vụ Khách Hàng</span>
+                    }
+                </h1>
             </div>
-            <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                    <li class="breadcrumb-item"><a href="javascript:void(0);">ParkingSystem</a></li>
-                    <li class="breadcrumb-item active">@L("HomePage")</li>
-                </ol>
-            </div>
+
+            <!-- Role View Switcher for Admin testing / previewing -->
+            @if (Model.CanSwitchRoleView)
+            {
+                <div class="col-sm-6 text-sm-right mt-2 mt-sm-0">
+                    <span class="text-muted small mr-2">Xem giao diện theo vai trò:</span>
+                    <div class="btn-group shadow-sm" role="group">
+                        <a href="@Url.Action("Index", "Home", new { role = "admin" })" 
+                           class="btn btn-sm @(Model.Role == UserHomeRole.Admin ? "btn-primary font-weight-bold" : "btn-outline-primary")">
+                            <i class="fas fa-user-shield mr-1"></i> Admin
+                        </a>
+                        <a href="@Url.Action("Index", "Home", new { role = "staff" })" 
+                           class="btn btn-sm @(Model.Role == UserHomeRole.Staff ? "btn-warning text-dark font-weight-bold" : "btn-outline-secondary")">
+                            <i class="fas fa-user-tie mr-1"></i> Staff
+                        </a>
+                        <a href="@Url.Action("Index", "Home", new { role = "customer" })" 
+                           class="btn btn-sm @(Model.Role == UserHomeRole.Customer ? "btn-success font-weight-bold" : "btn-outline-secondary")">
+                            <i class="fas fa-user mr-1"></i> Customer
+                        </a>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
 
+<!-- MAIN CONTENT -->
 <section class="content">
     <div class="container-fluid">
-        <!-- Thống kê nhanh bãi đỗ xe -->
-        <div class="row">
-            <div class="col-12 col-sm-6 col-md-3">
-                <div class="info-box">
-                    <span class="info-box-icon bg-info elevation-1"><i class="fas fa-parking"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Tổng số chỗ đỗ</span>
-                        <span class="info-box-number">--</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-3">
-                <div class="info-box mb-3">
-                    <span class="info-box-icon bg-success elevation-1"><i class="fas fa-check-circle"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Chỗ còn trống</span>
-                        <span class="info-box-number">--</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-3">
-                <div class="info-box mb-3">
-                    <span class="info-box-icon bg-warning elevation-1"><i class="fas fa-car"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Xe đang đỗ</span>
-                        <span class="info-box-number">--</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-sm-6 col-md-3">
-                <div class="info-box mb-3">
-                    <span class="info-box-icon bg-danger elevation-1"><i class="fas fa-users"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Khách hàng</span>
-                        <span class="info-box-number">--</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Khung làm việc chính -->
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card card-primary card-outline">
-                    <div class="card-header">
-                        <h3 class="card-title"><i class="fas fa-tachometer-alt mr-1"></i> Chào mừng bạn đến với Parking System</h3>
-                    </div>
-                    <div class="card-body">
-                        <p class="lead">Hệ thống đã được dọn dẹp sạch sẽ các dữ liệu mẫu và sẵn sàng để bạn phát triển các tính năng quản lý bãi đỗ xe.</p>
-                        <hr />
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="callout callout-info">
-                                    <h5><i class="fas fa-sign-in-alt"></i> Vào bãi (Check-In)</h5>
-                                    <p>Ghi nhận phương tiện vào bãi, quét biển số hoặc cấp thẻ xe.</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="callout callout-success">
-                                    <h5><i class="fas fa-sign-out-alt"></i> Ra bãi (Check-Out)</h5>
-                                    <p>Tính toán thời gian gửi, biểu phí và thu phí thanh toán.</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="callout callout-warning">
-                                    <h5><i class="fas fa-id-card"></i> Quản lý khách hàng & Thẻ</h5>
-                                    <p>Quản lý thông tin khách hàng vé tháng, thẻ xe và lịch sử đỗ xe.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @if (Model.Role == UserHomeRole.Customer)
+        {
+            @await Html.PartialAsync("_CustomerHome", Model)
+        }
+        else if (Model.Role == UserHomeRole.Staff)
+        {
+            @await Html.PartialAsync("_StaffHome", Model)
+        }
+        else
+        {
+            @await Html.PartialAsync("_AdminHome", Model)
+        }
     </div>
 </section>
