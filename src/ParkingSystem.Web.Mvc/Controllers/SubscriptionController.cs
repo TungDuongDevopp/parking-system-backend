@@ -42,11 +42,7 @@ public class SubscriptionController : ParkingSystemControllerBase
         var canViewAll = await IsGrantedAsync(PermissionNames.Pages_Subscriptions_Manager);
         if (!canViewAll)
         {
-            var userId = AbpSession.UserId;
-            if (userId.HasValue)
-            {
-                subQuery = subQuery.Where(x => x.Customer.UserId == userId.Value);
-            }
+           return RedirectToAction(nameof(MySubscription));
         }
 
         var customerIds = subQuery.Select(s => s.CustomerId).Distinct();
@@ -93,6 +89,7 @@ public class SubscriptionController : ParkingSystemControllerBase
     /// Customer-facing "My Subscription" page.
     /// Managers/admins who land here are redirected to the admin Index.
     /// </summary>
+   
     public async Task<IActionResult> MySubscription()
     {
         if (await IsGrantedAsync(PermissionNames.Pages_Subscriptions_Manager))

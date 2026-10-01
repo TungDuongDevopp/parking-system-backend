@@ -69,9 +69,17 @@ public class ParkingSystemNavigationProvider : NavigationProvider
                     L("Staffs"),
                     url: "Staff",
                     icon: "fas fa-user-tie",
-                    permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_Staffs)
+                    permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_Staffs_Manager)
                 )
             ).AddItem(
+                new MenuItemDefinition(
+                    PageNames.StaffProfile,
+                    L("MyProfile"),
+                    url: "Staff/Profile",
+                    icon: "fas fa-id-card",
+                    permissionDependency: new StaffProfilePermissionDependency()
+                    )
+                ).AddItem(
                 new MenuItemDefinition(
                     PageNames.Vehicles,
                     L("Vehicles"),
@@ -95,7 +103,7 @@ public class ParkingSystemNavigationProvider : NavigationProvider
                     icon: "fas fa-square",
                     permissionDependency: new SimplePermissionDependency(PermissionNames.Pages_ParkingSpots)
                     )
-                
+
                 ).AddItem(
                 new MenuItemDefinition(
                     PageNames.Quotations,
@@ -141,6 +149,7 @@ public class ParkingSystemNavigationProvider : NavigationProvider
                     permissionDependency: new CustomerReservationPermissionDependency()
                     )
                 );
+        
 
     }
 
@@ -247,3 +256,33 @@ public class CustomerReservationPermissionDependency : IPermissionDependency
         );
     }
 }
+
+public class StaffProfilePermissionDependency : IPermissionDependency
+{
+    public bool IsSatisfied(IPermissionDependencyContext context)
+    {
+        return AsyncHelper.RunSync(() => IsSatisfiedAsync(context));
+    }
+    public async Task<bool> IsSatisfiedAsync(IPermissionDependencyContext context)
+    {
+        if (context.User == null)
+        {
+            return false;
+        }
+        // If the user has permission to view all staff (Manager, Admin),
+        // they should see "Staffs" management, not "My Profile".
+        var canViewAll = await context.PermissionChecker.IsGrantedAsync(
+            context.User,
+            PermissionNames.Pages_Staffs_Manager
+        );
+        if (canViewAll)
+        {
+            return false;
+        }
+        // Staff user must have base Staff permission
+        return await context.PermissionChecker.IsGrantedAsync(
+            context.User,
+            PermissionNames.Pages_Staffs
+        );
+    }
+}   

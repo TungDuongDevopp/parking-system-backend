@@ -17,5 +17,9 @@ public class StaffMapProfile : Profile
             .ForAllMembers(opt =>
                 opt.Condition((src, dest, srcMember) => srcMember != null));
         CreateMap<ChangeStatusDto, Staff>();
+      
+        CreateMap<ChangeProfileDto, Staff>()      
+            .ForAllMembers(opt =>
+                opt.Condition((src, dest, srcMember) => srcMember != null)) ;
     }
 }

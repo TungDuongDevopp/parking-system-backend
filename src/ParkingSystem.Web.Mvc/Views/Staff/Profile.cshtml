@@ -1,0 +1,104 @@
+﻿@using ParkingSystem.Web.Startup
+@using ParkingSystem.Staffs.Dto
+@model StaffDto
+@{
+    ViewBag.Title = L("MyProfile");
+    ViewBag.CurrentPageName = PageNames.StaffProfile;
+}
+@section scripts
+{
+    <script src="~/view-resources/Views/Staff/Profile.js" asp-append-version="true"></script>
+}
+
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1>@L("MyProfile")</h1>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 col-lg-6">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-id-card mr-1 me-1"></i>
+                            @L("StaffProfile")
+                        </h3>
+                    </div>
+                    <form id="StaffProfileForm" role="form" class="form-horizontal">
+                        <input type="hidden" name="Id" value="@Model.Id" />
+                        <div class="card-body">
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-3 col-form-label">@L("Name") <span class="text-danger">*</span></label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="Name" value="@Model.Name" maxlength="100" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-3 col-form-label">@L("PhoneNumber") <span class="text-danger">*</span></label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control" name="PhoneNumber" value="@Model.PhoneNumber" maxlength="20" required>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-3 col-form-label">@L("EmailAddress")</label>
+                                <div class="col-sm-9">
+                                    <input type="email" class="form-control" name="Email" value="@Model.Email" maxlength="255">
+                                </div>
+                            </div>
+                            <div class="form-group row mb-3">
+                                <label class="col-md-3 col-form-label">@L("Gender")</label>
+                                <div class="col-md-9">
+                                    <select class="form-control" name="Gender">
+                                        <option value="" selected="@(!Model.Gender.HasValue)">@L("Unspecified")</option>
+                                        <option value="true" selected="@(Model.Gender.HasValue && Model.Gender.Value)">@L("Male")</option>
+                                        <option value="false" selected="@(Model.Gender.HasValue && !Model.Gender.Value)">@L("Female")</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-3">
+                                <label class="col-md-3 col-form-label">@L("DateOfBirth")</label>
+                                <div class="col-md-9">
+                                    <input type="date" class="form-control" name="DateOfBirth"
+                                           value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))"
+                                           max="@DateTime.Today.ToString("yyyy-MM-dd")">
+                                </div>
+                            </div>
+                            <div class="form-group row mb-3">
+                                <label class="col-md-3 col-form-label">@L("HiredDate") <span class="text-danger">*</span></label>
+                                <div class="col-md-9">
+                                    <input type="date" class="form-control" name="HiredDate"
+                                           value="@(Model.HiredDate.ToString("yyyy-MM-dd"))"
+                                           max="@DateTime.Today.ToString("yyyy-MM-dd")" readonly>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-3">
+                                <label class="col-md-3 col-form-label">@L("Address")</label>
+                                <div class="col-md-9">
+                                    <textarea class="form-control" name="Address" rows="2" maxlength="1023">@Model.Address</textarea>
+                                </div>
+                            </div>
+                            <div class="form-group row mb-3">
+                                <label class="col-sm-3 col-form-label text-muted">@L("CreationTime")</label>
+                                <div class="col-sm-9">
+                                    <input type="text" class="form-control-plaintext text-muted" readonly value="@Model.CreationTime.ToString("yyyy-MM-dd HH:mm:ss")">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary save-button">
+                                <i class="fas fa-save mr-1 me-1"></i> @L("Save")
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

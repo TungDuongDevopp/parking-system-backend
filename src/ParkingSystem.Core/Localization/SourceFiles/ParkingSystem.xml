@@ -52,6 +52,7 @@
 	<text name="StaffDeleteWarningMessage">Staff {0} will be deleted.</text>
 	<text name="SelectUserWithStaffRoleInfo">Only users with the 'Staff' role who do not yet have a staff profile are shown.</text>
 	<text name="NoAvailableStaffUserWarning">There are no users with the 'Staff' role available. Please assign the 'Staff' role to a user in the Users page first.</text>
+	  <text name="PersonalEmailAddress">Personal Email</text>  
 	 
 	 //Cấu hình trang vehicle
 	<text name="CreateNewVehicle" value="Create new vehicle" />
