@@ -17,6 +17,8 @@ public class PageNames
     public const string CustomerProfile = "CustomerProfile";
 
     public const string Staffs = "Staffs";
+
+    public const string StaffProfile = "StaffProfile";
     public const string Vehicles = "Vehicles";
     public const string ParkingAreas = "ParkingAreas";
     public const string ParkingSpots = "ParkingSpots";

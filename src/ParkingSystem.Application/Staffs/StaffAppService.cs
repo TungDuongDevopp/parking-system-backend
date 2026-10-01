@@ -154,6 +154,9 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
 
         return ObjectMapper.Map<StaffDto>(staff);
     }
+
+
+    [AbpAuthorize(PermissionNames.Pages_Staffs_Manager)]
     public override async Task<StaffDto> CreateAsync(CreateStaffDto input)
     {
         // 1. Kiểm tra user tồn tại
@@ -209,6 +212,7 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
         return MapToEntityDto(created);
     }
 
+    [AbpAuthorize(PermissionNames.Pages_Staffs_Manager)]
     public override async Task<StaffDto> UpdateAsync(UpdateStaffDto input)
     {
         var entity = await Repository.FirstOrDefaultAsync(input.Id);
@@ -216,7 +220,6 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
         {
             throw new ResourceNotFoundException("Staff not found with id: " + input.Id);
         }
-        await CheckStaffModifyAccessAsync(entity);
         var existStaff = await Repository
            .GetAll()
            .AnyAsync(x => x.Id != input.Id &&
@@ -236,6 +239,7 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
         return MapToEntityDto(entity);
     }
 
+    [AbpAuthorize(PermissionNames.Pages_Staffs_Manager)]
     public override async Task DeleteAsync(EntityDto<long> input)
     {
         var entity = await Repository.FirstOrDefaultAsync(input.Id);
@@ -268,4 +272,50 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
 
         return MapToEntityDto(entity);
     }
+
+    public async Task<StaffDto> ChangeProfileAsync(ChangeProfileDto input)
+    {
+        var userId = AbpSession.UserId
+            ?? throw new AbpAuthorizationException("User is not logged in.");
+        var entity = await Repository.GetAll()
+            .FirstOrDefaultAsync(x => x.UserId == userId);
+        if (entity == null)
+        {
+            throw new ResourceNotFoundException(
+                "Staff profile not found for the current user."
+            );
+        }
+        // Check for duplicate phone/email
+        var existStaff = await Repository
+            .GetAll()
+            .AnyAsync(x => x.Id != entity.Id &&
+                ( input.PhoneNumber != null && x.PhoneNumber == input.PhoneNumber ||
+                 (input.Email != null && x.Email == input.Email)));
+        if (existStaff)
+        {
+            throw new DuplicateResourceException(
+                "A Staff with the same phone number or email already exists."
+            );
+        }
+        ObjectMapper.Map(input, entity);
+        await CurrentUnitOfWork.SaveChangesAsync();
+        return MapToEntityDto(entity);
+    }
+
+    public async Task<StaffDto> GetMyProfileAsync()
+    {
+        var userId = AbpSession.UserId
+            ?? throw new AbpAuthorizationException("User is not logged in.");
+        var entity = await Repository.GetAll()
+            .FirstOrDefaultAsync(x => x.UserId == userId);
+        if (entity == null)
+        {
+            throw new ResourceNotFoundException(
+                "Staff profile not found for the current user."
+            );
+        }
+        return MapToEntityDto(entity);
+    }
+
+
 }

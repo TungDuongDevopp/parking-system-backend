@@ -7,52 +7,51 @@ using ParkingSystem.Customers;
 using ParkingSystem.Web.Models.Customer;
 using System.Threading.Tasks;
 
-namespace ParkingSystem.Web.Controllers
+namespace ParkingSystem.Web.Controllers;
+
+[AbpMvcAuthorize(PermissionNames.Pages_Customers)]
+public class CustomerController : ParkingSystemControllerBase
 {
-    [AbpMvcAuthorize(PermissionNames.Pages_Customers)]
-    public class CustomerController : ParkingSystemControllerBase
+    private readonly ICustomerAppService _customerAppService;
+
+    public CustomerController(ICustomerAppService customerAppService)
     {
-        private readonly ICustomerAppService _customerAppService;
+        _customerAppService = customerAppService;
+    }
 
-        public CustomerController(ICustomerAppService customerAppService)
+    public async Task<IActionResult> Index()
+    {
+        if (!await IsGrantedAsync(PermissionNames.Pages_Customers_ViewAll))
         {
-            _customerAppService = customerAppService;
+            return RedirectToAction(nameof(Profile));
         }
 
-        public async Task<IActionResult> Index()
+        return View();
+    }
+
+    public async Task<IActionResult> Profile()
+    {
+        var customer = await _customerAppService.GetMyProfileAsync();
+        if (customer == null)
         {
-            if (!await IsGrantedAsync(PermissionNames.Pages_Customers_ViewAll))
-            {
-                return RedirectToAction(nameof(Profile));
-            }
-
-            return View();
+            return RedirectToAction(nameof(CreateProfile));
         }
+        return View(customer);
+    }
 
-        public async Task<IActionResult> Profile()
+    public IActionResult CreateProfile()
+    {
+        return View();
+    }
+
+    public async Task<ActionResult> EditModal(long customerId)
+    {
+        var customer = await _customerAppService.GetAsync(new EntityDto<long>(customerId));
+        var model = new EditCustomerViewModel
         {
-            var customer = await _customerAppService.GetMyProfileAsync();
-            if (customer == null)
-            {
-                return RedirectToAction(nameof(CreateProfile));
-            }
-            return View(customer);
-        }
+            Customer = customer
+        };
 
-        public IActionResult CreateProfile()
-        {
-            return View();
-        }
-
-        public async Task<ActionResult> EditModal(long customerId)
-        {
-            var customer = await _customerAppService.GetAsync(new EntityDto<long>(customerId));
-            var model = new EditCustomerViewModel
-            {
-                Customer = customer
-            };
-
-            return PartialView("_EditModal", model);
-        }
+        return PartialView("_EditModal", model);
     }
 }
