@@ -1,7 +1,9 @@
 ﻿
 
 using Abp.Application.Services.Dto;
+using ParkingSystem.ParkingSpots.Dto;
 using ParkingSystem.Reservations.Dto;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ParkingSystem.Reservations;
@@ -16,4 +18,6 @@ public interface IReservationAppService
         PagedReservationResultRequestDto input);
 
     Task<ReservationDto> Canceled(EntityDto<long> input);
+
+    Task<ReservationLookUpDto> GetReservationLookUpAsync();
 }

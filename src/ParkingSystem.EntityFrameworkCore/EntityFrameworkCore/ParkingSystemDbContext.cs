@@ -83,9 +83,9 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
                 .OnDelete(DeleteBehavior.Restrict);
         
         modelBuilder.Entity<Vehicle>()
-       .HasIndex(v => v.VehicleCode)
-       .IsUnique()
-       .HasFilter("[IsDeleted] = 0");
+               .HasIndex(v => v.VehicleCode)
+               .IsUnique()
+               .HasFilter("[IsDeleted] = 0");
 
         modelBuilder.Entity<Vehicle>()
             .HasIndex(v => v.LicensePlate)
@@ -135,6 +135,10 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
 
         //ParkingSession entity configuration
         modelBuilder.Entity<ParkingSession>()
+            .HasIndex(ps => ps.TicketCode)
+            .IsUnique();
+          
+        modelBuilder.Entity<ParkingSession>()
             .HasOne(ps => ps.ParkingSpot)
             .WithMany()
             .HasForeignKey(ps => ps.ParkingSpotId)
@@ -157,7 +161,24 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
             .HasOne(ps => ps.Quotation)
             .WithMany()
             .HasForeignKey(ps => ps.QuotationId)
-            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ParkingSession>()
+            .HasOne(ps => ps.Subscription)
+            .WithMany(s => s.ParkingSessions)
+            .HasForeignKey(ps => ps.SubscriptionId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ParkingSession>()
+            .HasOne(ps => ps.CheckInStaff)
+            .WithMany(s => s.CheckInParkingSessions)
+            .HasForeignKey(ps => ps.CheckInStaffId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ParkingSession>()
+            .HasOne(ps => ps.CheckOutStaff)
+            .WithMany(s => s.CheckOutParkingSessions)
+            .HasForeignKey(ps => ps.CheckOutStaffId)
             .OnDelete(DeleteBehavior.Restrict);
 
 
@@ -166,7 +187,12 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
             .HasOne(p => p.Subscription)
             .WithMany(s => s.Payments)
             .HasForeignKey(p => p.SubscriptionId)
-            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Payment>()
+            .HasOne(p => p.ParkingSession)
+            .WithMany(ps => ps.Payments)
+            .HasForeignKey(p => p.ParkingSessionId)
             .OnDelete(DeleteBehavior.Restrict);
 
         //PaymentTransaction entity configuration
@@ -220,5 +246,24 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
             .HasDatabaseName("UX_Reservations_ActiveParkingSpot")
             .IsUnique()
             .HasFilter("[ParkingSpotId] IS NOT NULL AND [Status] = 1 AND [IsDeleted] = 0");
+
+        //ParkingSession entity configuration for unique active session per vehicle
+        modelBuilder.Entity<ParkingSession>()
+            .HasIndex(ps => ps.VehicleId)
+            .HasDatabaseName("UX_ParkingSessions_ActiveVehicle")
+            .IsUnique()
+            .HasFilter("[VehicleId] IS NOT NULL AND [ExitTime] IS NULL");
+
+        modelBuilder.Entity<ParkingSession>()
+            .HasIndex(ps => ps.ParkingSpotId)
+            .HasDatabaseName("UX_ParkingSessions_ActiveParkingSpot")
+            .IsUnique()
+            .HasFilter("[ParkingSpotId] IS NOT NULL AND [ExitTime] IS NULL");
+
+        modelBuilder.Entity<ParkingSession>()
+            .HasIndex(ps => ps.PlateNumber)
+            .HasDatabaseName("UX_ParkingSessions_ActivePlateNumber")
+            .IsUnique()
+            .HasFilter("[PlateNumber] IS NOT NULL  AND [ExitTime] IS NULL");
     }
 }

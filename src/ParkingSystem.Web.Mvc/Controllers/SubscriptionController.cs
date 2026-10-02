@@ -16,20 +16,11 @@ namespace ParkingSystem.Web.Controllers;
 public class SubscriptionController : ParkingSystemControllerBase
 {
     private readonly ISubscriptionAppService _subscriptionAppService;
-    private readonly IRepository<Customer, long> _customerRepository;
-    private readonly IRepository<Quotation, long> _quotationRepository;
-    private readonly IRepository<Subscription, long> _subscriptionRepository;
 
     public SubscriptionController(
-        ISubscriptionAppService subscriptionAppService,
-        IRepository<Customer, long> customerRepository,
-        IRepository<Quotation, long> quotationRepository,
-        IRepository<Subscription, long> subscriptionRepository)
+        ISubscriptionAppService subscriptionAppService)
     {
         _subscriptionAppService = subscriptionAppService;
-        _customerRepository = customerRepository;
-        _quotationRepository = quotationRepository;
-        _subscriptionRepository = subscriptionRepository;
     }
 
     /// <summary>
@@ -37,7 +28,7 @@ public class SubscriptionController : ParkingSystemControllerBase
     /// </summary>
     public async Task<IActionResult> Index()
     {
-        var subQuery = _subscriptionRepository.GetAll().AsNoTracking();
+      
 
         var canViewAll = await IsGrantedAsync(PermissionNames.Pages_Subscriptions_Manager);
         if (!canViewAll)
@@ -45,41 +36,12 @@ public class SubscriptionController : ParkingSystemControllerBase
            return RedirectToAction(nameof(MySubscription));
         }
 
-        var customerIds = subQuery.Select(s => s.CustomerId).Distinct();
-        var quotationIds = subQuery.Select(s => s.QuotationId).Distinct();
-
-        var customers = await _customerRepository.GetAll()
-            .AsNoTracking()
-            .Where(c => customerIds.Contains(c.Id))
-            .OrderBy(c => c.Name)
-            .Select(c => new SubscriptionCustomerLookupDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                PhoneNumber = c.PhoneNumber
-            })
-            .ToListAsync();
-
-        var quotations = await _quotationRepository.GetAll()
-            .AsNoTracking()
-            .Where(q => quotationIds.Contains(q.Id))
-            .OrderBy(q => q.VehicleType)
-            .ThenBy(q => q.DurationUnit)
-            .ThenBy(q => q.Duration)
-            .Select(q => new SubscriptionQuotationLookupDto
-            {
-                Id = q.Id,
-                VehicleType = q.VehicleType,
-                Duration = q.Duration,
-                DurationUnit = q.DurationUnit,
-                Price = q.Price
-            })
-            .ToListAsync();
+       var subscriptionInfo = await _subscriptionAppService.GetSubscriptionLookUpAsync();
 
         var model = new SubscriptionListViewModel
         {
-            Customers = customers,
-            Quotations = quotations
+            Customers = subscriptionInfo.Customers,
+            Quotations = subscriptionInfo.Quotations
         };
 
         return View(model);

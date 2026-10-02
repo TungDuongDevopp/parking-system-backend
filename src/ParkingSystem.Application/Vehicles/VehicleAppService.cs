@@ -25,9 +25,14 @@ namespace ParkingSystem.Vehicles;
 public class VehicleAppService : AsyncCrudAppService<Vehicle, VehicleDto, long, PagedVehicleResultRequestDto, CreateVehicleDto, UpdateVehicleDto>, IVehicleAppService
 {
     private readonly IRepository<Customer,long> _customerRepository;
-    public VehicleAppService(IRepository<Vehicle, long> repository,IRepository<Customer,long> customerRepository) : base(repository)
+    private readonly IRepository<Reservation, long> _reservationRepository;
+
+    private readonly IRepository<ParkingSession, long> _parkingSessionRepository;
+    public VehicleAppService(IRepository<Vehicle, long> repository,IRepository<Customer,long> customerRepository, IRepository<Reservation, long> reservationRepository, IRepository<ParkingSession, long> parkingSessionRepository) : base(repository)
     {
         _customerRepository = customerRepository;
+        _reservationRepository = reservationRepository;
+        _parkingSessionRepository = parkingSessionRepository;
 
     }
     private string GetVehiclePrefix(VehicleType type)
@@ -245,6 +250,14 @@ public class VehicleAppService : AsyncCrudAppService<Vehicle, VehicleDto, long, 
         if (entity == null)
         {
             throw new ResourceNotFoundException("Vehicle not found with id: " + input.Id);
+        }
+
+        var isVehicleInParkingSession = await _parkingSessionRepository.GetAll()
+            .AnyAsync(ps => ps.VehicleId == entity.Id && ps.Status == ParkingSessionStatus.Active);
+
+        if (isVehicleInParkingSession)
+        {
+            throw new BusinessRuleException("Cannot delete vehicle that is currently in a parking session.");
         }
 
         await CheckVehicleAccessAsync(entity);

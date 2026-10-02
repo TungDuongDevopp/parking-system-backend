@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ParkingSystem.EntityFrameworkCore;
 
@@ -11,9 +12,11 @@ using ParkingSystem.EntityFrameworkCore;
 namespace ParkingSystem.Migrations
 {
     [DbContext(typeof(ParkingSystemDbContext))]
-    partial class ParkingSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261002071204_Session")]
+    partial class Session
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2067,9 +2070,6 @@ namespace ParkingSystem.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 

@@ -24,4 +24,6 @@ public interface ISubscriptionAppService
     /// Returns quotations that customers are allowed to purchase (Week / Month / Year only).
     /// </summary>
     Task<List<QuotationDto>> GetAvailableQuotationsAsync();
+
+    Task <SubscriptionLookUpDto> GetSubscriptionLookUpAsync();
 }

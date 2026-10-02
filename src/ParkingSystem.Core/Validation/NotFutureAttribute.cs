@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Abp.Timing;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace ParkingSystem.Validation
                 return true;
 
             return value is DateTime dateTimeValue
-                && dateTimeValue <= DateTime.Now;
+                && dateTimeValue <= Clock.Now;
         }
     }
 }

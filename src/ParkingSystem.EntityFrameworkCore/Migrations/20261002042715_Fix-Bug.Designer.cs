@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ParkingSystem.EntityFrameworkCore;
 
@@ -11,9 +12,11 @@ using ParkingSystem.EntityFrameworkCore;
 namespace ParkingSystem.Migrations
 {
     [DbContext(typeof(ParkingSystemDbContext))]
-    partial class ParkingSystemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261002042715_Fix-Bug")]
+    partial class FixBug
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1702,12 +1705,6 @@ namespace ParkingSystem.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("CheckInStaffId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("CheckOutStaffId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("CreationTime")
                         .HasColumnType("datetime2");
 
@@ -1749,9 +1746,6 @@ namespace ParkingSystem.Migrations
                     b.Property<long?>("QuotationId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.Property<long?>("SubscriptionId")
                         .HasColumnType("bigint");
 
@@ -1763,10 +1757,6 @@ namespace ParkingSystem.Migrations
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CheckInStaffId");
-
-                    b.HasIndex("CheckOutStaffId");
 
                     b.HasIndex("ParkingAreaId");
 
@@ -2067,9 +2057,6 @@ namespace ParkingSystem.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -2481,16 +2468,6 @@ namespace ParkingSystem.Migrations
 
             modelBuilder.Entity("ParkingSystem.Entities.ParkingSession", b =>
                 {
-                    b.HasOne("ParkingSystem.Entities.Staff", "CheckInStaff")
-                        .WithMany("CheckInParkingSessions")
-                        .HasForeignKey("CheckInStaffId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("ParkingSystem.Entities.Staff", "CheckOutStaff")
-                        .WithMany("CheckOutParkingSessions")
-                        .HasForeignKey("CheckOutStaffId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("ParkingSystem.Entities.ParkingArea", "ParkingArea")
                         .WithMany()
                         .HasForeignKey("ParkingAreaId")
@@ -2516,10 +2493,6 @@ namespace ParkingSystem.Migrations
                         .WithMany("ParkingSessions")
                         .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("CheckInStaff");
-
-                    b.Navigation("CheckOutStaff");
 
                     b.Navigation("ParkingArea");
 
@@ -2756,13 +2729,6 @@ namespace ParkingSystem.Migrations
             modelBuilder.Entity("ParkingSystem.Entities.Payment", b =>
                 {
                     b.Navigation("PaymentTransactions");
-                });
-
-            modelBuilder.Entity("ParkingSystem.Entities.Staff", b =>
-                {
-                    b.Navigation("CheckInParkingSessions");
-
-                    b.Navigation("CheckOutParkingSessions");
                 });
 
             modelBuilder.Entity("ParkingSystem.Entities.Subscription", b =>

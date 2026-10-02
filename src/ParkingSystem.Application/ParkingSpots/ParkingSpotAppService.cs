@@ -7,6 +7,7 @@ using Abp.Domain.Repositories;
 using Abp.Extensions;
 using Abp.Linq.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using ParkingSystem.Authorization;
 using ParkingSystem.Entities;
 using ParkingSystem.Entities.Enums;
@@ -14,6 +15,7 @@ using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.ParkingSpots.Dto;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -89,7 +91,7 @@ public class ParkingSpotAppService : AsyncCrudAppService<ParkingSpot,ParkingSpot
         
 
         var existAreaCode = await Repository.GetAll()
-                .AnyAsync(x =>
+                .AnyAsync(x => x.ParkingAreaId == area.Id &&
                     x.SpotCode == input.SpotCode);
 
        if (existAreaCode)
@@ -193,4 +195,29 @@ public class ParkingSpotAppService : AsyncCrudAppService<ParkingSpot,ParkingSpot
 
         await CurrentUnitOfWork.SaveChangesAsync();
     }
+
+    public async Task<List<ParkingSpotLookUpDto>> GetParkingAreaLookUpAsync()
+    {
+        var allSpots = await Repository.GetAll()
+            .AsNoTracking()
+            .ToListAsync();
+
+        var parkingAreaIds = allSpots.Select(s => s.ParkingAreaId).Distinct();
+
+        return await _parkingAreaRepository.GetAll()
+        .AsNoTracking()
+        .Where(a => parkingAreaIds.Contains(a.Id))
+        .OrderBy(a => a.ParkingCode)
+        .Select(a => new ParkingSpotLookUpDto
+        {
+            Id = a.Id,
+            ParkingCode = a.ParkingCode,
+            VehicleType = a.VehicleType
+        })
+        .ToListAsync();
+
+
+    }
+
+   
 }

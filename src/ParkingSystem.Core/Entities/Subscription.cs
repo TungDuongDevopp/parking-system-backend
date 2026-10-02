@@ -32,6 +32,9 @@ public class Subscription: Entity<long>, IHasCreationTime, IHasModificationTime
     public DateTime CreationTime { get; set; }
     public DateTime? LastModificationTime { get; set; }
 
+    [Required]
+    public decimal TotalAmount { get; set; }
+
     public Subscription()
     {
         CreationTime = Clock.Now;
@@ -39,4 +42,5 @@ public class Subscription: Entity<long>, IHasCreationTime, IHasModificationTime
     }
 
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+    public ICollection<ParkingSession> ParkingSessions { get; set; } = new List<ParkingSession>();
 }

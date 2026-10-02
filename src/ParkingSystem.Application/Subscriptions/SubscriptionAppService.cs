@@ -103,7 +103,8 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
                     input.StartTime.AddYears(quotation.Duration),
 
                 _ => throw new UserFriendlyException("Invalid duration unit")
-            }
+            },
+            TotalAmount = quotation.Price,
         };
 
         var created = await _repository.InsertAsync(subscription);
@@ -167,6 +168,8 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
                 nameof(Subscription.CreationTime),
                 nameof(Subscription.QuotationId),
                 nameof(Subscription.Status),
+                nameof(Subscription.TotalAmount),
+                "totalAmount",
                 "customerName",
                 "duration",
                 "vehicleType",
@@ -196,11 +199,13 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
                     query = query.OrderByDescending(x => x.Quotation.VehicleType);
                     break;
 
+                case "totalAmount asc":
                 case "price asc":
-                    query = query.OrderBy(x => x.Quotation.Price);
+                    query = query.OrderBy(x => x.TotalAmount);
                     break;
+                case "totalAmount desc":
                 case "price desc":
-                    query = query.OrderByDescending(x => x.Quotation.Price);
+                    query = query.OrderByDescending(x => x.TotalAmount);
                     break;
 
                 default:
@@ -290,5 +295,45 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
             .ToListAsync();
 
         return ObjectMapper.Map<List<QuotationDto>>(quotations);
+    }
+
+    public async Task<SubscriptionLookUpDto> GetSubscriptionLookUpAsync()
+    {
+        var subQuery = _repository.GetAll().AsNoTracking();
+        var customerIds = subQuery.Select(s => s.CustomerId).Distinct();
+        var quotationIds = subQuery.Select(s => s.QuotationId).Distinct();
+
+        var customers = await _customerRepository.GetAll()
+            .AsNoTracking()
+            .Where(c => customerIds.Contains(c.Id))
+            .OrderBy(c => c.Name)
+            .Select(c => new SubscriptionCustomerLookupDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                PhoneNumber = c.PhoneNumber
+            })
+            .ToListAsync();
+
+        var quotations = await _quotationRepository.GetAll()
+            .AsNoTracking()
+            .Where(q => quotationIds.Contains(q.Id))
+            .OrderBy(q => q.VehicleType)
+            .ThenBy(q => q.DurationUnit)
+            .ThenBy(q => q.Duration)
+            .Select(q => new SubscriptionQuotationLookupDto
+            {
+                Id = q.Id,
+                VehicleType = q.VehicleType,
+                Duration = q.Duration,
+                DurationUnit = q.DurationUnit,
+                Price = q.Price
+            })
+            .ToListAsync();
+        return new SubscriptionLookUpDto
+        {
+            Customers = customers,
+            Quotations = quotations
+        };
     }
 }

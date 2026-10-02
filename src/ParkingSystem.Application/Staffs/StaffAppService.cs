@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using ParkingSystem.Authorization;
 using ParkingSystem.Authorization.Users;
 using ParkingSystem.Entities;
+using ParkingSystem.Entities.Enums;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.Staffs.Dto;
@@ -22,13 +23,15 @@ namespace ParkingSystem.Staffs;
 public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedStaffResultRequestDto, CreateStaffDto, UpdateStaffDto>, IStaffAppService
 {
     private readonly UserManager _userManager;
-
+    private readonly IRepository<ParkingSession, long> _parkingSessionRepository;
     public StaffAppService(
         IRepository<Staff, long> repository,
-        UserManager userManager)
+        UserManager userManager,
+        IRepository<ParkingSession, long> parkingSessionRepository)
         : base(repository)
     {
         _userManager = userManager;
+        _parkingSessionRepository = parkingSessionRepository;
     }
 
     protected override IQueryable<Staff> CreateFilteredQuery(PagedStaffResultRequestDto input)
@@ -94,14 +97,30 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
              nameof(Staff.Gender)
               );
             if (sorting == "Gender asc")
-                return query.OrderByDescending(x => x.Gender);
+                return query.OrderBy(x => x.Gender);
 
             if (sorting == "Gender desc")
-                return query.OrderBy(x => x.Gender);
+                return query.OrderByDescending(x => x.Gender);
 
             return query.OrderBy(sorting);
         }
         return query.OrderByDescending(x => x.Id);
+    }
+    private async Task EnsureStaffCanBeModifiedAsync(Staff staff)
+    {
+        var hasActiveSession = await _parkingSessionRepository
+            .GetAll()
+            .AnyAsync(x =>
+                x.Status == ParkingSessionStatus.Active &&
+                (x.CheckInStaffId == staff.Id ||
+                 x.CheckOutStaffId == staff.Id));
+
+        if (hasActiveSession)
+        {
+            throw new BusinessRuleException(
+                "Cannot modify or delete this staff because they are currently handling an ongoing parking session."
+            );
+        }
     }
 
     private async Task CheckStaffModifyAccessAsync(Staff staff)
@@ -247,7 +266,8 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
         {
             throw new ResourceNotFoundException("Staff not found with id: " + input.Id);
         }
-       
+
+        await EnsureStaffCanBeModifiedAsync(entity);
         await CheckStaffModifyAccessAsync(entity);
         await Repository.DeleteAsync(entity);
         await CurrentUnitOfWork.SaveChangesAsync();
@@ -265,6 +285,7 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
             throw new ResourceNotFoundException(
                 "Staff not found with id: " + input.Id);
         }
+         await EnsureStaffCanBeModifiedAsync(entity);
 
         entity.Status = input.Status;
 
