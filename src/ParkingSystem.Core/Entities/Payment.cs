@@ -31,8 +31,13 @@ namespace ParkingSystem.Entities
         [StringLength(500)]
         public string? Description { get; set; }
 
-        [Required]
-        public long SubscriptionId { get; set; }
+      
+        public long? SubscriptionId { get; set; }
+
+        public long? ParkingSessionId { get; set; }
+
+        public PaymentType PaymentType { get; set; }
+        public ParkingSession ParkingSession { get; set; }
 
         public Subscription Subscription { get; set; }
         public DateTime ExpiresAt { get; set; }

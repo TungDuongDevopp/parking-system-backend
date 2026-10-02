@@ -86,7 +86,7 @@
                 // ─ populate info-boxes
                 $('#sub-vehicle-type').text(sub.vehicleTypeName || sub.vehicleType);
                 $('#sub-duration').text(sub.duration + ' ' + sub.durationUnitName);
-                $('#sub-price').text(fmtPrice(sub.price));
+                $('#sub-price').text(fmtPrice(sub.totalAmount != null ? sub.totalAmount : sub.price));
                 $('#sub-start-time').text(fmtDate(sub.startTime));
                 $('#sub-end-time').text(fmtDate(sub.endTime));
 
@@ -134,7 +134,7 @@
                     var tr = $('<tr>');
                     tr.append($('<td>').text(row.vehicleTypeName || row.vehicleType));
                     tr.append($('<td>').text(row.duration + ' ' + row.durationUnitName));
-                    tr.append($('<td>').text(fmtPrice(row.price)));
+                    tr.append($('<td>').text(fmtPrice(row.totalAmount != null ? row.totalAmount : row.price)));
                     tr.append($('<td>').text(fmtDate(row.startTime)));
                     tr.append($('<td>').text(fmtDate(row.endTime)));
                     tr.append($('<td>').html(statusBadge(row.status)));

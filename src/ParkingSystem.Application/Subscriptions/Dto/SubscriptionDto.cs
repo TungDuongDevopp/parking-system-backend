@@ -1,4 +1,4 @@
-﻿using Abp.Application.Services.Dto;
+using Abp.Application.Services.Dto;
 using ParkingSystem.Entities.Enums;
 using System;
 
@@ -20,6 +20,7 @@ public class SubscriptionDto : EntityDto<long>
     public DurationUnit DurationUnit { get; set; }
     public string DurationUnitName => DurationUnit.ToString();
 
+    public decimal TotalAmount { get; set; }
     public decimal Price { get; set; }
 
     public long CustomerId { get; set; }

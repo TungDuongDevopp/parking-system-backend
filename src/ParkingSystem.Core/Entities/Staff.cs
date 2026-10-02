@@ -6,6 +6,7 @@ using Abp.Timing;
 using ParkingSystem.Entities.Enums;
 using ParkingSystem.Validation;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace ParkingSystem.Entities;
@@ -50,4 +51,7 @@ public class Staff : Entity<long>, IHasCreationTime, IHasModificationTime, ISoft
         Status = StaffStatus.Active; // Default status
         IsDeleted = false;
     }
+
+    public ICollection<ParkingSession> CheckInParkingSessions { get; set; } = new List<ParkingSession>();
+    public ICollection<ParkingSession> CheckOutParkingSessions { get; set; } = new List<ParkingSession>();
 }

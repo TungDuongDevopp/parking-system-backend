@@ -46,7 +46,18 @@
             }
         
         },
-            { targets: 4, data: "price"},
+            { 
+                targets: 4, 
+                data: "totalAmount", 
+                name: "totalAmount",
+                render: function (data, type, row) {
+                    var val = (data !== undefined && data !== null) ? data : row.price;
+                    if (type === 'display') {
+                        return val != null ? val.toLocaleString(undefined, { minimumFractionDigits: 0 }) + ' ₫' : '—';
+                    }
+                    return val;
+                }
+            },
             { targets: 5, data: "startTime",
              render: function (data) {
                     return data ? moment(data).format("YYYY-MM-DD HH:mm:ss") : "";

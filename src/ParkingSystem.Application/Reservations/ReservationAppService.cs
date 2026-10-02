@@ -396,4 +396,54 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
         return ObjectMapper.Map<ReservationDto>(reservation);
 
     }
+
+    [AbpAuthorize(PermissionNames.Pages_Reservations_ViewAll)]
+    public async Task<ReservationLookUpDto> GetReservationLookUpAsync()
+    {
+         var subQuery = _repository.GetAll().AsNoTracking();
+        var customerIds = subQuery.Select(s => s.CustomerId).Distinct();
+        var parkingAreaIds = subQuery.Select(s => s.ParkingAreaId).Distinct();
+        var parkingSpotIds = subQuery.Select(s => s.ParkingSpotId).Distinct();
+
+        var customers = await _customerRepository.GetAll()
+           .AsNoTracking()
+           .Where(c => customerIds.Contains(c.Id))
+           .OrderBy(c => c.Name)
+           .Select(c => new ReservationCustomerLookUpDto
+           {
+               Id = c.Id,
+               Name = c.Name,
+               PhoneNumber = c.PhoneNumber
+           })
+           .ToListAsync();
+                var parkingAreas = await _parkingAreaRepository.GetAll()
+                .AsNoTracking()
+                .Where(a => parkingAreaIds.Contains(a.Id))
+                .OrderBy(a => a.ParkingCode)
+                .Select(a => new ReservationParkingAreaLookUpDto
+                {
+                    Id = a.Id,
+                    ParkingCode = a.ParkingCode,
+                    VehicleType = a.VehicleType
+                })
+                .ToListAsync();
+
+                var parkingSpots = await _parkingSpotRepository.GetAll()
+                  .AsNoTracking()
+                  .Where(p => parkingSpotIds.Contains(p.Id))
+                  .OrderBy(p => p.SpotCode)
+                  .Select(p => new ReservationParkingSpotLookUpDto
+                  {
+                      Id = p.Id,
+                      SpotCode = p.SpotCode,
+
+                  })
+                  .ToListAsync();
+        return new ReservationLookUpDto
+        {
+            Customers = customers,
+            ParkingAreas = parkingAreas,
+            ParkingSpots= parkingSpots
+        };
+    }
 }
