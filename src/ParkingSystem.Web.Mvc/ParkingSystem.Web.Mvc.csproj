@@ -46,4 +46,9 @@
     <PackageReference Include="Abp.RedisCache" Version="10.2.0" />
     <PackageReference Include="Abp.Castle.Log4Net" Version="10.2.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\ParkingSession\" />
+    <Folder Include="Views\ParkingSession\" />
+    <Folder Include="wwwroot\view-resources\Views\ParkingSession\" />
+  </ItemGroup>
 </Project>

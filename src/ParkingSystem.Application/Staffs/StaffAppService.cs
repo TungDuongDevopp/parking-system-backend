@@ -1,4 +1,4 @@
-﻿
+
 using Abp.Application.Services;
 using Abp.Application.Services.Dto;
 using Abp.Authorization;
@@ -13,6 +13,7 @@ using ParkingSystem.Entities.Enums;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.Staffs.Dto;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -336,6 +337,33 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
             );
         }
         return MapToEntityDto(entity);
+    }
+
+    [AbpAuthorize(PermissionNames.Pages_Staffs_Manager)]
+    public async Task<List<StaffUserLookupDto>> GetAvailableUsersAsync()
+    {
+        // 1. Get all users with the Staff role
+        var staffUsers = await _userManager.GetUsersInRoleAsync("Staff");
+
+        // 2. Get IDs of users that already have a Staff profile
+        var existingStaffUserIds = await Repository
+            .GetAll()
+            .Select(s => s.UserId)
+            .ToListAsync();
+
+        // 3. Return only users without a Staff profile yet
+        return staffUsers
+            .Where(u => !existingStaffUserIds.Contains(u.Id))
+            .Select(u => new StaffUserLookupDto
+            {
+                Id = u.Id,
+                UserName = u.UserName,
+                FullName = u.FullName,
+                EmailAddress = u.EmailAddress,
+                PhoneNumber = u.PhoneNumber
+            })
+            .OrderBy(u => u.FullName)
+            .ToList();
     }
 
 
