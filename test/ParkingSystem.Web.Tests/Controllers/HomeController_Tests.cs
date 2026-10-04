@@ -1,6 +1,7 @@
-﻿using ParkingSystem.Models.TokenAuth;
-using ParkingSystem.Web.Controllers;
+using ParkingSystem.Models.TokenAuth;
+using ParkingSystem.Web.Host.Controllers;
 using Shouldly;
+using System.Net;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -18,11 +19,12 @@ public class HomeController_Tests : ParkingSystemWebTestBase
         });
 
         //Act
-        var response = await GetResponseAsStringAsync(
-            GetUrl<HomeController>(nameof(HomeController.Index))
+        var response = await GetResponseAsync(
+            GetUrl<HomeController>(nameof(HomeController.Index)),
+            HttpStatusCode.Found
         );
 
         //Assert
-        response.ShouldNotBeNullOrEmpty();
+        response.Headers.Location?.ToString().ShouldBe("/swagger");
     }
 }

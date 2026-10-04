@@ -1,4 +1,4 @@
-﻿using Abp.Reflection.Extensions;
+using Abp.Reflection.Extensions;
 using System;
 using System.IO;
 using System.Linq;
@@ -28,12 +28,6 @@ public static class WebContentDirectoryFinder
             }
 
             directoryInfo = directoryInfo.Parent;
-        }
-
-        var webMvcFolder = Path.Combine(directoryInfo.FullName, "src", "ParkingSystem.Web.Mvc");
-        if (Directory.Exists(webMvcFolder))
-        {
-            return webMvcFolder;
         }
 
         var webHostFolder = Path.Combine(directoryInfo.FullName, "src", "ParkingSystem.Web.Host");

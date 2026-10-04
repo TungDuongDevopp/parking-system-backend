@@ -1,15 +1,15 @@
-using Abp.AspNetCore;
+﻿using Abp.AspNetCore;
 using Abp.AspNetCore.TestBase;
 using Abp.Modules;
 using Abp.Reflection.Extensions;
 using ParkingSystem.EntityFrameworkCore;
-using ParkingSystem.Web.Startup;
+using ParkingSystem.Web.Host.Startup;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 
 namespace ParkingSystem.Web.Tests;
 
 [DependsOn(
-    typeof(ParkingSystemWebMvcModule),
+    typeof(ParkingSystemWebHostModule),
     typeof(AbpAspNetCoreTestBaseModule)
 )]
 public class ParkingSystemWebTestModule : AbpModule
@@ -32,7 +32,7 @@ public class ParkingSystemWebTestModule : AbpModule
     public override void PostInitialize()
     {
         var partManager = IocManager.Resolve<ApplicationPartManager>();
-        partManager.AddApplicationPartsIfNotAddedBefore(typeof(ParkingSystemWebMvcModule).Assembly);
+        partManager.AddApplicationPartsIfNotAddedBefore(typeof(ParkingSystemWebHostModule).Assembly);
         partManager.AddApplicationPartsIfNotAddedBefore(typeof(ParkingSystemWebTestModule).Assembly);
     }
 }
