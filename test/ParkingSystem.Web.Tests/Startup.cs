@@ -1,12 +1,11 @@
-﻿using Abp.AspNetCore;
+using ParkingSystem.Web.Host.Startup;
+using Abp.AspNetCore;
 using Abp.AspNetCore.TestBase;
 using Abp.Dependency;
 using ParkingSystem.Authentication.JwtBearer;
 using ParkingSystem.Configuration;
 using ParkingSystem.EntityFrameworkCore;
 using ParkingSystem.Identity;
-using ParkingSystem.Web.Resources;
-using ParkingSystem.Web.Startup;
 using Castle.MicroKernel.Registration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -36,8 +35,6 @@ public class Startup
         IdentityRegistrar.Register(services);
         AuthConfigurer.Configure(services, _appConfiguration);
 
-        services.AddScoped<IWebResourceManager, WebResourceManager>();
-
         //Configure Abp and Dependency Injection
         return services.AddAbp<ParkingSystemWebTestModule>(options =>
         {
@@ -58,7 +55,7 @@ public class Startup
 
         app.UseAuthentication();
 
-        app.UseJwtTokenMiddleware();
+        app.UseJwtTokenMiddleware("JwtBearer");
 
         app.UseAuthorization();
 

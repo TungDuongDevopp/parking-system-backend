@@ -132,7 +132,7 @@ namespace ParkingSystem.Web.Tests.Controllers
             ajaxResponse.ShouldNotBeNull();
             ajaxResponse.Success.ShouldBeFalse();
             ajaxResponse.Error.ShouldNotBeNull();
-            ajaxResponse.Error.Message.ShouldBe("Customer cannot be manipulated in its current status");
+            ajaxResponse.Error.Message.ShouldBe($"Customer not found with id: {deletedCustomerId}");
         }
 
         [Fact]

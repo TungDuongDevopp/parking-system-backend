@@ -6,7 +6,7 @@ using Abp.MultiTenancy;
 using Abp.Web.Models;
 using ParkingSystem.EntityFrameworkCore;
 using ParkingSystem.Models.TokenAuth;
-using ParkingSystem.Web.Startup;
+using ParkingSystem.Web.Host.Startup;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using Microsoft.AspNetCore.Hosting;
@@ -36,7 +36,7 @@ public abstract class ParkingSystemWebTestBase : AbpAspNetCoreIntegratedTestBase
         return base
             .CreateWebHostBuilder()
             .UseContentRoot(ContentRootFolder.Value)
-            .UseSetting(WebHostDefaults.ApplicationKey, typeof(ParkingSystemWebMvcModule).Assembly.FullName);
+            .UseSetting(WebHostDefaults.ApplicationKey, typeof(ParkingSystemWebHostModule).Assembly.FullName);
     }
 
     #region Get response
