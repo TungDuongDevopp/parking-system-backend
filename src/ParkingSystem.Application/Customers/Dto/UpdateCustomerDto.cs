@@ -1,6 +1,7 @@
 ﻿
 
 using Abp.Application.Services.Dto;
+using ParkingSystem.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace ParkingSystem.Customers.Dto;
@@ -12,10 +13,10 @@ public class UpdateCustomerDto: EntityDto<long>
     public string? Name { get; set; }
 
     [StringLength(20)]
-    [Phone]
+    [PhoneNumber]
     public string? PhoneNumber { get; set; }
 
     [StringLength(100)]
-    [EmailAddress]
+    [Email]
     public string? Email { get; set; }
 }

@@ -1,4 +1,5 @@
 
+using ParkingSystem.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace ParkingSystem.Customers.Dto
@@ -11,11 +12,11 @@ namespace ParkingSystem.Customers.Dto
        
         [Required]
         [StringLength(20)]
-        [Phone]
+        [PhoneNumber]
         public string PhoneNumber { get; set; }
 
         [StringLength(255)]
-        [EmailAddress]
+        [Email]
         public string? Email { get; set; }
     }
 }

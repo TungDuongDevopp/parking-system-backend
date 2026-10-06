@@ -13,19 +13,19 @@ public class UpdateStaffDto : EntityDto<long>
     public string? Name { get; set; }
 
     [StringLength(20)]
-    [Phone]
+    [PhoneNumber]
     public string? PhoneNumber { get; set; }
 
     [StringLength(255)]
-    [EmailAddress]
+    [Email]
     public string? Email { get; set; }
 
     public bool? Gender { get; set; } 
 
-    [NotFuture(ErrorMessage = "Hired date cannot be in the future.")]
+    [NotFuture]
     public DateTime? HiredDate { get; set; }
 
-    [NotFuture(ErrorMessage = "Date of birth cannot be in the future.")]
+    [NotFuture]
     public DateTime? DateOfBirth { get; set; }
 
     [StringLength(1023)]

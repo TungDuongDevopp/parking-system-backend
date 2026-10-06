@@ -30,30 +30,24 @@ public static class PermissionNames
 
     //Vehicle
     public const string Pages_Vehicles = "Pages.Vehicles";
-
     public const string Pages_Vehicles_ModifyAll = "Pages.Vehicles.ModifyAll";
-
     public const string Pages_Vehicles_ViewAll = "Pages.Vehicles.ViewAll";
     public const string Pages_Vehicles_ModifyOwn = "Pages.Vehicles.ModifyOwn";
 
     //Parking Area
     public const string Pages_ParkingAreas = "Pages.ParkingAreas";
-
     public const string Pages_ParkingAreas_Manager = "Pages.ParkingAreas.Manager";
 
     //Parking Spot
     public const string Pages_ParkingSpots = "Pages.ParkingSpots";
-
     public const string Pages_ParkingSpots_Manager = "Pages.ParkingSpots.Manager";
 
     //Quotation
     public const string Pages_Quotations = "Pages.Quotations";
-
     public const string Pages_Quotations_Manager = "Pages.Quotations.Manager";
 
     //SubScription
     public const string Pages_Subscriptions = "Pages.Subscriptions";
-
     public const string Pages_Subscriptions_Manager = "Pages.Subscriptions.Manager";
 
     //Reservation
@@ -61,6 +55,12 @@ public static class PermissionNames
     public const string Pages_Reservations_ModifyAll= "Pages.Reservations.ModifyAll";
     public const string Pages_Reservations_ViewAll = "Pages.Reservations.ViewAll";
     public const string Pages_Reservations_ModifyOwn = "Pages.Reservations.ModifyOwn";
+
+    //ParkingSession
+
+    public const string Pages_ParkingSessions = "Pages.ParkingSessions";
+    public const string Pages_ParkingSessions_ViewAll = "Pages.ParkingSessions.ViewAll";
+    public const string Pages_ParkingSessions_ViewOwn = "Pages.ParkingSessions.ViewOwn";
 
 
 

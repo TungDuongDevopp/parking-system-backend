@@ -15,7 +15,4 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.6" />
     <ProjectReference Include="..\ParkingSystem.Core\ParkingSystem.Core.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="ParkingSessions\" />
-  </ItemGroup>
 </Project>

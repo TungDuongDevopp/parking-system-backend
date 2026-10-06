@@ -17,14 +17,17 @@ namespace ParkingSystem.Entities
         [Required]
         [StringLength(100)]
         public string Name { get; set; }
+        
         [Required]
         [StringLength(20)]
-        [Phone]
         public string PhoneNumber { get; set; }
-        [StringLength(255)]
-        [EmailAddress]
+       
+        [StringLength(255)] 
+       
         public string? Email { get; set; }
+       
         public DateTime CreationTime { get; set; }
+       
         public Customer()
         {
             CreationTime = Clock.Now;
