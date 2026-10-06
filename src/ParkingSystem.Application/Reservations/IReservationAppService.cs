@@ -1,9 +1,7 @@
 ﻿
 
 using Abp.Application.Services.Dto;
-using ParkingSystem.ParkingSpots.Dto;
 using ParkingSystem.Reservations.Dto;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ParkingSystem.Reservations;
