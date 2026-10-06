@@ -12,10 +12,6 @@
 	<text name="Customers_ModifyOwn" value="Customers ModifyOwn"/>  
 	<text name="Staffs" value="Staffs"/>
 	<text name="Staffs_Manager" value="Staffs Manager"/>
-	<text name="Vehicles" value="Vehicles"/>
-	<text name="Vehicles_ViewAll" value="Vehicles ViewAll"/>
-	<text name="Vehicles_ModifyAll" value="Vehicles ModifyAll"/>
-	<text name="Vehicles_ModifyOwn" value="Vehicles ModifyOwn"/>  
 	<text name="ParkingAreas" value="Parking Areas"/>
 	<text name="ParkingAreas_Manager" value="Parking Areas Manager"/>
 	<text name="ParkingSpots" value="Parking Spots"/>
@@ -55,10 +51,6 @@
 	<text name="PersonalEmailAddress">Personal Email</text>
 	  <text name ="StaffProfile">StaffProfile</text>  
 	 
-	 //Cấu hình trang vehicle
-	<text name="CreateNewVehicle" value="Create new vehicle" />
-	<text name="EditVehicle" value="Edit vehicle" />
-	<text name="VehicleCode" value="Code" />
 	<text name="VehicleType" value="Vehicle Type" />
 	<text name="LicensePlate" value="License Plate" />
 	<text name="Brand" value="Brand" />
@@ -159,7 +151,6 @@
 	  <text name="ReservationCreatedSuccessfully" value="Reservation created successfully!" />
 	  <text name="SelectParkingArea" value="Select Parking Area" />
 	  <text name="SelectParkingSpot" value="Select Parking Spot" />
-	  <text name="SelectVehicle" value="Select Vehicle" />
 	  <text name="ActiveReservation" value="Active Reservation" />
 	  <text name="NoActiveReservation" value="You have no active reservation." />
 	  <text name="ReservationHistory" value="Reservation History" />

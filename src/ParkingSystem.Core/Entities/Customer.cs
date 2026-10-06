@@ -1,4 +1,4 @@
-﻿
+
 using Abp.Domain.Entities;
 using Abp.Domain.Entities.Auditing;
 using Abp.Timing;
@@ -36,7 +36,6 @@ namespace ParkingSystem.Entities
 
         public long UserId { get; set; }
 
-        public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
 
         public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
 

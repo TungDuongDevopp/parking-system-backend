@@ -1,4 +1,4 @@
-﻿namespace ParkingSystem.Authorization;
+namespace ParkingSystem.Authorization;
 
 /// <summary>
 /// This class defines name constants for the permissions used in the application.
@@ -28,11 +28,6 @@ public static class PermissionNames
 
     public const string Pages_Staffs_Manager = "Pages.Staffs.Manager";
 
-    //Vehicle
-    public const string Pages_Vehicles = "Pages.Vehicles";
-    public const string Pages_Vehicles_ModifyAll = "Pages.Vehicles.ModifyAll";
-    public const string Pages_Vehicles_ViewAll = "Pages.Vehicles.ViewAll";
-    public const string Pages_Vehicles_ModifyOwn = "Pages.Vehicles.ModifyOwn";
 
     //Parking Area
     public const string Pages_ParkingAreas = "Pages.ParkingAreas";

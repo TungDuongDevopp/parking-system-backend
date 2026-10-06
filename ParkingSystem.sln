@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.10.12224.181 stable
+VisualStudioVersion = 18.10.12224.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{AFAA0841-BD93-466F-B8F4-FB4EEC86F1FC}"
 EndProject
@@ -22,8 +22,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkingSystem.EntityFrameworkCore", "src\ParkingSystem.EntityFrameworkCore\ParkingSystem.EntityFrameworkCore.csproj", "{E0580562-F8F2-4EBB-B07A-ABFC6F2C314F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ParkingSystem.Web.Tests", "test\ParkingSystem.Web.Tests\ParkingSystem.Web.Tests.csproj", "{CA86CF6F-5D9E-4DAC-9CCB-0F87B519E087}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParkingSystem.Web.Mvc", "src\ParkingSystem.Web.Mvc\ParkingSystem.Web.Mvc.csproj", "{474D7489-2802-2AD3-F68E-C52F864ED3BF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,10 +61,6 @@ Global
 		{CA86CF6F-5D9E-4DAC-9CCB-0F87B519E087}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CA86CF6F-5D9E-4DAC-9CCB-0F87B519E087}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CA86CF6F-5D9E-4DAC-9CCB-0F87B519E087}.Release|Any CPU.Build.0 = Release|Any CPU
-		{474D7489-2802-2AD3-F68E-C52F864ED3BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{474D7489-2802-2AD3-F68E-C52F864ED3BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{474D7489-2802-2AD3-F68E-C52F864ED3BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{474D7489-2802-2AD3-F68E-C52F864ED3BF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,7 +74,6 @@ Global
 		{22CFE0D2-8DCA-42D7-AD7D-784C3862493F} = {AFAA0841-BD93-466F-B8F4-FB4EEC86F1FC}
 		{E0580562-F8F2-4EBB-B07A-ABFC6F2C314F} = {AFAA0841-BD93-466F-B8F4-FB4EEC86F1FC}
 		{CA86CF6F-5D9E-4DAC-9CCB-0F87B519E087} = {F10AA149-2626-486E-85BB-9CD5365F3016}
-		{474D7489-2802-2AD3-F68E-C52F864ED3BF} = {AFAA0841-BD93-466F-B8F4-FB4EEC86F1FC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9A55C749-0BFF-4EFD-8499-12A2CB3B5B07}
