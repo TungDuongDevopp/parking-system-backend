@@ -1,4 +1,4 @@
-﻿
+
 
 using Abp.Domain.Entities;
 using Abp.Domain.Entities.Auditing;
@@ -16,9 +16,6 @@ public class ParkingSession : Entity<long>, IHasCreationTime, IHasModificationTi
     public DateTime? LastModificationTime { get; set; }
 
     [Required]
-    public bool IsPaid { get; set; }
-
-    [Required]
     public string TicketCode { get; set; }
 
     public decimal Fee { get; set; }
@@ -34,9 +31,6 @@ public class ParkingSession : Entity<long>, IHasCreationTime, IHasModificationTi
 
     public ParkingArea ParkingArea { get; set; }
 
-    public long? VehicleId { get; set; }
-
-    public Vehicle Vehicle { get; set; }
 
     public Quotation Quotation { get; set; }
 
@@ -63,7 +57,6 @@ public class ParkingSession : Entity<long>, IHasCreationTime, IHasModificationTi
     {
         CreationTime = Clock.Now;
         EntryTime = Clock.Now;
-        IsPaid = false;
         Status = ParkingSessionStatus.Active;
     }
 

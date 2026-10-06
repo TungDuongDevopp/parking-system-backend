@@ -11,7 +11,6 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
     /* Define a DbSet for each entity of the application */
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Staff> Staffs { get; set; }
-    public DbSet<Vehicle> Vehicles { get; set; }
 
     public DbSet<ParkingArea> ParkingAreas { get; set; }
 
@@ -73,24 +72,6 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
             .IsUnique()
             .HasFilter("[IsDeleted] = 0 AND [Email] IS NOT NULL");
 
-        //Vehicle entity configuration
-        modelBuilder.Entity<Vehicle>()
-        
-                .HasOne(v => v.Customer)
-                .WithMany(c => c.Vehicles)
-                .HasForeignKey(v => v.CustomerId)
-                .IsRequired()
-                .OnDelete(DeleteBehavior.Restrict);
-        
-        modelBuilder.Entity<Vehicle>()
-               .HasIndex(v => v.VehicleCode)
-               .IsUnique()
-               .HasFilter("[IsDeleted] = 0");
-
-        modelBuilder.Entity<Vehicle>()
-            .HasIndex(v => v.LicensePlate)
-            .IsUnique()
-            .HasFilter("[IsDeleted] = 0 AND [LicensePlate] IS NOT NULL");
 
         //ParkingArea entity configuration
         modelBuilder.Entity<ParkingArea>()
@@ -151,11 +132,6 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
            .IsRequired()
            .OnDelete(DeleteBehavior.Restrict);
 
-        modelBuilder.Entity<ParkingSession>()
-            .HasOne(ps => ps.Vehicle)
-            .WithMany(v => v.ParkingSessions)
-            .HasForeignKey(ps => ps.VehicleId)
-            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<ParkingSession>()
             .HasOne(ps => ps.Quotation)
@@ -247,12 +223,6 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
             .IsUnique()
             .HasFilter("[ParkingSpotId] IS NOT NULL AND [Status] = 1 AND [IsDeleted] = 0");
 
-        //ParkingSession entity configuration for unique active session per vehicle
-        modelBuilder.Entity<ParkingSession>()
-            .HasIndex(ps => ps.VehicleId)
-            .HasDatabaseName("UX_ParkingSessions_ActiveVehicle")
-            .IsUnique()
-            .HasFilter("[VehicleId] IS NOT NULL AND [ExitTime] IS NULL");
 
         modelBuilder.Entity<ParkingSession>()
             .HasIndex(ps => ps.ParkingSpotId)
