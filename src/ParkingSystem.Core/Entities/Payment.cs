@@ -1,4 +1,4 @@
-﻿
+
 using Abp.Domain.Entities;
 using Abp.Domain.Entities.Auditing;
 using Abp.Timing;
@@ -11,16 +11,12 @@ namespace ParkingSystem.Entities
 {
     public class Payment: Entity<long>, IHasCreationTime, IHasModificationTime
     {
-        [Required]
         public PaymentMethod PaymentMethod { get; set; }
        
-        [Required]       
         public PaymentStatus PaymentStatus { get; set; }
 
-        [Required]
         public decimal ExpectedAmount { get; set; }
 
-        [Required]
         public decimal ReceivedAmount { get; set; }
 
         public DateTime CreationTime { get; set; }

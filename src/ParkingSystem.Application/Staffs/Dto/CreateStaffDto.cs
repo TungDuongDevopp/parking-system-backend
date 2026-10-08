@@ -1,4 +1,4 @@
-﻿
+
 
 using Abp.AutoMapper;
 using ParkingSystem.Entities;
@@ -11,7 +11,6 @@ namespace ParkingSystem.Staffs.Dto;
 [AutoMapTo(typeof(Staff))]
 public class CreateStaffDto
 {
-    [Required]
     [GreaterThanZero]
     public long UserId { get; set; }
    
@@ -30,7 +29,6 @@ public class CreateStaffDto
 
     public bool? Gender { get; set; } // true for male, false for female
 
-    [Required]
     [NotFuture]
     public DateTime HiredDate { get; set; }
 

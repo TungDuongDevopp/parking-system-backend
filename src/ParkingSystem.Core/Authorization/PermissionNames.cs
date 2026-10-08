@@ -52,10 +52,14 @@ public static class PermissionNames
     public const string Pages_Reservations_ModifyOwn = "Pages.Reservations.ModifyOwn";
 
     //ParkingSession
-
     public const string Pages_ParkingSessions = "Pages.ParkingSessions";
     public const string Pages_ParkingSessions_ViewAll = "Pages.ParkingSessions.ViewAll";
     public const string Pages_ParkingSessions_ViewOwn = "Pages.ParkingSessions.ViewOwn";
+
+    //ParkingSessionImage
+    public const string Pages_ParkingSessions_Image = "Pages.ParkingSessionsImages";
+    public const string Pages_ParkingSession_Image_ViewOwn = "Pages.ParkingSessionsImages.ViewOwn";
+    public const string Pages_ParkingSession_Image_ViewAll = "Pages.ParkingSessionsImages.ViewAll";
 
 
 

@@ -182,6 +182,14 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
         modelBuilder.Entity<PaymentTransaction>()
             .HasIndex(pt => pt.TransactionCode)
             .IsUnique();
+
+        //ParkingSessionImage
+        modelBuilder.Entity<ParkingSessionImage>()
+            .HasOne(s => s.ParkingSession)
+            .WithMany(i => i.ParkingSessionImages)
+            .HasForeignKey(s => s.ParkingSessionId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
         //Money Configuration
         modelBuilder.Entity<Quotation>().Property(q => q.Price).HasPrecision(18, 2);
         modelBuilder.Entity<ParkingSession>().Property(ps => ps.Fee).HasPrecision(18, 2);

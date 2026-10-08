@@ -25,9 +25,7 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
 {
     private readonly IRepository<Customer, long> _customerRepository;
     private readonly IRepository<ParkingArea, long> _parkingAreaRepository;
-
     private readonly IRepository<ParkingSpot, long> _parkingSpotRepository;
-
     private readonly IRepository<Reservation, long> _repository;
 
     private readonly IRepository<Subscription, long> _subscriptionRepository;

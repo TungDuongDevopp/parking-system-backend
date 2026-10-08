@@ -1,4 +1,4 @@
-﻿
+
 
 using Abp.Domain.Entities;
 using Abp.Domain.Entities.Auditing;
@@ -26,13 +26,11 @@ public class Staff : Entity<long>, IHasCreationTime, IHasModificationTime, ISoft
 
     public bool? Gender { get; set; } // true for male, false for female
 
-    [Required]
     public DateTime HiredDate { get; set; }
 
     public DateTime? DateOfBirth { get; set; }
     public DateTime CreationTime { get; set; }
     
-    [Required]
     public StaffStatus Status { get; set; }
 
     [StringLength(1023)]

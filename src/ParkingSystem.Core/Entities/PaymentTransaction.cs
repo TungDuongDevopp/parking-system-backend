@@ -1,4 +1,4 @@
-﻿
+
 
 using Abp.Domain.Entities;
 using Abp.Domain.Entities.Auditing;
@@ -14,13 +14,10 @@ public class PaymentTransaction : Entity<long>, IHasCreationTime, IHasModificati
     [Required]
     [StringLength(255)]
     public string TransactionCode { get; set; }
-    [Required]
     public decimal Amount { get; set; }
 
-    [Required]
     public TransactionStatus Status { get; set; }
     
-    [Required]
     public TransactionType Type { get; set; }
 
     public DateTime CreationTime { get; set; }
@@ -30,7 +27,6 @@ public class PaymentTransaction : Entity<long>, IHasCreationTime, IHasModificati
 
     public Payment Payment { get; set; }
 
-    [Required]
     public long PaymentId { get; set; }
     public PaymentTransaction()
     {
