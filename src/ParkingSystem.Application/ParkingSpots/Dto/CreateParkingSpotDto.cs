@@ -1,4 +1,4 @@
-﻿
+
 
 using ParkingSystem.Validation;
 using System.ComponentModel.DataAnnotations;
@@ -12,7 +12,6 @@ public class CreateParkingSpotDto
     [StringLength(30)]
     public string SpotCode { get; set; }
 
-    [Required]
     [GreaterThanZero]
     public long ParkingAreaId { get; set; }
 }

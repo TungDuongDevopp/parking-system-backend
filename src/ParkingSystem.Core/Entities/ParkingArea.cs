@@ -1,4 +1,4 @@
-﻿
+
 
 using Abp.Domain.Entities;
 using Abp.Domain.Entities.Auditing;
@@ -20,13 +20,10 @@ public class ParkingArea : Entity<long>, IHasCreationTime, IHasModificationTime,
     [StringLength(30)]
     public string Name{ get; set; }
 
-    [Required]
     public VehicleType VehicleType { get; set; }
 
-    [Required]
     public int Capacity { get; set; }
 
-    [Required]
     public ParkingMode ParkingMode { get; set; }
     
     [Required]
@@ -36,7 +33,6 @@ public class ParkingArea : Entity<long>, IHasCreationTime, IHasModificationTime,
     [StringLength(255)]
     public string Description{ get; set; }
 
-    [Required]
     public ParkingAreaStatus Status { get; set; }
 
     public int CurrentOccupancy { get; set; }

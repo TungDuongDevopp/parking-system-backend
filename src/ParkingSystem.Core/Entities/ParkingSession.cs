@@ -26,7 +26,6 @@ public class ParkingSession : Entity<long>, IHasCreationTime, IHasModificationTi
 
     public ParkingSpot ParkingSpot { get; set; }
 
-    [Required]
     public long ParkingAreaId { get; set; }
 
     public ParkingArea ParkingArea { get; set; }
@@ -42,15 +41,12 @@ public class ParkingSession : Entity<long>, IHasCreationTime, IHasModificationTi
 
     public string? PlateNumber { get; set; }
 
-    [Required]
-    public string EntryImageUrl { get; set; }
+    public string? EntryImageUrl { get; set; }
     public string? ExitImageUrl { get; set; }
 
-    [Required]
     public DateTime EntryTime { get; set; }
     public DateTime? ExitTime { get; set; }
 
-    [Required]
     public ParkingSessionStatus Status { get; set; }
 
     public ParkingSession()
@@ -67,5 +63,7 @@ public class ParkingSession : Entity<long>, IHasCreationTime, IHasModificationTi
     public long? CheckOutStaffId { get; set; }
     public Staff CheckOutStaff { get; set; }
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
+    public ICollection<ParkingSessionImage> ParkingSessionImages { get; set; } = new List<ParkingSessionImage>();
 
 }
