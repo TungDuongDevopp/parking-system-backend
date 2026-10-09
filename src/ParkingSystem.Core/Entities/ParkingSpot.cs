@@ -14,20 +14,11 @@ public class ParkingSpot : Entity<long>, IHasCreationTime, IHasModificationTime,
     [Required]
     [StringLength(30)]
     public string SpotCode { get; set; }
-
     public ParkingSpotStatus Status{ get; set; }
     public DateTime CreationTime { get ; set; }
     public DateTime? LastModificationTime { get ; set; }
-
     public long ParkingAreaId { get; set; }
-
     public ParkingArea ParkingArea{ get; set; }
-
-    public ParkingSpot()
-    {
-        CreationTime = Clock.Now;
-        Status = ParkingSpotStatus.Available;
-        IsDeleted = false;
-    }
+    public ParkingSpot() => Status = ParkingSpotStatus.Available;
     public bool IsDeleted { get; set; }
 }

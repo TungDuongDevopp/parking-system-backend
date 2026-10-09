@@ -15,23 +15,14 @@ public class PaymentTransaction : Entity<long>, IHasCreationTime, IHasModificati
     [StringLength(255)]
     public string TransactionCode { get; set; }
     public decimal Amount { get; set; }
-
     public TransactionStatus Status { get; set; }
-    
     public TransactionType Type { get; set; }
-
     public DateTime CreationTime { get; set; }
     public DateTime? LastModificationTime { get; set; }
-
     public DateTime? TransactionTime { get; set; }
-
     public Payment Payment { get; set; }
-
     public long PaymentId { get; set; }
-    public PaymentTransaction()
-    {
-        CreationTime = Clock.Now;
-        Status = TransactionStatus.Pending;
-    }
+    public PaymentTransaction() => Status = TransactionStatus.Pending;
+    
 }
 

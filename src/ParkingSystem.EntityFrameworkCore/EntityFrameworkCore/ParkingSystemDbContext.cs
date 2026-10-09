@@ -132,13 +132,6 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
            .IsRequired()
            .OnDelete(DeleteBehavior.Restrict);
 
-
-        modelBuilder.Entity<ParkingSession>()
-            .HasOne(ps => ps.Quotation)
-            .WithMany()
-            .HasForeignKey(ps => ps.QuotationId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         modelBuilder.Entity<ParkingSession>()
             .HasOne(ps => ps.Subscription)
             .WithMany(s => s.ParkingSessions)
@@ -157,7 +150,12 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
             .HasForeignKey(ps => ps.CheckOutStaffId)
             .OnDelete(DeleteBehavior.Restrict);
 
-
+        modelBuilder.Entity<ParkingSession>()
+            .HasOne(c => c.Customer)
+            .WithMany(ps => ps.ParkingSessions)
+            .HasForeignKey(c => c.CustomerId)
+            .OnDelete(DeleteBehavior.Restrict);
+       
         //Payment entity configuration
         modelBuilder.Entity<Payment>()
             .HasOne(p => p.Subscription)
@@ -198,7 +196,6 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
         modelBuilder.Entity<PaymentTransaction>().Property(pt => pt.Amount).HasPrecision(18, 2);
 
         //Reservation entity configuration
-
         modelBuilder.Entity<Reservation>()
             .HasOne(c => c.Customer)
             .WithMany(r => r.Reservations)
@@ -230,7 +227,6 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
             .HasDatabaseName("UX_Reservations_ActiveParkingSpot")
             .IsUnique()
             .HasFilter("[ParkingSpotId] IS NOT NULL AND [Status] = 1 AND [IsDeleted] = 0");
-
 
         modelBuilder.Entity<ParkingSession>()
             .HasIndex(ps => ps.ParkingSpotId)

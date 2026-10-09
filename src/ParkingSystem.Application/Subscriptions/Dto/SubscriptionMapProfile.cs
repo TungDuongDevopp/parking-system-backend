@@ -15,7 +15,7 @@ public class SubscriptionMapProfile : Profile
            .ForMember(d => d.TotalAmount,
                opt => opt.MapFrom(s => s.TotalAmount))
            .ForMember(d => d.Price,
-               opt => opt.MapFrom(s => s.TotalAmount))
+               opt => opt.MapFrom(s => s.Quotation.Price))
            .ForMember(d => d.VehicleType,
                opt => opt.MapFrom(s => s.Quotation.VehicleType));
         CreateMap<CreateSubscriptionDto, Subscription>();

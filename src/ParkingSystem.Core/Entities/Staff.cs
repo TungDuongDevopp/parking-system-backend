@@ -23,9 +23,7 @@ public class Staff : Entity<long>, IHasCreationTime, IHasModificationTime, ISoft
    
     [StringLength(255)]
     public string? Email { get; set; }
-
     public bool? Gender { get; set; } // true for male, false for female
-
     public DateTime HiredDate { get; set; }
 
     public DateTime? DateOfBirth { get; set; }
@@ -39,13 +37,8 @@ public class Staff : Entity<long>, IHasCreationTime, IHasModificationTime, ISoft
     public long UserId { get; set; }
     public bool IsDeleted { get; set; }
 
-    public Staff()
-    {
-        CreationTime = Clock.Now;
-        Status = StaffStatus.Active; // Default status
-        IsDeleted = false;
-    }
-
+    public Staff() => Status = StaffStatus.Active; // Default status
+     
     public ICollection<ParkingSession> CheckInParkingSessions { get; set; } = new List<ParkingSession>();
     public ICollection<ParkingSession> CheckOutParkingSessions { get; set; } = new List<ParkingSession>();
 }

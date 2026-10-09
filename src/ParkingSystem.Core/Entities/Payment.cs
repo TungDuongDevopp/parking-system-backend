@@ -12,16 +12,11 @@ namespace ParkingSystem.Entities
     public class Payment: Entity<long>, IHasCreationTime, IHasModificationTime
     {
         public PaymentMethod PaymentMethod { get; set; }
-       
         public PaymentStatus PaymentStatus { get; set; }
-
         public decimal ExpectedAmount { get; set; }
-
         public decimal ReceivedAmount { get; set; }
-
         public DateTime CreationTime { get; set; }
         public DateTime? LastModificationTime { get; set; }
-
         public DateTime? PaidAt { get; set; }
 
         [StringLength(500)]
@@ -40,7 +35,6 @@ namespace ParkingSystem.Entities
 
         public Payment()
         {
-            CreationTime = Clock.Now;
             PaymentStatus = PaymentStatus.Pending;
             ExpiresAt = Clock.Now.AddHours(24);
         }

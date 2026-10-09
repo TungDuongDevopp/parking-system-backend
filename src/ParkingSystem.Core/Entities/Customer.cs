@@ -23,23 +23,12 @@ namespace ParkingSystem.Entities
         public string PhoneNumber { get; set; }
        
         [StringLength(255)] 
-       
         public string? Email { get; set; }
-       
         public DateTime CreationTime { get; set; }
-       
-        public Customer()
-        {
-            CreationTime = Clock.Now;
-            IsDeleted = false;
-        }
-
         public long UserId { get; set; }
-
-
         public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
-
         public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
+        public ICollection<ParkingSession> ParkingSessions { get; set; } = new List<ParkingSession>();
         public DateTime? LastModificationTime { get; set; }
         public bool IsDeleted { get; set; }
     }

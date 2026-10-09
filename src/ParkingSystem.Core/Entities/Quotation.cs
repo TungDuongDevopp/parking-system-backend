@@ -13,19 +13,11 @@ public class Quotation : Entity<long>, IHasCreationTime, IHasModificationTime,IS
 
 {
     public VehicleType VehicleType { get; set; }
-
     public int Duration { get; set; }
-
     public DurationUnit DurationUnit { get; set; }
-    
     public decimal Price { get; set; }
     public DateTime CreationTime { get; set; }
     public DateTime? LastModificationTime { get; set; }
     public bool IsDeleted { get; set; }
 
-    public Quotation()
-    {
-        CreationTime = Clock.Now;
-        IsDeleted = false;
-    }
 }
