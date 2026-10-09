@@ -15,19 +15,13 @@ public static class PermissionNames
 
     //Customer
     public const string Pages_Customers = "Pages.Customers";
-
     public const string Pages_Customers_ViewAll = "Pages.Customers.ViewAll";
-
     public const string Pages_Customers_ModifyAll = "Pages.Customers.ModifyAll";
-
     public const string Pages_Customers_ModifyOwn = "Pages.Customers.ModifyOwn";
-
 
     //Staff
     public const string Pages_Staffs = "Pages.Staffs";
-
     public const string Pages_Staffs_Manager = "Pages.Staffs.Manager";
-
 
     //Parking Area
     public const string Pages_ParkingAreas = "Pages.ParkingAreas";

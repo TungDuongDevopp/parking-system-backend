@@ -20,9 +20,4 @@ public class ParkingSessionImage : BaseEntityFile, ISoftDelete, IHasCreationTime
     public bool IsDeleted { get; set; }
     public DateTime CreationTime { get; set; }
 
-    public ParkingSessionImage()
-    {
-        CreationTime = Clock.Now;
-        IsDeleted = false;
-    }
 }

@@ -9,8 +9,6 @@ namespace ParkingSystem.Customers.Dto
     {
         public string Name { get; set; }
         public string PhoneNumber { get; set; }
-        public string Email { get; set; }
-        public DateTime CreationTime { get; set; }
-        public bool IsDeleted { get; set; }
+        public string? Email { get; set; }
     }
 }

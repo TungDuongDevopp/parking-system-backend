@@ -13,30 +13,16 @@ public class Subscription: Entity<long>, IHasCreationTime, IHasModificationTime
 
 {
     public DateTime StartTime { get; set; }
-
     public DateTime EndTime { get; set; }
-
     public SubscriptionStatus Status { get; set; }
-
     public Quotation Quotation { get; set; }
-  
     public long QuotationId { get; set; }
-
     public Customer Customer { get; set; }
-    
     public long CustomerId { get; set; }
-
     public DateTime CreationTime { get; set; }
     public DateTime? LastModificationTime { get; set; }
-
     public decimal TotalAmount { get; set; }
-
-    public Subscription()
-    {
-        CreationTime = Clock.Now;
-        Status = SubscriptionStatus.pending;
-    }
-
+    public Subscription() => Status = SubscriptionStatus.pending;
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
     public ICollection<ParkingSession> ParkingSessions { get; set; } = new List<ParkingSession>();
 }

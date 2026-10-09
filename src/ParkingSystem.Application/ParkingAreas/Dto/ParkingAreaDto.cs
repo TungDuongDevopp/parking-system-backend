@@ -19,12 +19,10 @@ public class ParkingAreaDto : EntityDto<long>
     public int Capacity { get; set; }
 
     public ParkingMode ParkingMode { get; set; }
-
     public string ParkingModeName => ParkingMode.ToString();
-
     public string Location { get; set; }
 
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     public DateTime CreationTime { get; set; }
 

@@ -30,5 +30,5 @@ public class CreateParkingAreaDto
     public string Location { get; set; }
 
     [StringLength(255)]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 }
