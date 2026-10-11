@@ -77,6 +77,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
     {
         return $"PK-{Convert.ToHexString(
             RandomNumberGenerator.GetBytes(12))}";
+
     }
     public async Task<CheckInResultDto> CheckInAsync(ParkingSessionCheckInDto input)
     {
@@ -161,6 +162,39 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             return null;
         }
         await _reservationManager.CompleteAsync(reservation);
+
+        if (reservation.ParkingSpotId.HasValue)
+        {
+            // Atomic update: chỉ ocuppied nếu spot đã trong trạng thái reserver
+            var spotDbContext = _parkingSpotRepository.GetDbContext();
+            var spotRowsAffected = await spotDbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE ParkingSpots
+                SET Status = {ParkingSpotStatus.Occupied}
+                WHERE Id = {reservation.ParkingSpotId.Value}
+                  AND ParkingAreaId = {parkingArea.Id}
+                  AND Status = {ParkingSpotStatus.Reserved}
+                  AND IsDeleted = 0
+            ");
+            if (spotRowsAffected == 0)
+            {
+                throw new BusinessRuleException(
+                    "The selected parking spot is not available.");
+            }
+        }
+
+        var areaDbContext = _parkingAreaRepository.GetDbContext();
+        var rowsAffected = await areaDbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE ParkingAreas
+                SET CurrentOccupancy = CurrentOccupancy + 1
+                WHERE Id = {parkingArea.Id}
+                  AND CurrentOccupancy < Capacity
+                  AND IsDeleted = 0
+            ");
+        if (rowsAffected == 0)
+        {
+            throw new BusinessRuleException("This parking area is full.");
+        }
+
         return new ParkingSession
         {
             ParkingAreaId = reservation.ParkingAreaId,
@@ -201,13 +235,13 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                 WHERE Id = {parkingArea.Id}
                   AND CurrentOccupancy < Capacity
                   AND IsDeleted = 0
-                  AND Status = @Active  
-                 ");
+                  AND Status = {ParkingAreaStatus.Active}");
             if (rowsAffected == 0)
             {
                 throw new BusinessRuleException("This parking area is full.");
             }
         }
+
         else if (parkingArea.ParkingMode == ParkingMode.individualSpot)
         {
             // Individual mode requires SpotId
@@ -221,7 +255,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             {
                 throw new ResourceNotFoundException("parkingSpot not found with id: " + parkingSportId);
             }
-            // Atomic update: chỉ reserve nếu spot vẫn còn Available
+            // Atomic update: chỉ occupied nếu spot vẫn còn Available
             var spotDbContext = _parkingSpotRepository.GetDbContext();
             var spotRowsAffected = await spotDbContext.Database.ExecuteSqlInterpolatedAsync($@"
                 UPDATE ParkingSpots
