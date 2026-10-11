@@ -184,6 +184,7 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
             {
                 throw new BusinessRuleException("This parking area is full.");
             }
+            
         }
         else if (parkingArea.ParkingMode == ParkingMode.individualSpot)
         {
@@ -222,6 +223,7 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
         {
             await _repository.InsertAsync(reservation);
             await CurrentUnitOfWork.SaveChangesAsync();
+           
         }
         catch (DbUpdateException ex)
             when (ex.InnerException is SqlException sqlEx
@@ -397,6 +399,10 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
         await CheckReservationAccessAsync(reservation);
 
         await _manager.CancelAsync(reservation);
+
+        var dbContext = _repository.GetDbContext();
+
+        await dbContext.Entry(reservation).ReloadAsync();
 
         return ObjectMapper.Map<ReservationDto>(reservation);
     }

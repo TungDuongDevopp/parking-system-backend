@@ -1,7 +1,6 @@
 ﻿using Abp.Domain.Repositories;
 using Abp.Domain.Services;
 using Abp.EntityFrameworkCore.Repositories;
-using Abp.Timing;
 using Microsoft.EntityFrameworkCore;
 using ParkingSystem.Entities;
 using ParkingSystem.Entities.Enums;
@@ -103,22 +102,27 @@ public class ReservationManager : DomainService
     {
         if (reservation.ParkingSpotId.HasValue)
         {
-            var spot = await _parkingSpotRepository
-                .FirstOrDefaultAsync(reservation.ParkingSpotId.Value);
-
-            if (spot != null)
-                spot.Status = ParkingSpotStatus.Available;
-
-            return;
+            var spotDbContext = _parkingSpotRepository.GetDbContext();
+            var spotRowsAffected =  await spotDbContext.Database.ExecuteSqlInterpolatedAsync($@"
+            UPDATE ParkingAreas
+            SET Status = {ParkingSpotStatus.Available}
+            WHERE Id = {reservation.ParkingSpotId.Value}
+            AND ParkingAreaId = {reservation.ParkingAreaId} 
+            AND IsDeleted = 0
+        ");
+            if (spotRowsAffected == 0)
+                throw new BusinessRuleException("The selected parking spot is not available.");
         }
 
         var dbContext = _parkingAreaRepository.GetDbContext();
-        await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+          var areaRowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
             UPDATE ParkingAreas
             SET CurrentOccupancy = CurrentOccupancy - 1
             WHERE Id = {reservation.ParkingAreaId}
               AND CurrentOccupancy > 0
               AND IsDeleted = 0
         ");
+        if (areaRowsAffected == 0)
+            throw new BusinessRuleException("This parking area is empty");
     }
 }

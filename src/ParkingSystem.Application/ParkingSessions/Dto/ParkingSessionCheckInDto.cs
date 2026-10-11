@@ -17,5 +17,6 @@ public class ParkingSessionCheckInDto
     public long? ReservationId { get; set; }
     
     [EnumDataType (typeof(VehicleType))]
+    [GreaterThanZero]
     public VehicleType VehicleType { get; set; }
 }
