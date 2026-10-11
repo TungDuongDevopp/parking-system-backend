@@ -83,7 +83,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
     {
         var userId = AbpSession.UserId;
         var staff =  await _staffRepository.FirstOrDefaultAsync(x => x.UserId == userId);
-        if(staff  == null)
+        if(staff  == null || staff.Status != StaffStatus.Active)
         {
             throw new BusinessRuleException("You don't have permision to do this action");
         }
@@ -122,6 +122,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                 };
             }
         }
+
         var quotationHourly =  await _quotationRepository.FirstOrDefaultAsync(x => x.VehicleType == input.VehicleType && x.DurationUnit == DurationUnit.Hour && x.Duration == 1);
         var quotationDaily =  await _quotationRepository.FirstOrDefaultAsync(x => x.VehicleType == input.VehicleType && x.DurationUnit == DurationUnit.Day && x.Duration == 1);
         var hourlyRate = quotationHourly.Price;
@@ -155,7 +156,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         {
             throw new BusinessRuleException("Reservation not found with id: " + id);
         }
-        var parkingArea = await _parkingAreaRepository.FirstOrDefaultAsync(x => x.Id == reservation.ParkingAreaId);
+        var parkingArea = await _parkingAreaRepository.FirstOrDefaultAsync(x => x.Id == reservation.ParkingAreaId && x.Status == ParkingAreaStatus.Active);
         if (parkingArea.VehicleType != type)
         {
             await _reservationManager.InvalidateAsync(reservation);
@@ -292,7 +293,8 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         IQueryable<ParkingSession> query = _repository.GetAll()
              .AsNoTracking()
              .Include(x => x.ParkingArea)
-             .Include(x => x.ParkingSpot);
+             .Include(x => x.ParkingSpot)
+             .Include(x=>x.Customer);
 
         // Permission / Ownership
         var canViewAll = PermissionChecker.IsGranted(
@@ -397,7 +399,8 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         IQueryable<ParkingSession> query = _repository.GetAll()
            .AsNoTracking()
            .Include(x => x.ParkingArea)
-           .Include(x => x.ParkingSpot);
+           .Include(x => x.ParkingSpot)
+           .Include(x=>x.Customer);
 
         var session = await query.FirstOrDefaultAsync(x => x.Id == input.Id);
         if (session == null)
