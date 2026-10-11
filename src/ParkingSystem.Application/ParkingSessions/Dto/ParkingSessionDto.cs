@@ -13,6 +13,7 @@ public class ParkingSessionDto : EntityDto<long>
     public long ParkingAreaId { get; set; }
     public string ParkingAreaCode { get; set; }
     public long? ParkingSpotId { get; set; }
+    public long? CustomerId { get; set; }
     public string? ParkingSpotCode { get; set; }
     public string? PlateNumber { get; set; }
     public DateTime EntryTime { get; set; }

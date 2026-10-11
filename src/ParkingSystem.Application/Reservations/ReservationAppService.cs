@@ -27,6 +27,7 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
     private readonly IRepository<ParkingArea, long> _parkingAreaRepository;
     private readonly IRepository<ParkingSpot, long> _parkingSpotRepository;
     private readonly IRepository<Reservation, long> _repository;
+    private readonly ReservationManager _manager;
 
     private readonly IRepository<Subscription, long> _subscriptionRepository;
     private const int ReservationDurationHours = 3;
@@ -36,7 +37,7 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
 
     public ReservationAppService(IRepository<Customer, long> customerRepository, IRepository<ParkingArea, long> parkingAreaRepository,
         IRepository<ParkingSpot, long> parkingSpotRepository, IRepository<Reservation, long> repository,
-        IRepository<Subscription, long> subscriptionRepository
+        IRepository<Subscription, long> subscriptionRepository, ReservationManager manager
         )
     {
         _customerRepository = customerRepository;
@@ -44,6 +45,7 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
         _parkingSpotRepository = parkingSpotRepository;
         _repository = repository;
         _subscriptionRepository = subscriptionRepository;
+        _manager = manager;
     }
 
     private async Task CheckReservationViewAccessAsync(Reservation reservation)
@@ -89,67 +91,9 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
             );
         }
     }
-    private async Task ReleaseReservationResourceAsync(
-    Reservation reservation)
-    {
-        if (reservation.ParkingSpotId.HasValue)
-        {
-            var spot = await _parkingSpotRepository
-                .FirstOrDefaultAsync(reservation.ParkingSpotId.Value);
-
-            if (spot != null)
-            {
-                spot.Status = ParkingSpotStatus.Available;
-            }
-
-            return;
-        }
-        var dbContext = _parkingAreaRepository.GetDbContext();
-        await dbContext.Database
-            .ExecuteSqlInterpolatedAsync($@"
-            UPDATE ParkingAreas
-            SET CurrentOccupancy = CurrentOccupancy - 1
-            WHERE Id = {reservation.ParkingAreaId}
-              AND CurrentOccupancy > 0
-              AND IsDeleted = 0
-        ");
-    }
-    public async Task<ReservationDto> Canceled(EntityDto<long> input)
-
-    {
-        var reservation = await _repository.FirstOrDefaultAsync(input.Id);
-
-        if (reservation == null)
-        {
-            throw new ResourceNotFoundException("Reservation not found with id: "+ input.Id);
-        }
-
-        await CheckReservationAccessAsync(reservation);
-
-        if (reservation.Status != ReservationStatus.Reserved)
-        {
-            throw new BusinessRuleException(
-                "Only reserved reservations can be cancelled.");
-        }
-
-        reservation.Status = ReservationStatus.Cancelled;
-        await ReleaseReservationResourceAsync(reservation);
-        return ObjectMapper.Map<ReservationDto>(reservation);
-
-
-    }
-    private async Task ExpireReservationAsync(Reservation reservation)
-    {
-        if (reservation.Status != ReservationStatus.Reserved)
-            return;
-
-        if (reservation.ExpireAt > Clock.Now)
-            return;
-
-        reservation.Status = ReservationStatus.Expired;
-
-        await ReleaseReservationResourceAsync(reservation);
-    }
+    
+  
+   
 
     public async Task<ReservationDto> CreateAsync(CreateReservationDto input)
     {
@@ -188,9 +132,7 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
 
         if (expiredReservation != null)
         {
-            expiredReservation.Status = ReservationStatus.Expired;
-
-            await ReleaseReservationResourceAsync(expiredReservation);
+            await _manager.ExpireAsync(expiredReservation);
         }
 
         var activeReservation = await _repository
@@ -211,7 +153,7 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
                 "Reservation must be made for the current day.");
         }
 
-        // 6. Get active parking area
+        // 6. Get active parking area and still capa available
         var parkingArea = await _parkingAreaRepository
             .FirstOrDefaultAsync(x =>
                 x.Id == input.ParkingAreaId &&
@@ -255,22 +197,22 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
                     "Please choose a parking spot.");
             }
 
-            // Spot must belong to selected area and be available
-            var spot = await _parkingSpotRepository
-                .FirstOrDefaultAsync(x =>
-                    x.Id == input.ParkingSpotId.Value &&
-                    x.ParkingAreaId == parkingArea.Id &&
-                    x.Status == ParkingSpotStatus.Available);
+            // Atomic update: chỉ reserve nếu spot vẫn còn Available
+            var spotDbContext = _parkingSpotRepository.GetDbContext();
+            var spotRowsAffected = await spotDbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                UPDATE ParkingSpots
+                SET Status = {ParkingSpotStatus.Reserved}
+                WHERE Id = {input.ParkingSpotId.Value}
+                  AND ParkingAreaId = {parkingArea.Id}
+                  AND Status = {ParkingSpotStatus.Available}
+                  AND IsDeleted = 0
+            ");
 
-            if (spot == null)
+            if (spotRowsAffected == 0)
             {
-                throw new ResourceNotFoundException(
-                    "Available parking spot not found with id: " +
-                    input.ParkingSpotId);
+                throw new BusinessRuleException(
+                    "The selected parking spot is not available.");
             }
-
-            // Reserve spot
-            spot.Status = ParkingSpotStatus.Reserved;
         }
 
         // 8. Create reservation
@@ -444,5 +386,21 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
             ParkingAreas = parkingAreas,
             ParkingSpots= parkingSpots
         };
+    }
+
+    public async Task<ReservationDto> Canceled(EntityDto<long> input)
+    {
+        var reservation = await _repository.FirstOrDefaultAsync(input.Id);
+        if (reservation == null)
+        {
+            throw new ResourceNotFoundException(
+                "Reservation not found with id: " + input.Id);
+        }
+
+        await CheckReservationAccessAsync(reservation);
+
+        await _manager.CancelAsync(reservation);
+
+        return ObjectMapper.Map<ReservationDto>(reservation);
     }
 }
