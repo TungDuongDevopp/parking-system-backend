@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace ParkingSystem.ParkingSessions;
 public interface IParkingSessionAppService
 {
-    Task<ParkingSessionDto> GetAsync(Entity<long> input);
+    Task<ParkingSessionDto> GetAsync(EntityDto<long> input);
     Task<PagedResultDto<ParkingSessionDto>> GetAllAsync(PagedParkingSessionResultRequestDto input);
-    Task<ParkingSessionDto> CheckInAsync(ParkingSessionCheckInDto input);
+    Task<CheckInResultDto> CheckInAsync(ParkingSessionCheckInDto input);
     Task<ParkingSessionDto> CheckOutAsync(ParkingSessionCheckOutDto input);
 }

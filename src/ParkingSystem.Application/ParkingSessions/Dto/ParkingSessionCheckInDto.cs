@@ -1,9 +1,21 @@
 ﻿
+using ParkingSystem.Entities.Enums;
+using ParkingSystem.Validation;
+using System.ComponentModel.DataAnnotations;
+
 namespace ParkingSystem.ParkingSessions.Dto;
 public class ParkingSessionCheckInDto
 {
-    public long ParkingAreaId { get; set; }
+    [GreaterThanZero]
+    public long? ParkingAreaId { get; set; }
+   
+    [GreaterThanZero]
     public long? ParkingSpotId { get; set; }
     public string? PlateNumber { get; set; }
+    
+    [GreaterThanZero]
     public long? ReservationId { get; set; }
+    
+    [EnumDataType (typeof(VehicleType))]
+    public VehicleType VehicleType { get; set; }
 }

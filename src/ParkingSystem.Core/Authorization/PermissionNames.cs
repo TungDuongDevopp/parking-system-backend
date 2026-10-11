@@ -7,10 +7,8 @@ public static class PermissionNames
 {
     
     public const string Pages_Tenants = "Pages.Tenants";
-
     public const string Pages_Users = "Pages.Users";
     public const string Pages_Users_Activation = "Pages.Users.Activation";
-
     public const string Pages_Roles = "Pages.Roles";
 
     //Customer
@@ -54,7 +52,5 @@ public static class PermissionNames
     public const string Pages_ParkingSessions_Image = "Pages.ParkingSessionsImages";
     public const string Pages_ParkingSession_Image_ViewOwn = "Pages.ParkingSessionsImages.ViewOwn";
     public const string Pages_ParkingSession_Image_ViewAll = "Pages.ParkingSessionsImages.ViewAll";
-
-
 
 }
