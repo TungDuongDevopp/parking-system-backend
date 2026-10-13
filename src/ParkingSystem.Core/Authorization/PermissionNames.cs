@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc.RazorPages;
+
 namespace ParkingSystem.Authorization;
 
 /// <summary>
@@ -52,5 +54,12 @@ public static class PermissionNames
     public const string Pages_ParkingSessions_Image = "Pages.ParkingSessionsImages";
     public const string Pages_ParkingSession_Image_ViewOwn = "Pages.ParkingSessionsImages.ViewOwn";
     public const string Pages_ParkingSession_Image_ViewAll = "Pages.ParkingSessionsImages.ViewAll";
+
+    // Subscription Plate
+    public const string Pages_Subscription_Plate = "Pages.Subscription.Plate";
+    public const string Pages_Subscription_Plate_ViewAll = "Pages.Subscription.Plate.ViewAll";
+    public const string Pages_Subscription_Plate_ViewOwn = "Pages.Subscription.Plate.ViewOwn";
+    public const string Pages_Subscription_Plate_Change = "Pages.Subscription.Plate.Change";
+    public const string Pages_Subscription_Plate_Add = "Pages.Subscription.Plate.Add";
 
 }

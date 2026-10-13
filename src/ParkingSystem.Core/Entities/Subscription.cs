@@ -1,16 +1,12 @@
 
 using Abp.Domain.Entities;
 using Abp.Domain.Entities.Auditing;
-using Abp.Timing;
 using ParkingSystem.Entities.Enums;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 
 namespace ParkingSystem.Entities;
 public class Subscription: Entity<long>, IHasCreationTime, IHasModificationTime
-
-
 {
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
@@ -21,8 +17,16 @@ public class Subscription: Entity<long>, IHasCreationTime, IHasModificationTime
     public long CustomerId { get; set; }
     public DateTime CreationTime { get; set; }
     public DateTime? LastModificationTime { get; set; }
+    public bool HasReplacedPlate { get; set; }
     public decimal TotalAmount { get; set; }
-    public Subscription() => Status = SubscriptionStatus.pending;
+    public Subscription()
+    {
+        Status = SubscriptionStatus.pending;
+        HasReplacedPlate = false;
+    } 
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
     public ICollection<ParkingSession> ParkingSessions { get; set; } = new List<ParkingSession>();
+    public ICollection<SubscriptionAllowedPlate> Plates { get; set; } = new List<SubscriptionAllowedPlate>();
+
+
 }

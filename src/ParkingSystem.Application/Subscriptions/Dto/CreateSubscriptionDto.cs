@@ -2,6 +2,7 @@
 
 using ParkingSystem.Validation;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace ParkingSystem.Subscriptions.Dto;
@@ -13,4 +14,5 @@ public class CreateSubscriptionDto
 
     [Required]
     public long QuotationId { get; set; }
+    public List<string> PlateNumbers { get; set; } = new();
 }

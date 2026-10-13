@@ -17,7 +17,6 @@ public class CreateQuotationDto
     [EnumDataType(typeof(DurationUnit))]
     public DurationUnit DurationUnit { get; set; }
 
- 
     [GreaterThanZero]
     public decimal Price { get; set; }
 }

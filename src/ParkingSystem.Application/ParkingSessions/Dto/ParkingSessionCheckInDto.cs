@@ -1,5 +1,4 @@
-﻿
-using ParkingSystem.Entities.Enums;
+﻿using ParkingSystem.Entities.Enums;
 using ParkingSystem.Validation;
 using System.ComponentModel.DataAnnotations;
 
@@ -19,4 +18,5 @@ public class ParkingSessionCheckInDto
     [EnumDataType (typeof(VehicleType))]
     [GreaterThanZero]
     public VehicleType VehicleType { get; set; }
+
 }

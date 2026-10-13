@@ -1715,6 +1715,7 @@ namespace ParkingSystem.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<decimal?>("DailyRate")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("EntryTime")
@@ -1728,6 +1729,7 @@ namespace ParkingSystem.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal?>("HourlyRate")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("LastModificationTime")
@@ -2090,6 +2092,9 @@ namespace ParkingSystem.Migrations
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("HasReplacedPlate")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("LastModificationTime")
                         .HasColumnType("datetime2");
 
@@ -2112,6 +2117,36 @@ namespace ParkingSystem.Migrations
                     b.HasIndex("QuotationId");
 
                     b.ToTable("Subscriptions");
+                });
+
+            modelBuilder.Entity("ParkingSystem.Entities.SubscriptionAllowedPlate", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreationTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastModificationTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PlateNumber")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.Property<long>("SubscriptionId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubscriptionId", "PlateNumber")
+                        .IsUnique();
+
+                    b.ToTable("SubscriptionAllowedPlate");
                 });
 
             modelBuilder.Entity("ParkingSystem.MultiTenancy.Tenant", b =>
@@ -2581,6 +2616,17 @@ namespace ParkingSystem.Migrations
                     b.Navigation("Quotation");
                 });
 
+            modelBuilder.Entity("ParkingSystem.Entities.SubscriptionAllowedPlate", b =>
+                {
+                    b.HasOne("ParkingSystem.Entities.Subscription", "Subscription")
+                        .WithMany("Plates")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Subscription");
+                });
+
             modelBuilder.Entity("ParkingSystem.MultiTenancy.Tenant", b =>
                 {
                     b.HasOne("ParkingSystem.Authorization.Users.User", "CreatorUser")
@@ -2743,6 +2789,8 @@ namespace ParkingSystem.Migrations
                     b.Navigation("ParkingSessions");
 
                     b.Navigation("Payments");
+
+                    b.Navigation("Plates");
                 });
 #pragma warning restore 612, 618
         }

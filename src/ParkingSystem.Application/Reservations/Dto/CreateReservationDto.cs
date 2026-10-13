@@ -2,7 +2,6 @@
 
 using ParkingSystem.Validation;
 using System;
-using System.ComponentModel.DataAnnotations;
 
 namespace ParkingSystem.Reservations.Dto;
 public class CreateReservationDto

@@ -104,7 +104,7 @@ public class ReservationManager : DomainService
         {
             var spotDbContext = _parkingSpotRepository.GetDbContext();
             var spotRowsAffected =  await spotDbContext.Database.ExecuteSqlInterpolatedAsync($@"
-            UPDATE ParkingAreas
+            UPDATE ParkingSpots
             SET Status = {ParkingSpotStatus.Available}
             WHERE Id = {reservation.ParkingSpotId.Value}
             AND ParkingAreaId = {reservation.ParkingAreaId} 
