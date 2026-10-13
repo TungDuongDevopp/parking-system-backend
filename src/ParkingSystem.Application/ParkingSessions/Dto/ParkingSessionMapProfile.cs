@@ -16,7 +16,7 @@ public class ParkingSessionMapProfile : Profile
             .ForMember(x=>x.ParkingSpotCode,
             o=>o.MapFrom(p=>p.ParkingSpot!=null ? p.ParkingSpot.SpotCode : null));
         CreateMap<ParkingSession, CheckInResultDto>();
-        CreateMap<ParkingSession, ParkingSessionCheckInDto>();
+        CreateMap<ParkingSession, CheckOutResultDto>();
         CreateMap<ParkingSessionCheckInDto, ParkingSession>();
         CreateMap<ParkingSessionCheckOutDto, ParkingSession>();
 

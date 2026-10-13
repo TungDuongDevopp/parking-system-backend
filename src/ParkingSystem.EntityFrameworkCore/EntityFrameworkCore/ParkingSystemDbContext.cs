@@ -188,13 +188,26 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
             .HasForeignKey(s => s.ParkingSessionId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Restrict);
+
+        //Plates
+        modelBuilder.Entity<SubscriptionAllowedPlate>()
+             .HasIndex(s => new { s.SubscriptionId, s.PlateNumber })
+             .IsUnique();
+        modelBuilder.Entity<SubscriptionAllowedPlate>()
+            .HasOne(s => s.Subscription)
+            .WithMany(p => p.Plates)
+            .HasForeignKey(p => p.SubscriptionId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
+
         //Money Configuration
         modelBuilder.Entity<Quotation>().Property(q => q.Price).HasPrecision(18, 2);
         modelBuilder.Entity<ParkingSession>().Property(ps => ps.Fee).HasPrecision(18, 2);
         modelBuilder.Entity<Payment>().Property(p => p.ExpectedAmount).HasPrecision(18, 2);
         modelBuilder.Entity<Payment>().Property(p => p.ReceivedAmount).HasPrecision(18, 2);
         modelBuilder.Entity<PaymentTransaction>().Property(pt => pt.Amount).HasPrecision(18, 2);
-
+        modelBuilder.Entity<ParkingSession>().Property(ph => ph.HourlyRate).HasPrecision(18, 2);
+        modelBuilder.Entity<ParkingSession>().Property(pd => pd.DailyRate).HasPrecision(18, 2);
         //Reservation entity configuration
         modelBuilder.Entity<Reservation>()
             .HasOne(c => c.Customer)

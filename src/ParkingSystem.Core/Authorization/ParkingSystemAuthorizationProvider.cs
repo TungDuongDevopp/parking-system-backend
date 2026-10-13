@@ -9,7 +9,6 @@ namespace ParkingSystem.Authorization;
 /// </summary>
 public class ParkingSystemAuthorizationProvider : AuthorizationProvider
 {
-
     public override void SetPermissions(IPermissionDefinitionContext context)
     {
         context.CreatePermission(PermissionNames.Pages_Users, L("Users"));
@@ -49,8 +48,13 @@ public class ParkingSystemAuthorizationProvider : AuthorizationProvider
         context.CreatePermission(PermissionNames.Pages_ParkingSession_Image_ViewAll, L("ParkingSessionsImages_ViewAll"));
         context.CreatePermission(PermissionNames.Pages_ParkingSession_Image_ViewOwn, L("ParkingSessionsImages_ViewOwn"));
         context.CreatePermission(PermissionNames.Pages_ParkingSessions_Image, L("ParkingSessionsImages"));
+        //Plates
+        context.CreatePermission(PermissionNames.Pages_Subscription_Plate, L("Subscription_Plate"));
+        context.CreatePermission(PermissionNames.Pages_Subscription_Plate_Add, L("Subscription_Plate_Add"));
+        context.CreatePermission(PermissionNames.Pages_Subscription_Plate_Change, L("Subscription_Plate_Change"));
+        context.CreatePermission(PermissionNames.Pages_Subscription_Plate_ViewAll, L("Subscription_Plate_ViewAll"));
+        context.CreatePermission(PermissionNames.Pages_Subscription_Plate_ViewOwn, L("Subscription_Plate_ViewOwn"));
     }
-
     private static ILocalizableString L(string name)
     {
         return new LocalizableString(name, ParkingSystemConsts.LocalizationSourceName);
