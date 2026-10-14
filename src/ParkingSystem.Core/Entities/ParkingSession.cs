@@ -13,7 +13,7 @@ public class ParkingSession : Entity<long>, IHasCreationTime, IHasModificationTi
 {
     [Required]
     public string TicketCode { get; set; }
-    public decimal Fee { get; set; }
+    public decimal? Fee { get; set; }
     public long? ParkingSpotId { get; set; }
     public ParkingSpot ParkingSpot { get; set; }
     public long ParkingAreaId { get; set; }

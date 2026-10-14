@@ -9,7 +9,7 @@ namespace ParkingSystem.ParkingSessions.Dto;
 public class ParkingSessionDto : EntityDto<long>
 {
     public string TicketCode { get; set; }
-    public decimal Fee { get; set; }
+    public decimal? Fee { get; set; }
     public long ParkingAreaId { get; set; }
     public string ParkingAreaCode { get; set; }
     public long? ParkingSpotId { get; set; }

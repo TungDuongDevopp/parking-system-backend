@@ -33,8 +33,8 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
     private readonly IRepository<Customer, long> _customerRepository;
     private readonly IRepository<Staff, long> _staffRepository;
     private readonly ReservationManager _reservationManager;
+    private readonly SessionManager _sessionManager;
     private readonly IRepository<Quotation, long> _quotationRepository;
-    private readonly IRepository<Subscription, long> _subscriptionRepository;
     private readonly IRepository<SubscriptionAllowedPlate, long> _plateRepository;
 
     public ParkingSessionAppService(IRepository<ParkingSession, long> repository,
@@ -45,8 +45,8 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         IRepository<Staff, long> staffRepository,
         ReservationManager reservationManager,
         IRepository<Quotation, long> quotationRepository,
-        IRepository<Subscription, long> subscriptionRepository,
-        IRepository<SubscriptionAllowedPlate, long> plateRepository
+          SessionManager sessionManager,
+    IRepository<SubscriptionAllowedPlate, long> plateRepository
         )
       
     {
@@ -58,8 +58,8 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         _staffRepository = staffRepository;
         _reservationManager = reservationManager;
         _quotationRepository = quotationRepository;
-        _subscriptionRepository = subscriptionRepository;
         _plateRepository = plateRepository;
+        _sessionManager = sessionManager;
     }
     private async Task CheckSessionViewAccessAsync(ParkingSession session)
     {
@@ -128,8 +128,8 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
     public async Task<CheckInResultDto> CheckInAsync(ParkingSessionCheckInDto input)
     {
         var userId = AbpSession.UserId;
-        var staff =  await _staffRepository.FirstOrDefaultAsync(x => x.UserId == userId);
-        if(staff  == null || staff.Status != StaffStatus.Active)
+        var staff =  await _staffRepository.FirstOrDefaultAsync(x => x.UserId == userId && x.Status == StaffStatus.Active);
+        if(staff  == null)
         {
             throw new BusinessRuleException("You don't have permision to do this action");
         }
@@ -327,9 +327,34 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
 
     public async Task<CheckOutResultDto> CheckOutAsync(ParkingSessionCheckOutDto input)
     {
-        throw new NotImplementedException("Method not implement");
-    }
+        var session = await _repository.FirstOrDefaultAsync(x => x.Id == input.Id && x.Status == ParkingSessionStatus.Active);
+        if(session == null)
+        {
+            throw new ResourceNotFoundException("Session not found with id: " + input.Id);
+        }
+        var userId = AbpSession.UserId;
+        var staff =  await _staffRepository.FirstOrDefaultAsync(x => x.UserId == userId && x.Status == StaffStatus.Active);
+       
+        if(staff == null)
+        {
+            throw new BusinessRuleException("You don't have permision to do this action");
+        }
+        if(session.Fee == null)
+        {
+            session.Fee = CaculateFee(session.EntryTime, Clock.Now, session.HourlyRate.Value, session.DailyRate.Value);
+            //Gọi cổng thanh toán
+        }
 
+        await _sessionManager.CompleteAsync(session,staff.Id,session.Fee.Value);
+        var dbContext = _repository.GetDbContext();
+
+        await dbContext.Entry(session).ReloadAsync();
+        var sessionDto = ObjectMapper.Map<CheckOutResultDto>(session);
+        sessionDto.Success = true;
+        sessionDto.Message = "Checkout successfully!";
+        return sessionDto;
+
+    }
     public async Task<PagedResultDto<ParkingSessionDto>> GetAllAsync(PagedParkingSessionResultRequestDto input)
     {
         IQueryable<ParkingSession> query = _repository.GetAll()

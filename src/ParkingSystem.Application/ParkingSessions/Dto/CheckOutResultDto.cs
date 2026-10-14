@@ -16,6 +16,5 @@ public class CheckOutResultDto : EntityDto<long>
     public DateTime ExitTime { get; set; }
     public ParkingSessionStatus Status { get; set; }
     public string ParkingSessionStatusName => Status.ToString();
-
-    public decimal Fee { get; set; }
+    public decimal? Fee { get; set; }
 }

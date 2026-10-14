@@ -18,6 +18,8 @@ public class CheckInResultDto : EntityDto<long>
     public string ParkingSessionStatusName => Status != null ? Status.ToString(): null;
     public decimal? HourlyRate { get; set; }
     public decimal? DailyRate { get; set; }
+
+    public decimal? Fee { get; set; }
     public long? CustomerId { get; set; }
     public long? CheckInStaffId { get; set; }
 
