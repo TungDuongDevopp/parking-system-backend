@@ -8,7 +8,6 @@ using ParkingSystem.Exceptions;
 using System.Threading.Tasks;
 
 namespace ParkingSystem.Reservations;
-
 public class ReservationManager : DomainService
 {
     private readonly IRepository<Reservation, long> _repository;
