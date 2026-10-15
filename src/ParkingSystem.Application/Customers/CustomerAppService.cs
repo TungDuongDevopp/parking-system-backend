@@ -4,12 +4,14 @@ using Abp.Authorization;
 using Abp.Domain.Repositories;
 using Abp.Extensions;
 using Abp.Linq.Extensions;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ParkingSystem.Authorization;
 using ParkingSystem.Customers.Dto;
 using ParkingSystem.Entities;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
+using System;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -176,10 +178,31 @@ public class CustomerAppService : AsyncCrudAppService<Customer, CustomerDto, lon
         var entity = ObjectMapper.Map<Customer>(input);
         entity.UserId = userId;
 
-        var created = await Repository.InsertAsync(entity);
-        await CurrentUnitOfWork.SaveChangesAsync();
-
-        return MapToEntityDto(created);
+        try
+        {
+            var created = await Repository.InsertAsync(entity);
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return MapToEntityDto(created);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            var errorMessage = sqlEx.Message;
+            if (errorMessage.Contains("UserId", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("Current user already has a customer profile.");
+            }
+            if (errorMessage.Contains("PhoneNumber", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("A customer with the same phone number already exists.");
+            }
+            if (errorMessage.Contains("Email", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("A customer with the same email already exists.");
+            }
+            throw new DuplicateResourceException("A customer with conflicting data already exists.");
+        }
     }
     public override async Task<CustomerDto> UpdateAsync(UpdateCustomerDto input)
     {
@@ -214,10 +237,27 @@ public class CustomerAppService : AsyncCrudAppService<Customer, CustomerDto, lon
         // Preserve UserId
         entity.UserId = originalUserId;
 
-        await Repository.UpdateAsync(entity);
-        await CurrentUnitOfWork.SaveChangesAsync();
-
-        return MapToEntityDto(entity);
+        try
+        {
+            await Repository.UpdateAsync(entity);
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return MapToEntityDto(entity);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            var errorMessage = sqlEx.Message;
+            if (errorMessage.Contains("PhoneNumber", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("A customer with the same phone number already exists.");
+            }
+            if (errorMessage.Contains("Email", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("A customer with the same email already exists.");
+            }
+            throw new DuplicateResourceException("A customer with conflicting data already exists.");
+        }
     }
 
     [AbpAuthorize(PermissionNames.Pages_Customers_ModifyAll)]

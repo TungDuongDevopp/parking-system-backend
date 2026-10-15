@@ -1,4 +1,4 @@
-﻿
+
 using Abp.Application.Services.Dto;
 using Abp.Authorization;
 using Abp.Collections.Extensions;
@@ -6,6 +6,7 @@ using Abp.Domain.Repositories;
 using Abp.EntityFrameworkCore.Repositories;
 using Abp.Linq.Extensions;
 using Abp.Timing;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ParkingSystem.Authorization;
 using ParkingSystem.Entities;
@@ -36,7 +37,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
     private readonly SessionManager _sessionManager;
     private readonly IRepository<Quotation, long> _quotationRepository;
     private readonly IRepository<SubscriptionAllowedPlate, long> _plateRepository;
-
+    private readonly IRepository<Subscription, long> _subscriptionRepository;
     public ParkingSessionAppService(IRepository<ParkingSession, long> repository,
         IRepository<Reservation, long> reservationRepository,
         IRepository<ParkingArea, long> parkingAreaRepository,
@@ -45,8 +46,9 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         IRepository<Staff, long> staffRepository,
         ReservationManager reservationManager,
         IRepository<Quotation, long> quotationRepository,
-          SessionManager sessionManager,
-    IRepository<SubscriptionAllowedPlate, long> plateRepository
+        IRepository<Subscription, long> subscriptionRepository,
+        SessionManager sessionManager,
+        IRepository<SubscriptionAllowedPlate, long> plateRepository
         )
       
     {
@@ -60,6 +62,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         _quotationRepository = quotationRepository;
         _plateRepository = plateRepository;
         _sessionManager = sessionManager;
+        _subscriptionRepository = subscriptionRepository;       
     }
     private async Task CheckSessionViewAccessAsync(ParkingSession session)
     {
@@ -117,13 +120,20 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
      string plateNumber,
      VehicleType type)
     {
+        var now = Clock.Now;
+
         return await _plateRepository.GetAll()
             .AnyAsync(x =>
                 x.PlateNumber == plateNumber &&
                 x.Subscription.Status == SubscriptionStatus.inUse &&
-                x.Subscription.Quotation.VehicleType == type);
+                x.Subscription.StartTime <= now &&
+                x.Subscription.EndTime >= now &&
+                x.Subscription.Quotation.VehicleType == type &&
+                !_repository.GetAll().Any(s =>
+                    s.SubscriptionId == x.SubscriptionId &&
+                    s.Status == ParkingSessionStatus.Active
+                ));
     }
-
 
     public async Task<CheckInResultDto> CheckInAsync(ParkingSessionCheckInDto input)
     {
@@ -169,7 +179,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             }
         }
 
-        var quotationHourly =  await _quotationRepository.FirstOrDefaultAsync(x => x.VehicleType == input.VehicleType && x.DurationUnit == DurationUnit.Hour && x.Duration == 1);
+        var quotationHourly =  await _quotationRepository.FirstOrDefaultAsync(x => x.VehicleType == input.VehicleType && x.DurationUnit == DurationUnit.Hour && x.Duration == 12);
         var quotationDaily =  await _quotationRepository.FirstOrDefaultAsync(x => x.VehicleType == input.VehicleType && x.DurationUnit == DurationUnit.Day && x.Duration == 1);
         if (quotationHourly == null || quotationDaily == null)
         {
@@ -184,24 +194,66 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         {
             var plateNumber = PlateNumberNormalizer.Normalize(input.PlateNumber);
             session.PlateNumber = plateNumber;
-            if (await IsFreeWhenHasSub(plateNumber,input.VehicleType))
+            if (await IsFreeWhenHasSub(plateNumber, input.VehicleType))
             {
                 session.Fee = 0;
+
+                // Null-safe: plate và sub phải tồn tại vì IsFreeWhenHasSub đã xác nhận
+                var plate = await _plateRepository.FirstOrDefaultAsync(x =>
+                    x.PlateNumber == plateNumber &&
+                    x.Subscription.Status == SubscriptionStatus.inUse);
+
+                if (plate == null)
+                    throw new BusinessRuleException("Subscription plate not found for: " + plateNumber);
+
+                var sub = await _subscriptionRepository.FirstOrDefaultAsync(x => x.Id == plate.SubscriptionId);
+                if (sub == null)
+                    throw new BusinessRuleException("Subscription not found for plate: " + plateNumber);
+
+                session.CustomerId = sub.CustomerId;
+                session.SubscriptionId = sub.Id;
             }
         }
         session.CheckInStaff = staff;
         session.CheckInStaffId = staff.Id;
         session.TicketCode = ticketCode;
         session.HourlyRate = hourlyRate;
-        session.DailyRate = dailyRate;
-        var created = await _repository.InsertAsync(session);
-        await CurrentUnitOfWork.SaveChangesAsync();
+        try
+        {
+            var created = await _repository.InsertAsync(session);
+            await CurrentUnitOfWork.SaveChangesAsync();
 
-        var sessionDto =  ObjectMapper.Map<CheckInResultDto>(created);
-        sessionDto.Success = true;
-        sessionDto.Message = "Check-in successful";
+            var sessionDto = ObjectMapper.Map<CheckInResultDto>(created);
+            sessionDto.Success = true;
+            sessionDto.Message = "Check-in successful";
 
-        return sessionDto;
+            return sessionDto;
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            var errorMessage = sqlEx.Message;
+
+            if (errorMessage.Contains("UX_ParkingSessions_ActivePlateNumber", StringComparison.OrdinalIgnoreCase)
+                || errorMessage.Contains("IX_ParkingSessions_PlateNumber", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new BusinessRuleException("This vehicle is already in an active parking session.");
+            }
+
+            if (errorMessage.Contains("UX_ParkingSessions_ActiveParkingSpot", StringComparison.OrdinalIgnoreCase)
+                || errorMessage.Contains("IX_ParkingSessions_ParkingSpotId", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new BusinessRuleException("The selected parking spot is already occupied by another vehicle.");
+            }
+
+            if (errorMessage.Contains("TicketCode", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new BusinessRuleException("A ticket conflict occurred. Please try checking in again.");
+            }
+
+            throw new BusinessRuleException("A conflict occurred while checking in. Please try again.");
+        }
 
     }
 
@@ -213,6 +265,12 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             throw new BusinessRuleException("Reservation not found with id: " + id);
         }
         var parkingArea = await _parkingAreaRepository.FirstOrDefaultAsync(x => x.Id == reservation.ParkingAreaId && x.Status == ParkingAreaStatus.Active);
+       
+        if (parkingArea == null)
+        {
+            throw new BusinessRuleException("Parking area is currently inactive or not found.");
+        }
+
         if (parkingArea.VehicleType != type)
         {
             await _reservationManager.InvalidateAsync(reservation);
@@ -241,6 +299,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         return new ParkingSession
         {
             ParkingAreaId = reservation.ParkingAreaId,
+            ParkingArea = parkingArea,
             ParkingSpotId = reservation.ParkingSpotId,
             CustomerId = reservation.CustomerId
         };
@@ -327,25 +386,33 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
 
     public async Task<CheckOutResultDto> CheckOutAsync(ParkingSessionCheckOutDto input)
     {
-        var session = await _repository.FirstOrDefaultAsync(x => x.Id == input.Id && x.Status == ParkingSessionStatus.Active);
-        if(session == null)
+        var session = await _repository.GetAll()
+            .Include(x => x.ParkingArea)
+            .FirstOrDefaultAsync(x => x.Id == input.Id && x.Status == ParkingSessionStatus.Active);
+
+        if (session == null)
         {
             throw new ResourceNotFoundException("Session not found with id: " + input.Id);
         }
+
         var userId = AbpSession.UserId;
-        var staff =  await _staffRepository.FirstOrDefaultAsync(x => x.UserId == userId && x.Status == StaffStatus.Active);
-       
-        if(staff == null)
+        var staff = await _staffRepository.FirstOrDefaultAsync(x => x.UserId == userId && x.Status == StaffStatus.Active);
+
+        if (staff == null)
         {
-            throw new BusinessRuleException("You don't have permision to do this action");
-        }
-        if(session.Fee == null)
-        {
-            session.Fee = CaculateFee(session.EntryTime, Clock.Now, session.HourlyRate.Value, session.DailyRate.Value);
-            //Gọi cổng thanh toán
+            throw new BusinessRuleException("You don't have permission to do this action");
         }
 
-        await _sessionManager.CompleteAsync(session,staff.Id,session.Fee.Value);
+        if (session.Fee == null)
+        {
+            if (session.HourlyRate == null || session.DailyRate == null)
+                throw new BusinessRuleException("Session is missing rate configuration and cannot be charged.");
+
+            session.Fee = CaculateFee(session.EntryTime, Clock.Now, session.HourlyRate.Value, session.DailyRate.Value);
+            // TODO: Gọi cổng thanh toán nếu cần
+        }
+
+        await _sessionManager.CompleteAsync(session, staff.Id, session.Fee.Value);
         var dbContext = _repository.GetDbContext();
 
         await dbContext.Entry(session).ReloadAsync();
@@ -353,7 +420,6 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         sessionDto.Success = true;
         sessionDto.Message = "Checkout successfully!";
         return sessionDto;
-
     }
     public async Task<PagedResultDto<ParkingSessionDto>> GetAllAsync(PagedParkingSessionResultRequestDto input)
     {

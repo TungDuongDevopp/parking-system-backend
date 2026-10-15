@@ -1724,7 +1724,7 @@ namespace ParkingSystem.Migrations
                     b.Property<DateTime?>("ExitTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("Fee")
+                    b.Property<decimal?>("Fee")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
@@ -1774,7 +1774,9 @@ namespace ParkingSystem.Migrations
                         .HasDatabaseName("UX_ParkingSessions_ActivePlateNumber")
                         .HasFilter("[PlateNumber] IS NOT NULL  AND [ExitTime] IS NULL");
 
-                    b.HasIndex("SubscriptionId");
+                    b.HasIndex("SubscriptionId")
+                        .IsUnique()
+                        .HasFilter("[SubscriptionId] IS NOT NULL AND [Status] = 0");
 
                     b.HasIndex("TicketCode")
                         .IsUnique();

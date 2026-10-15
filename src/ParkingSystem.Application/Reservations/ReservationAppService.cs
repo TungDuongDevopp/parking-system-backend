@@ -28,7 +28,6 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
     private readonly IRepository<ParkingSpot, long> _parkingSpotRepository;
     private readonly IRepository<Reservation, long> _repository;
     private readonly ReservationManager _manager;
-
     private readonly IRepository<Subscription, long> _subscriptionRepository;
     private const int ReservationDurationHours = 3;
     private const int ReservationGracePeriodMinutes = 15;
@@ -47,7 +46,19 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
         _subscriptionRepository = subscriptionRepository;
         _manager = manager;
     }
-
+    private static readonly TimeZoneInfo LocalTimeZone = GetLocalTimeZone();
+    private static TimeZoneInfo GetLocalTimeZone()
+    {
+        // Hỗ trợ cả tên Windows và IANA (Linux/Docker)
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+        }
+    }
     private async Task CheckReservationViewAccessAsync(Reservation reservation)
     {
         var canViewAll = await PermissionChecker.IsGrantedAsync(
@@ -143,11 +154,18 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
             throw new BusinessRuleException(
                 "You already have an active reservation.");
         }
-        // 5. Check time Reserver (on day)
-        if (input.ReservedAt.Date != Clock.Now.Date)
+
+        var localNow = TimeZoneInfo.ConvertTimeFromUtc(Clock.Now, LocalTimeZone);
+        var localReservedAt = TimeZoneInfo.ConvertTimeFromUtc(input.ReservedAt, LocalTimeZone);
+        if (localReservedAt.Date != localNow.Date)
         {
-            throw new BusinessRuleException(
-                "Reservation must be made for the current day.");
+            throw new BusinessRuleException("Reservation must be made for the current day.");
+        }
+
+       
+        if (input.ReservedAt < Clock.Now.AddMinutes(-5))
+        {
+            throw new BusinessRuleException("Reserved time cannot be in the past.");
         }
 
         // 6. Get active parking area and still capa available

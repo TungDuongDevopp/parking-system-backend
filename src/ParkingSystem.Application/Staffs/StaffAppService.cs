@@ -5,6 +5,7 @@ using Abp.Authorization;
 using Abp.Domain.Repositories;
 using Abp.Extensions;
 using Abp.Linq.Extensions;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ParkingSystem.Authorization;
 using ParkingSystem.Authorization.Users;
@@ -13,6 +14,7 @@ using ParkingSystem.Entities.Enums;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.Staffs.Dto;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
@@ -225,11 +227,31 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
 
         entity.UserId = user.Id;
 
-        var created = await Repository.InsertAsync(entity);
-
-        await CurrentUnitOfWork.SaveChangesAsync();
-
-        return MapToEntityDto(created);
+        try
+        {
+            var created = await Repository.InsertAsync(entity);
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return MapToEntityDto(created);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            var errorMessage = sqlEx.Message;
+            if (errorMessage.Contains("UserId", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("This user already has a Staff profile.");
+            }
+            if (errorMessage.Contains("PhoneNumber", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("A Staff with the same phone number already exists.");
+            }
+            if (errorMessage.Contains("Email", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("A Staff with the same email already exists.");
+            }
+            throw new DuplicateResourceException("A Staff with conflicting data already exists.");
+        }
     }
 
     [AbpAuthorize(PermissionNames.Pages_Staffs_Manager)]
@@ -254,9 +276,27 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
         }
         ObjectMapper.Map(input,entity);
 
-        await Repository.UpdateAsync(entity);
-        await CurrentUnitOfWork.SaveChangesAsync();
-        return MapToEntityDto(entity);
+        try
+        {
+            await Repository.UpdateAsync(entity);
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return MapToEntityDto(entity);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            var errorMessage = sqlEx.Message;
+            if (errorMessage.Contains("PhoneNumber", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("A Staff with the same phone number already exists.");
+            }
+            if (errorMessage.Contains("Email", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("A Staff with the same email already exists.");
+            }
+            throw new DuplicateResourceException("A Staff with conflicting data already exists.");
+        }
     }
 
     [AbpAuthorize(PermissionNames.Pages_Staffs_Manager)]
@@ -319,9 +359,26 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
                 "A Staff with the same phone number or email already exists."
             );
         }
-        ObjectMapper.Map(input, entity);
-        await CurrentUnitOfWork.SaveChangesAsync();
-        return MapToEntityDto(entity);
+        try
+        {
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return MapToEntityDto(entity);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            var errorMessage = sqlEx.Message;
+            if (errorMessage.Contains("PhoneNumber", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("A Staff with the same phone number already exists.");
+            }
+            if (errorMessage.Contains("Email", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("A Staff with the same email already exists.");
+            }
+            throw new DuplicateResourceException("A Staff with conflicting data already exists.");
+        }
     }
 
     public async Task<StaffDto> GetMyProfileAsync()

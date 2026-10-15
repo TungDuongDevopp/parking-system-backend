@@ -5,6 +5,7 @@ using Abp.Collections.Extensions;
 using Abp.Domain.Repositories;
 using Abp.Extensions;
 using Abp.Linq.Extensions;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ParkingSystem.Authorization;
 using ParkingSystem.Entities;
@@ -12,6 +13,7 @@ using ParkingSystem.Entities.Enums;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.ParkingAreas.Dto;
+using System;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -89,11 +91,23 @@ public class ParkingAreaAppService: AsyncCrudAppService<ParkingArea,ParkingAreaD
         }
         var entity = ObjectMapper.Map<ParkingArea>(input);
 
-        var created = await Repository.InsertAsync(entity);
-
-        await CurrentUnitOfWork.SaveChangesAsync();
-
-        return MapToEntityDto(created);
+        try
+        {
+            var created = await Repository.InsertAsync(entity);
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return MapToEntityDto(created);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            var errorMessage = sqlEx.Message;
+            if (errorMessage.Contains("ParkingCode", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("Parking area code already exists.");
+            }
+            throw new DuplicateResourceException("A parking area with conflicting data already exists.");
+        }
     }
     [AbpAuthorize(PermissionNames.Pages_ParkingAreas_Manager)]
     public override async Task<ParkingAreaDto> UpdateAsync(UpdateParkingAreaDto input)
@@ -123,9 +137,23 @@ public class ParkingAreaAppService: AsyncCrudAppService<ParkingArea,ParkingAreaD
         
         ObjectMapper.Map(input, entity);
 
-        await Repository.UpdateAsync(entity);
-        await CurrentUnitOfWork.SaveChangesAsync();
-        return MapToEntityDto(entity);
+        try
+        {
+            await Repository.UpdateAsync(entity);
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return MapToEntityDto(entity);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            var errorMessage = sqlEx.Message;
+            if (errorMessage.Contains("ParkingCode", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("Parking area code already exists.");
+            }
+            throw new DuplicateResourceException("A parking area with conflicting data already exists.");
+        }
     }
 
     public override async Task<ParkingAreaDto> GetAsync(EntityDto<long> input)
@@ -166,17 +194,29 @@ public class ParkingAreaAppService: AsyncCrudAppService<ParkingArea,ParkingAreaD
     [AbpAuthorize(PermissionNames.Pages_ParkingAreas_Manager)]
     public async Task<ParkingAreaDto> ChangeStatus(ChangeStatusDto input)
     {
-        var entity = await Repository.FirstOrDefaultAsync(input.Id);
-        if (entity == null)
+        var area = await Repository.FirstOrDefaultAsync(input.Id);
+        if (area == null)
         {
             throw new ResourceNotFoundException("Parking area not found with id: " + input.Id);
         }
 
-        entity.Status = input.Status;
-        await Repository.UpdateAsync(entity);
+        if(area.CurrentOccupancy > 0)
+        {
+            throw new BusinessRuleException("Cannot deactivate because it is currently using.");
+        }
+        
+        if(area.ParkingMode == ParkingMode.individualSpot)
+        {
+            var hasSpotActive =  await _parkingSpotRepository.GetAll().AnyAsync(x=>x.ParkingAreaId == area.Id && (x.Status == ParkingSpotStatus.Occupied || x.Status == ParkingSpotStatus.Reserved)); 
+            if(hasSpotActive)
+            {
+                throw new BusinessRuleException("Cannot deactivate because another service is currently using it.");
+            }
+        }
+
+        area.Status = input.Status;
+        await Repository.UpdateAsync(area);
         await CurrentUnitOfWork.SaveChangesAsync();
-        return MapToEntityDto(entity);
+        return MapToEntityDto(area);
     }
-
-
 }

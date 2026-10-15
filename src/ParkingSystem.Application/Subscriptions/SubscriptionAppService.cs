@@ -3,6 +3,7 @@ using Abp.Authorization;
 using Abp.Domain.Repositories;
 using Abp.Linq.Extensions;
 using Abp.UI;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ParkingSystem.Authorization;
 using ParkingSystem.Entities;
@@ -11,6 +12,7 @@ using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.Quotations.Dto;
 using ParkingSystem.Subscriptions.Dto;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
@@ -24,7 +26,6 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
     private readonly IRepository<Customer, long> _customerRepository;
     private readonly IRepository<Quotation, long> _quotationRepository;
     private readonly IRepository<Subscription, long> _repository;
-
     private readonly IRepository<SubscriptionAllowedPlate, long> _plateRepository;
 
     public SubscriptionAppService(IRepository<Subscription,long> repository, IRepository<Quotation, long> quotationRepository, IRepository<Customer, long> customerRepository,
@@ -128,11 +129,23 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
             }).ToList()
         };
 
-        var created = await _repository.InsertAsync(subscription);
-
-        await CurrentUnitOfWork.SaveChangesAsync();
-
-        return ObjectMapper.Map<SubscriptionDto>(created);
+        try
+        {
+            var created = await _repository.InsertAsync(subscription);
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return ObjectMapper.Map<SubscriptionDto>(created);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            var errorMessage = sqlEx.Message;
+            if (errorMessage.Contains("PlateNumber", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("One or more plate numbers are already registered for this subscription.");
+            }
+            throw new DuplicateResourceException("A conflict occurred while creating the subscription.");
+        }
     }
 
     public async Task<PagedResultDto<SubscriptionDto>> GetAllAsync(
