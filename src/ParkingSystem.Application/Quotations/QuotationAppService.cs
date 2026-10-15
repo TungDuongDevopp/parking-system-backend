@@ -1,4 +1,4 @@
-﻿
+
 
 using Abp.Application.Services;
 using Abp.Application.Services.Dto;
@@ -6,6 +6,7 @@ using Abp.Authorization;
 using Abp.Collections.Extensions;
 using Abp.Domain.Repositories;
 using Abp.Linq.Extensions;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ParkingSystem.Authorization;
 using ParkingSystem.Entities;
@@ -88,9 +89,18 @@ public class QuotationAppService: AsyncCrudAppService<Quotation,QuotationDto,lon
      
         ObjectMapper.Map(input, entity);
        
-        await Repository.UpdateAsync(entity);
-        await CurrentUnitOfWork.SaveChangesAsync();
-        return MapToEntityDto(entity);
+        try
+        {
+            await Repository.UpdateAsync(entity);
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return MapToEntityDto(entity);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            throw new DuplicateResourceException("Quotation already exists.");
+        }
     }
 
 
@@ -108,11 +118,19 @@ public class QuotationAppService: AsyncCrudAppService<Quotation,QuotationDto,lon
             throw new DuplicateResourceException("Quotation already exists.");
         }
         var entity = ObjectMapper.Map<Quotation>(input);
-        var created = await Repository.InsertAsync(entity);
 
-        await CurrentUnitOfWork.SaveChangesAsync();
-
-        return MapToEntityDto(created);
+        try
+        {
+            var created = await Repository.InsertAsync(entity);
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return MapToEntityDto(created);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            throw new DuplicateResourceException("Quotation already exists.");
+        }
     }
 
     public override async Task<QuotationDto> GetAsync(EntityDto<long> input)

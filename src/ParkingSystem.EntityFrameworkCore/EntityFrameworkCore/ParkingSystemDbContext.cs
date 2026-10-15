@@ -27,6 +27,7 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
     public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
 
     public DbSet<Reservation> Reservations { get; set; }
+    public DbSet<SubscriptionAllowedPlate> SubscriptionAllowedPlates { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -155,7 +156,12 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
             .WithMany(ps => ps.ParkingSessions)
             .HasForeignKey(c => c.CustomerId)
             .OnDelete(DeleteBehavior.Restrict);
-       
+
+        modelBuilder.Entity<ParkingSession>()
+            .HasIndex(x => x.SubscriptionId)
+            .IsUnique()
+            .HasFilter("[SubscriptionId] IS NOT NULL AND [Status] = 0");
+
         //Payment entity configuration
         modelBuilder.Entity<Payment>()
             .HasOne(p => p.Subscription)

@@ -1,4 +1,4 @@
-﻿using Abp.Domain.Repositories;
+using Abp.Domain.Repositories;
 using Abp.Domain.Services;
 using Abp.EntityFrameworkCore.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -102,26 +102,39 @@ public class ReservationManager : DomainService
         if (reservation.ParkingSpotId.HasValue)
         {
             var spotDbContext = _parkingSpotRepository.GetDbContext();
-            var spotRowsAffected =  await spotDbContext.Database.ExecuteSqlInterpolatedAsync($@"
+            // Chỉ reset về Available nếu spot vẫn đang Reserved (tránh ghi đè Occupied)
+            await spotDbContext.Database.ExecuteSqlInterpolatedAsync($@"
             UPDATE ParkingSpots
             SET Status = {ParkingSpotStatus.Available}
             WHERE Id = {reservation.ParkingSpotId.Value}
             AND ParkingAreaId = {reservation.ParkingAreaId} 
+            AND Status = {ParkingSpotStatus.Reserved}
             AND IsDeleted = 0
         ");
-            if (spotRowsAffected == 0)
-                throw new BusinessRuleException("The selected parking spot is not available.");
+            // rowsAffected = 0 là hợp lệ: spot đã được chuyển sang Occupied bởi check-in,
+            // hoặc đã được release trước đó (idempotent). Không throw exception.
         }
 
-        var dbContext = _parkingAreaRepository.GetDbContext();
-          var areaRowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+        // Guard: ParkingArea navigation property có thể null nếu caller không Include().
+        // Tự load lại từ DB để đảm bảo an toàn.
+        var parkingArea = reservation.ParkingArea
+            ?? await _parkingAreaRepository.FirstOrDefaultAsync(reservation.ParkingAreaId);
+
+        if (parkingArea == null)
+            throw new BusinessRuleException("Parking area not found for reservation: " + reservation.Id);
+
+        if (parkingArea.ParkingMode == ParkingMode.capacityBase)
+        {
+            var dbContext = _parkingAreaRepository.GetDbContext();
+            var areaRowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
             UPDATE ParkingAreas
             SET CurrentOccupancy = CurrentOccupancy - 1
             WHERE Id = {reservation.ParkingAreaId}
               AND CurrentOccupancy > 0
               AND IsDeleted = 0
         ");
-        if (areaRowsAffected == 0)
-            throw new BusinessRuleException("This parking area is empty");
+            if (areaRowsAffected == 0)
+                throw new BusinessRuleException("This parking area is empty");
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿
+
 using Abp.Application.Services;
 using Abp.Application.Services.Dto;
 using Abp.Authorization;
@@ -6,6 +6,7 @@ using Abp.Collections.Extensions;
 using Abp.Domain.Repositories;
 using Abp.Extensions;
 using Abp.Linq.Extensions;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using ParkingSystem.Authorization;
@@ -106,11 +107,24 @@ public class ParkingSpotAppService : AsyncCrudAppService<ParkingSpot,ParkingSpot
         }
 
         var entity = ObjectMapper.Map<ParkingSpot>(input);
-        var created = await Repository.InsertAsync(entity);
 
-        await CurrentUnitOfWork.SaveChangesAsync();
-
-        return MapToEntityDto(created);
+        try
+        {
+            var created = await Repository.InsertAsync(entity);
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return MapToEntityDto(created);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            var errorMessage = sqlEx.Message;
+            if (errorMessage.Contains("SpotCode", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("Parking spot code already exists in this parking area.");
+            }
+            throw new DuplicateResourceException("A parking spot with conflicting data already exists.");
+        }
     }
 
     [AbpAuthorize(PermissionNames.Pages_ParkingSpots_Manager)]
@@ -135,11 +149,23 @@ public class ParkingSpotAppService : AsyncCrudAppService<ParkingSpot,ParkingSpot
             }
         }
 
-        ObjectMapper.Map(input, entity);
-
-        await Repository.UpdateAsync(entity);
-        await CurrentUnitOfWork.SaveChangesAsync();
-        return MapToEntityDto(entity);
+        try
+        {
+            await Repository.UpdateAsync(entity);
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return MapToEntityDto(entity);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            var errorMessage = sqlEx.Message;
+            if (errorMessage.Contains("SpotCode", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new DuplicateResourceException("Parking spot code already exists in this parking area.");
+            }
+            throw new DuplicateResourceException("A parking spot with conflicting data already exists.");
+        }
     }
 
     

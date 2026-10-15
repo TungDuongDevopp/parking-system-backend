@@ -1,8 +1,9 @@
-﻿using Abp.Application.Services.Dto;
+using Abp.Application.Services.Dto;
 using Abp.Authorization;
 using Abp.Domain.Repositories;
 using Abp.EntityFrameworkCore.Repositories;
 using Abp.Linq.Extensions;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ParkingSystem.Authorization;
 using ParkingSystem.Entities;
@@ -83,9 +84,6 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
 
         var dbContext = _repository.GetDbContext();
 
-        await using var transaction =
-             await dbContext.Database.BeginTransactionAsync();
-
         var rowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
             INSERT INTO SubscriptionAllowedPlate (SubscriptionId, PlateNumber,CreationTime)
             SELECT s.Id, {plateNormalize},GETUTCDATE()
@@ -105,8 +103,6 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
               ) < 3
         ");
 
-        await transaction.CommitAsync();
-
         if (rowsAffected == 0)
             throw new BusinessRuleException("Can add plate");
 
@@ -114,59 +110,65 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
         return ObjectMapper.Map<SubscriptionPlateDto>(plate);
     }
 
-    public  async Task<SubscriptionPlateDto> ChangePlateAsync(ChangePlateDto input)
+    public async Task<SubscriptionPlateDto> ChangePlateAsync(ChangePlateDto input)
     {
         var plate = await _repository.FirstOrDefaultAsync(x => x.Id == input.Id);
-            if(plate == null)
-        {
+
+        if (plate == null)
             throw new ResourceNotFoundException("Plate not found with id " + input.Id);
-        }
-        
+
         await CheckPlateChangeAccessAsync(plate);
 
+        if (plate.SubscriptionId != input.SubscriptionId)
+            throw new BusinessRuleException("Plate does not belong to subscription");
+
         var plateNormalize = PlateNumberNormalizer.Normalize(input.PlateNumber);
-        var subscription = await _subscriptionRepository.FirstOrDefaultAsync(x => x.Id == input.SubscriptionId && x.Status == SubscriptionStatus.inUse);
-        
-        if(subscription == null)
-        {
+
+        var subscription = await _subscriptionRepository.FirstOrDefaultAsync(
+            x => x.Id == input.SubscriptionId &&
+                 x.Status == SubscriptionStatus.inUse);
+
+        if (subscription == null)
             throw new ResourceNotFoundException("Subscription not found with id " + input.SubscriptionId);
-        }
 
         if (subscription.HasReplacedPlate)
-        {
-            throw new BusinessRuleException("You can change plate anymore");
-        }
+            throw new BusinessRuleException("You cannot change plate anymore");
 
         var dbContext = _repository.GetDbContext();
-        var rowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
-            UPDATE SubscriptionAllowedPlate
-            SET PlateNumber = {plateNormalize},
-                HasReplacedPlate = 1
-            WHERE Id = {plate.Id}
-              AND EXISTS (
-                  SELECT 1
-                  FROM Subscriptions
-                  WHERE Id = {plate.SubscriptionId}
-                    AND Status = {(int)SubscriptionStatus.inUse}
-                    AND HasReplacedPlate = 0
-              )
-              AND NOT EXISTS (
-                  SELECT 1
-                  FROM SubscriptionAllowedPlate
-                  WHERE SubscriptionId = {plate.SubscriptionId}
-                    AND PlateNumber = {plateNormalize}
-                    AND Id <> {plate.Id}
-              )
-            ");
 
-        if (rowsAffected == 0)
-            throw new BusinessRuleException("Plate duplicate or has changed before");
+        // 1. Giành quyền đổi biển số
+        var subRowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+        UPDATE Subscriptions
+        SET HasReplacedPlate = 1
+        WHERE Id = {subscription.Id}
+          AND Status = {(int)SubscriptionStatus.inUse}
+          AND HasReplacedPlate = 0
+    ");
+
+        if (subRowsAffected != 1)
+            throw new BusinessRuleException("Plate has already been replaced");
+
+        // 2. Đổi biển số
+        var plateRowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+        UPDATE SubscriptionAllowedPlate
+        SET PlateNumber = {plateNormalize}
+        WHERE Id = {plate.Id}
+          AND SubscriptionId = {subscription.Id}
+          AND NOT EXISTS (
+              SELECT 1
+              FROM SubscriptionAllowedPlate
+              WHERE SubscriptionId = {subscription.Id}
+                AND PlateNumber = {plateNormalize}
+                AND Id <> {plate.Id}
+          )
+    ");
+
+        if (plateRowsAffected != 1)
+            throw new BusinessRuleException("Plate number already exists or update failed");
 
         await dbContext.Entry(plate).ReloadAsync();
 
         return ObjectMapper.Map<SubscriptionPlateDto>(plate);
-
-
     }
 
     public async Task<SubscriptionPlateDto> CreateAsync(CreatePlateDto input)
@@ -179,8 +181,8 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
         {
             throw new ResourceNotFoundException("Subscription not found with id: " + input.SubscriptionId);
         }
-        var maxNumOfPlate = await _subscriptionRepository.CountAsync(x => x.Id == input.SubscriptionId) >= 3;
-        if(maxNumOfPlate)
+        var maxNumOfPlate = await _repository.CountAsync(x => x.SubscriptionId == input.SubscriptionId) >= 3;
+        if (maxNumOfPlate)
         {
             throw new BusinessRuleException("Subscription cannot have more than 3 plates.");
         }
@@ -188,7 +190,7 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
 
         var customer = await _customerRepository.FirstOrDefaultAsync(x => x.Id == subscription.CustomerId);
 
-        if(customer == null || userId != customer.Id)
+        if(customer == null || customer.UserId != userId)
         {
             throw new AbpAuthorizationException("You do not have permission to create this plate.");
         }
@@ -200,8 +202,18 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
             PlateNumber = plateNormalize,
             SubscriptionId = subscription.Id
         };
-        await _repository.InsertAsync(subPlate);
-        return ObjectMapper.Map<SubscriptionPlateDto>(subPlate);
+        try
+        {
+            await _repository.InsertAsync(subPlate);
+            await CurrentUnitOfWork.SaveChangesAsync();
+            return ObjectMapper.Map<SubscriptionPlateDto>(subPlate);
+        }
+        catch (DbUpdateException ex)
+            when (ex.InnerException is SqlException sqlEx
+                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+        {
+            throw new DuplicateResourceException("This plate number is already registered for this subscription.");
+        }
     }
 
     public async Task<PagedResultDto<SubscriptionPlateDto>> GetAllAysnc(PagedSubscriptionPlateResultRequestDto input)

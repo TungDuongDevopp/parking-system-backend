@@ -1,4 +1,4 @@
-﻿using Abp.Domain.Repositories;
+using Abp.Domain.Repositories;
 using Abp.Domain.Services;
 using Abp.EntityFrameworkCore.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -40,16 +40,25 @@ public class SessionManager:DomainService
                 throw new BusinessRuleException("The selected parking spot is not available.");
         }
 
-        var dbContext = _parkingAreaRepository.GetDbContext();
-        var areaRowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+        var parkingArea = session.ParkingArea
+            ?? await _parkingAreaRepository.FirstOrDefaultAsync(session.ParkingAreaId);
+
+        if (parkingArea == null)
+            throw new BusinessRuleException("Parking area not found for session: " + session.Id);
+
+        if (parkingArea.ParkingMode == ParkingMode.capacityBase)
+        {
+            var dbContext = _parkingAreaRepository.GetDbContext();
+            var areaRowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
             UPDATE ParkingAreas
             SET CurrentOccupancy = CurrentOccupancy - 1
             WHERE Id = {session.ParkingAreaId}
               AND CurrentOccupancy > 0
               AND IsDeleted = 0
         ");
-        if (areaRowsAffected == 0)
-            throw new BusinessRuleException("This parking area is empty");
+            if (areaRowsAffected == 0)
+                throw new BusinessRuleException("This parking area is empty");
+        }
     }
     public async Task CompleteAsync(ParkingSession session, long staffId,decimal fee)
     {
@@ -63,7 +72,6 @@ public class SessionManager:DomainService
             Fee = {fee}
         WHERE Id = {session.Id}
           AND Status = {ParkingSessionStatus.Active}
-          AND IsDeleted = 0
     ");
 
         if (rowsAffected == 0)
