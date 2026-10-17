@@ -47,33 +47,49 @@ namespace ParkingSystem.Web.Host.Startup
 
                     options.Events = new JwtBearerEvents
                     {
-                        OnMessageReceived = QueryStringTokenResolver
+                        OnMessageReceived = JwtTokenResolver
                     };
                 });
             }
         }
-
-        /* This method is needed to authorize SignalR javascript client.
-         * SignalR can not send authorization header. So, we are getting it from query string as an encrypted text. */
-        private static Task QueryStringTokenResolver(MessageReceivedContext context)
+       
+        private static Task JwtTokenResolver(MessageReceivedContext context)
         {
-            if (!context.HttpContext.Request.Path.HasValue ||
-                !context.HttpContext.Request.Path.Value.StartsWith("/signalr"))
+            var request = context.HttpContext.Request;
+            request.Headers["Cookie"].ToString();
+
+            // 1. Preserve Authorization header priority.
+            if (request.Headers.ContainsKey("Authorization"))
             {
-                // We are just looking for signalr clients
                 return Task.CompletedTask;
             }
 
-            var qsAuthToken = context.HttpContext.Request.Query["enc_auth_token"].FirstOrDefault();
-            if (qsAuthToken == null)
+            // 2. Preserve SignalR encrypted query token.
+            if (request.Path.HasValue &&
+                request.Path.Value.StartsWith(
+                    "/signalr",
+                    StringComparison.OrdinalIgnoreCase))
             {
-                // Cookie value does not matches to querystring value
-                return Task.CompletedTask;
+                var encryptedToken =
+                    request.Query["enc_auth_token"].FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(encryptedToken))
+                {
+                    context.Token =
+                        SimpleStringCipher.Instance.Decrypt(encryptedToken);
+
+                    return Task.CompletedTask;
+                }
             }
 
-            // Set auth token from cookie
-            context.Token = SimpleStringCipher.Instance.Decrypt(qsAuthToken);
+            // 3. Read JWT from cookie.
+            if (request.Cookies.TryGetValue("access_token", out var cookieToken) &&
+                !string.IsNullOrWhiteSpace(cookieToken))
+            {
+                context.Token = cookieToken;
+            }
+
             return Task.CompletedTask;
-        }
+        }     
     }
 }
