@@ -19,7 +19,6 @@ using Microsoft.IdentityModel.Tokens;
 namespace ParkingSystem.Controllers
 {
     [Route("api/[controller]/[action]")]
-    [IgnoreAntiforgeryToken]
     public class TokenAuthController : ParkingSystemControllerBase
     {
         private readonly LogInManager _logInManager;
@@ -40,6 +39,7 @@ namespace ParkingSystem.Controllers
         }
 
         [HttpPost]
+        [IgnoreAntiforgeryToken]
         public async Task<AuthenticateResultModel> Authenticate([FromBody] AuthenticateModel model)
         {
             var loginResult = await GetLoginResultAsync(
@@ -60,6 +60,7 @@ namespace ParkingSystem.Controllers
         }
 
         [HttpPost]
+        [IgnoreAntiforgeryToken]
         public async Task<IActionResult> BrowserAuthenticate([FromBody] AuthenticateModel model)
         {
             var loginResult = await GetLoginResultAsync(
@@ -117,6 +118,23 @@ namespace ParkingSystem.Controllers
                 ExpireInSeconds = (int)_configuration.Expiration.TotalSeconds,
                 XsrfToken = tokens.RequestToken
             });
+        }
+
+        [HttpPost]
+        public IActionResult BrowserLogout()
+        {
+            Response.Cookies.Delete(
+                "access_token",
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax,
+                    Path = "/"
+                }
+            );
+
+            return Ok(new { message = "Logged out successfully" });
         }
 
         [HttpGet]
