@@ -14,6 +14,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ParkingSystem.Controllers
 {
@@ -24,15 +25,18 @@ namespace ParkingSystem.Controllers
         private readonly LogInManager _logInManager;
         private readonly AbpLoginResultTypeHelper _abpLoginResultTypeHelper;
         private readonly TokenAuthConfiguration _configuration;
+        private readonly Microsoft.AspNetCore.Antiforgery.IAntiforgery _antiforgery;
 
         public TokenAuthController(
             LogInManager logInManager,
             AbpLoginResultTypeHelper abpLoginResultTypeHelper,
-            TokenAuthConfiguration configuration)
+            TokenAuthConfiguration configuration,
+            Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery)
         {
             _logInManager = logInManager;
             _abpLoginResultTypeHelper = abpLoginResultTypeHelper;
             _configuration = configuration;
+            _antiforgery = antiforgery;
         }
 
         [HttpPost]
@@ -68,6 +72,7 @@ namespace ParkingSystem.Controllers
                 CreateJwtClaims(loginResult.Identity)
             );
 
+            // 1. Append JWT access_token cookie
             Response.Cookies.Append(
                 "access_token",
                 accessToken,
@@ -82,11 +87,81 @@ namespace ParkingSystem.Controllers
                     )
                 }
             );
+
+            // 2. Establish identity in HttpContext using the validated JWT ClaimsPrincipal
+            // to ensure Issuer, ClaimTypes (mapped), and Claims strictly match subsequent JWT requests
+            HttpContext.User = CreatePrincipalFromToken(accessToken);
+
+            var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+
+            // 3. Set XSRF-TOKEN cookie for same-origin / Swagger / proxy clients (readable by JS)
+            Response.Cookies.Append(
+                "XSRF-TOKEN",
+                tokens.RequestToken,
+                new CookieOptions
+                {
+                    HttpOnly = false,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax,
+                    Path = "/",
+                    Expires = DateTimeOffset.UtcNow.Add(_configuration.Expiration)
+                }
+            );
+
+            // 4. Expose X-XSRF-TOKEN header and return XsrfToken in JSON response for cross-origin clients (e.g. React SPA)
+            Response.Headers["X-XSRF-TOKEN"] = tokens.RequestToken;
+
             return Ok(new
             {
                 UserId = loginResult.User.Id,
-                ExpireInSeconds = (int)_configuration.Expiration.TotalSeconds
+                ExpireInSeconds = (int)_configuration.Expiration.TotalSeconds,
+                XsrfToken = tokens.RequestToken
             });
+        }
+
+        [HttpGet]
+        public IActionResult GetXsrfToken()
+        {
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                return Unauthorized();
+            }
+
+            var tokens = _antiforgery.GetAndStoreTokens(HttpContext);
+
+            Response.Cookies.Append(
+                "XSRF-TOKEN",
+                tokens.RequestToken,
+                new CookieOptions
+                {
+                    HttpOnly = false,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax,
+                    Path = "/"
+                }
+            );
+
+            Response.Headers["X-XSRF-TOKEN"] = tokens.RequestToken;
+
+            return Ok(new { xsrfToken = tokens.RequestToken });
+        }
+
+        private ClaimsPrincipal CreatePrincipalFromToken(string accessToken)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = _configuration.SecurityKey,
+                ValidateIssuer = true,
+                ValidIssuer = _configuration.Issuer,
+                ValidateAudience = true,
+                ValidAudience = _configuration.Audience,
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero
+            };
+
+            return tokenHandler.ValidateToken(accessToken, validationParameters, out _);
         }
 
         private async Task<AbpLoginResult<Tenant, User>> GetLoginResultAsync(string usernameOrEmailAddress, string password, string tenancyName)
