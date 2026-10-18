@@ -62,7 +62,7 @@ namespace ParkingSystem.Web.Antiforgery
             var httpContext = context.HttpContext;
             var method = httpContext.Request.Method;
 
-            // Rule 4: Safe methods (GET, HEAD, OPTIONS, TRACE) do not modify state and never require CSRF
+            // Rule 1: Safe methods (GET, HEAD, OPTIONS, TRACE) do not modify state and never require CSRF.
             if (HttpMethods.IsGet(method) ||
                 HttpMethods.IsHead(method) ||
                 HttpMethods.IsOptions(method) ||
@@ -71,33 +71,33 @@ namespace ParkingSystem.Web.Antiforgery
                 return false;
             }
 
-            // Rule 7: Unauthenticated requests should be handled by Authentication / AbpAuthorizationFilter (401 Unauthorized),
-            // not rejected with 400 Bad Request by Antiforgery filter.
-            if (httpContext.User?.Identity?.IsAuthenticated != true)
+            // Rule 5: If no access_token cookie is present, the request is not using cookie-based auth.
+            // This covers: fully anonymous requests, pure Bearer-only requests, and idempotent logout
+            // calls after the session cookie has already been deleted. Skip CSRF in all these cases.
+            if (!httpContext.Request.Cookies.ContainsKey("access_token"))
             {
                 return false;
             }
 
-            // Rule 1 & 3: If actually authenticated via Bearer Header, bypass CSRF
+            // From here on, the access_token cookie IS present in this request.
+            // We must determine the auth source that was actually accepted by the JWT handler.
             var validatedAuthSource = httpContext.Items[AuthSourceItemKey] as string;
+
+            // Rule 2: Bearer header takes priority over cookie (see JwtTokenResolver).
+            // If the JWT handler confirmed it used the Bearer header, the cookie was not the
+            // credential — skip CSRF.
             if (string.Equals(validatedAuthSource, AuthSourceBearer, StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
 
-            // Rule 2 & 3: If authenticated via Cookie, MUST validate CSRF token
-            if (string.Equals(validatedAuthSource, AuthSourceCookie, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            // Fallback: If cookie "access_token" was present on this authenticated mutating request
-            if (httpContext.Request.Cookies.ContainsKey("access_token"))
-            {
-                return true;
-            }
-
-            return false;
+            // Rule 3 & 4: Cookie is present AND the auth source is either:
+            //   - Confirmed "Cookie" (OnTokenValidated fired with AuthSource = Cookie), OR
+            //   - Unknown / null (authentication may have failed, e.g. expired token, but the browser
+            //     still presented the cookie — we cannot distinguish this from a valid cookie request
+            //     without CSRF, so we enforce validation to be safe).
+            // In both cases CSRF MUST be validated via IAntiforgery.ValidateRequestAsync().
+            return true;
         }
     }
 }
