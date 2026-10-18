@@ -8,6 +8,7 @@ using ParkingSystem.Identity;
 using Castle.Facilities.Logging;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -23,9 +24,7 @@ namespace ParkingSystem.Web.Host.Startup
     public class Startup
     {
         private const string _defaultCorsPolicyName = "localhost";
-
         private const string _apiVersion = "v1";
-
         private readonly IConfigurationRoot _appConfiguration;
         private readonly IWebHostEnvironment _hostingEnvironment;
 
@@ -37,10 +36,21 @@ namespace ParkingSystem.Web.Host.Startup
 
         public void ConfigureServices(IServiceCollection services)
         {
+            // Antiforgery configuration
+            services.AddAntiforgery(options =>
+            {
+                options.HeaderName = "X-XSRF-TOKEN";
+                options.Cookie.Name = ".AspNetCore.Antiforgery";
+                options.Cookie.SameSite = SameSiteMode.Lax;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            });
+
+            services.AddTransient<ParkingSystem.Web.Antiforgery.JwtCookieAutoValidateAntiforgeryTokenAuthorizationFilter>();
+
             //MVC
             services.AddControllersWithViews(options =>
             {
-                options.Filters.Add(new AbpAutoValidateAntiforgeryTokenAttribute());
+                options.Filters.Add(new ParkingSystem.Web.Antiforgery.JwtCookieAutoValidateAntiforgeryTokenAttribute());
             });
 
             IdentityRegistrar.Register(services);
@@ -65,6 +75,7 @@ namespace ParkingSystem.Web.Host.Startup
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials()
+                        .WithExposedHeaders("X-XSRF-TOKEN")
                 )
             );
 
@@ -86,19 +97,12 @@ namespace ParkingSystem.Web.Host.Startup
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             app.UseAbp(options => { options.UseAbpRequestLocalization = false; }); // Initializes ABP framework.
-
-          
-
             app.UseStaticFiles();
-
             app.UseRouting();
             app.UseCors(_defaultCorsPolicyName); // Enable CORS!
-
             app.UseAuthentication();
             app.UseAuthorization();
-
             app.UseAbpRequestLocalization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHub<AbpCommonHub>("/signalr");

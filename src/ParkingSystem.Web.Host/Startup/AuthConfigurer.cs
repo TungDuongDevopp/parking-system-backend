@@ -1,4 +1,4 @@
-﻿using Abp.Runtime.Security;
+using Abp.Runtime.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,7 +47,15 @@ namespace ParkingSystem.Web.Host.Startup
 
                     options.Events = new JwtBearerEvents
                     {
-                        OnMessageReceived = JwtTokenResolver
+                        OnMessageReceived = JwtTokenResolver,
+                        OnTokenValidated = context =>
+                        {
+                            if (context.HttpContext.Items.TryGetValue("AuthSource", out var authSource))
+                            {
+                                context.HttpContext.Items["ValidatedAuthSource"] = authSource;
+                            }
+                            return Task.CompletedTask;
+                        }
                     };
                 });
             }
@@ -56,9 +64,15 @@ namespace ParkingSystem.Web.Host.Startup
         private static Task JwtTokenResolver(MessageReceivedContext context)
         {
             var request = context.HttpContext.Request;
-            request.Headers["Cookie"].ToString();
 
             // 1. Preserve Authorization header priority.
+            var authHeader = request.Headers["Authorization"].FirstOrDefault();
+            if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                context.HttpContext.Items["AuthSource"] = "BearerHeader";
+                return Task.CompletedTask;
+            }
+
             if (request.Headers.ContainsKey("Authorization"))
             {
                 return Task.CompletedTask;
@@ -78,6 +92,7 @@ namespace ParkingSystem.Web.Host.Startup
                     context.Token =
                         SimpleStringCipher.Instance.Decrypt(encryptedToken);
 
+                    context.HttpContext.Items["AuthSource"] = "SignalR";
                     return Task.CompletedTask;
                 }
             }
@@ -87,6 +102,7 @@ namespace ParkingSystem.Web.Host.Startup
                 !string.IsNullOrWhiteSpace(cookieToken))
             {
                 context.Token = cookieToken;
+                context.HttpContext.Items["AuthSource"] = "Cookie";
             }
 
             return Task.CompletedTask;
