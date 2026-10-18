@@ -1,12 +1,13 @@
 using Abp.Authorization;
 using Abp.Authorization.Users;
 using Abp.Runtime.Security;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using ParkingSystem.Authentication.JwtBearer;
 using ParkingSystem.Authorization;
 using ParkingSystem.Authorization.Users;
 using ParkingSystem.Models.TokenAuth;
 using ParkingSystem.MultiTenancy;
-using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -54,7 +55,39 @@ namespace ParkingSystem.Controllers
             };
         }
 
-        // Tenancy name is intentionally not used in authentication when multi-tenancy is disabled.
+        [HttpPost]
+        public async Task<IActionResult> BrowserAuthenticate([FromBody] AuthenticateModel model)
+        {
+            var loginResult = await GetLoginResultAsync(
+                model.UserNameOrEmailAddress,
+                model.Password,
+                null
+            );
+
+            var accessToken = CreateAccessToken(
+                CreateJwtClaims(loginResult.Identity)
+            );
+
+            Response.Cookies.Append(
+                "access_token",
+                accessToken,
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax,
+                    Path = "/",
+                    Expires = DateTimeOffset.UtcNow.Add(
+                        _configuration.Expiration
+                    )
+                }
+            );
+            return Ok(new
+            {
+                UserId = loginResult.User.Id,
+                ExpireInSeconds = (int)_configuration.Expiration.TotalSeconds
+            });
+        }
 
         private async Task<AbpLoginResult<Tenant, User>> GetLoginResultAsync(string usernameOrEmailAddress, string password, string tenancyName)
         {
