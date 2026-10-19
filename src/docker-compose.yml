@@ -2,6 +2,9 @@ services:
   parking-backend:
     container_name: parking-backend
     image: parking-system-backend:1.0.0
+    build:
+      context: .
+      dockerfile: ParkingSystem.Web.Host/Dockerfile
     restart: unless-stopped
     ports:
       - "44337:44337"
