@@ -1,4 +1,4 @@
-﻿using Abp.Application.Services.Dto;
+using Abp.Application.Services.Dto;
 using Abp.AutoMapper;
 using ParkingSystem.Authorization.Users;
 
@@ -14,4 +14,6 @@ public class UserLoginInfoDto : EntityDto<long>
     public string UserName { get; set; }
 
     public string EmailAddress { get; set; }
+
+    public string[] Roles { get; set; }
 }

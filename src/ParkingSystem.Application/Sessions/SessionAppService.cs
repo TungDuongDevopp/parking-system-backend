@@ -1,6 +1,8 @@
-﻿using Abp.Auditing;
+using Abp.Auditing;
 using ParkingSystem.Sessions.Dto;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ParkingSystem.Sessions;
@@ -27,7 +29,11 @@ public class SessionAppService : ParkingSystemAppServiceBase, ISessionAppService
 
         if (AbpSession.UserId.HasValue)
         {
-            output.User = ObjectMapper.Map<UserLoginInfoDto>(await GetCurrentUserAsync());
+            var user = await GetCurrentUserAsync();
+            output.User = ObjectMapper.Map<UserLoginInfoDto>(user);
+
+            var roles = await UserManager.GetRolesAsync(user);
+            output.User.Roles = roles != null ? roles.ToArray() : Array.Empty<string>();
         }
 
         return output;
