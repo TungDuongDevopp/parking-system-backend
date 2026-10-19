@@ -359,6 +359,13 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
                 "A Staff with the same phone number or email already exists."
             );
         }
+
+        entity.PhoneNumber = input.PhoneNumber ?? entity.PhoneNumber;
+        entity.Email = input.Email;
+        entity.Gender = input.Gender;
+        entity.DateOfBirth = input.DateOfBirth;
+        entity.Address = input.Address;
+
         try
         {
             await CurrentUnitOfWork.SaveChangesAsync();
