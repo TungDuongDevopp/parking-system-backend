@@ -1,0 +1,31 @@
+services:
+  parking-backend:
+    container_name: parking-backend
+    image: parking-system-backend:1.0.0
+    restart: unless-stopped
+    ports:
+      - "44337:44337"
+      - "8080:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:44337;http://+:80
+      - Kestrel__Endpoints__Http__Url=https://+:44337
+      - Kestrel__Endpoints__Http__Certificate__Path=/https/parkingsystem.pfx
+      - Kestrel__Endpoints__Http__Certificate__Password=${CERT_PASSWORD}
+      - Kestrel__Certificates__Default__Path=/https/parkingsystem.pfx
+      - Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/parkingsystem.pfx
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=${CERT_PASSWORD}
+      - ConnectionStrings__Default=${ConnectionStrings__Default}
+      - Authentication__JwtBearer__SecurityKey=${Authentication__JwtBearer__SecurityKey}
+      - App__ServerRootAddress=https://localhost:44337/
+      - App__ClientRootAddress=https://localhost:5173/
+      - App__CorsOrigins=http://localhost:4200,http://localhost:8080,http://localhost:8081,http://localhost:3000,http://localhost:5173,https://localhost:5173
+    volumes:
+      - ${PFX_PATH}:/https/parkingsystem.pfx:ro
+    networks:
+      - parking-network
+
+networks:
+  parking-network:
+    external: true
