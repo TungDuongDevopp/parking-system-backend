@@ -22,7 +22,7 @@ public class RegisterInput : IValidatableObject
     public string UserName { get; set; }
 
     [Required]
-    [EmailAddress]
+    [Email]
     [StringLength(AbpUserBase.MaxEmailAddressLength)]
     public string EmailAddress { get; set; }
 

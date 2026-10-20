@@ -3,6 +3,7 @@ using Abp.Authorization.Users;
 using Abp.AutoMapper;
 using Abp.Runtime.Validation;
 using ParkingSystem.Authorization.Users;
+using ParkingSystem.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace ParkingSystem.Users.Dto;
@@ -23,7 +24,7 @@ public class CreateUserDto : IShouldNormalize
     public string Surname { get; set; }
 
     [Required]
-    [EmailAddress]
+    [Email]
     [StringLength(AbpUserBase.MaxEmailAddressLength)]
     public string EmailAddress { get; set; }
 

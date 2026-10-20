@@ -6,7 +6,7 @@ namespace ParkingSystem.Validation;
 
 public class PhoneNumberAttribute: ValidationAttribute
 {
-    public const string PhoneRegex = @"^0(3|5|7|8|9)\d{8}$";
+    public const string PhoneRegex = @"\A0[35789][0-9]{8}\z";
     public override bool IsValid(object value)
     {
         // null or empty = field not provided in Partial Update → skip validation
@@ -14,8 +14,7 @@ public class PhoneNumberAttribute: ValidationAttribute
         string stringValue = value as string;
         if (string.IsNullOrWhiteSpace(stringValue)) return true;
 
-        var regex = new Regex(PhoneRegex);
-        return regex.IsMatch(stringValue);
+        return Regex.IsMatch(stringValue, PhoneRegex, RegexOptions.CultureInvariant);
     }
     public override string FormatErrorMessage(string name)
     {

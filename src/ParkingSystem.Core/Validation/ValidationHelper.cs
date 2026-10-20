@@ -5,7 +5,7 @@ namespace ParkingSystem.Validation;
 
 public static class ValidationHelper
 {
-    public const string EmailRegex = @"^\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$";
+    public const string EmailRegex = @"\A[\p{L}\p{M}\p{N}!#$%&'*+/=?^_`{|}~-]+(?:\.[\p{L}\p{M}\p{N}!#$%&'*+/=?^_`{|}~-]+)*@(?:[\p{L}\p{N}](?:[\p{L}\p{N}-]{0,61}[\p{L}\p{N}])?\.)+[\p{L}\p{N}](?:[\p{L}\p{N}-]{0,61}[\p{L}\p{N}])?\z";
 
     public static bool IsEmail(string value)
     {
@@ -14,7 +14,6 @@ public static class ValidationHelper
             return false;
         }
 
-        var regex = new Regex(EmailRegex);
-        return regex.IsMatch(value);
+        return Regex.IsMatch(value, EmailRegex, RegexOptions.CultureInvariant);
     }
 }
