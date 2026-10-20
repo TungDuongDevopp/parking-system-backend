@@ -19,7 +19,8 @@ public class StaffMapProfile : Profile
             .ForMember(d => d.Gender, opt =>
                 opt.PreCondition(s => s.Gender.HasValue))
             .ForAllMembers(opt =>
-                opt.Condition((src, dest, srcMember) => srcMember != null));
+                opt.Condition((src, dest, srcMember) =>
+                    srcMember != null && !(srcMember is string s && string.IsNullOrWhiteSpace(s))));
         CreateMap<ChangeStatusDto, Staff>();
       
         CreateMap<ChangeProfileDto, Staff>()
@@ -28,6 +29,7 @@ public class StaffMapProfile : Profile
             .ForMember(d => d.DateOfBirth, opt =>
                 opt.PreCondition(s => s.DateOfBirth.HasValue))
             .ForAllMembers(opt =>
-                opt.Condition((src, dest, srcMember) => srcMember != null));
+                opt.Condition((src, dest, srcMember) =>
+                    srcMember != null && !(srcMember is string s && string.IsNullOrWhiteSpace(s))));
     }
 }

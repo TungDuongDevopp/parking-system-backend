@@ -21,7 +21,8 @@ public class ParkingAreaMapProfile: Profile
             .ForMember(d => d.ParkingMode, opt =>
                 opt.PreCondition(s => s.ParkingMode.HasValue))
             .ForAllMembers(opt =>
-                opt.Condition((src, dest, srcMember) => srcMember != null));
+                opt.Condition((src, dest, srcMember) =>
+                    srcMember != null && !(srcMember is string s && string.IsNullOrWhiteSpace(s))));
         CreateMap<ChangeStatusDto,ParkingArea>();
     }
 }
