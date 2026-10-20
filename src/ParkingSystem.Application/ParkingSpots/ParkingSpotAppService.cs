@@ -149,6 +149,8 @@ public class ParkingSpotAppService : AsyncCrudAppService<ParkingSpot,ParkingSpot
             }
         }
 
+        ObjectMapper.Map(input, entity);
+
         try
         {
             await Repository.UpdateAsync(entity);

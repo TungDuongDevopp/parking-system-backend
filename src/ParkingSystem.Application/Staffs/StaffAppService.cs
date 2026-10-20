@@ -361,10 +361,10 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
         }
 
         entity.PhoneNumber = input.PhoneNumber ?? entity.PhoneNumber;
-        entity.Email = input.Email;
-        entity.Gender = input.Gender;
-        entity.DateOfBirth = input.DateOfBirth;
-        entity.Address = input.Address;
+        entity.Email = input.Email ?? entity.Email;
+        entity.Gender = input.Gender ?? entity.Gender;
+        entity.DateOfBirth = input.DateOfBirth ?? entity.DateOfBirth;
+        entity.Address = input.Address ?? entity.Address;
 
         try
         {
