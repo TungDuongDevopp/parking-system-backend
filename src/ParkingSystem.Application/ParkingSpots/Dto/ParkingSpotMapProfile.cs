@@ -1,4 +1,4 @@
-﻿
+
 
 using AutoMapper;
 using ParkingSystem.Entities;
@@ -19,7 +19,8 @@ public class ParkingSpotMapProfile: Profile
         CreateMap<CreateParkingSpotDto, ParkingSpot>();
         CreateMap<UpdateParkingSpotDto, ParkingSpot>()
              .ForAllMembers(opt =>
-        opt.Condition((src, dest, srcMember) => srcMember != null));
+        opt.Condition((src, dest, srcMember) =>
+            srcMember != null && !(srcMember is string s && string.IsNullOrWhiteSpace(s))));
         CreateMap<ChangeStatusDto, ParkingSpot>();
     }
 }

@@ -265,8 +265,8 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
         var existStaff = await Repository
            .GetAll()
            .AnyAsync(x => x.Id != input.Id &&
-             (x.PhoneNumber == input.PhoneNumber ||
-               (input.Email != null && x.Email == input.Email)));
+             (!string.IsNullOrWhiteSpace(input.PhoneNumber) && x.PhoneNumber == input.PhoneNumber ||
+               (!string.IsNullOrWhiteSpace(input.Email) && x.Email == input.Email)));
 
         if (existStaff)
         {
@@ -351,8 +351,8 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
         var existStaff = await Repository
             .GetAll()
             .AnyAsync(x => x.Id != entity.Id &&
-                ( input.PhoneNumber != null && x.PhoneNumber == input.PhoneNumber ||
-                 (input.Email != null && x.Email == input.Email)));
+                (!string.IsNullOrWhiteSpace(input.PhoneNumber) && x.PhoneNumber == input.PhoneNumber ||
+                 (!string.IsNullOrWhiteSpace(input.Email) && x.Email == input.Email)));
         if (existStaff)
         {
             throw new DuplicateResourceException(
@@ -360,11 +360,11 @@ public class StaffAppService: AsyncCrudAppService<Staff, StaffDto, long, PagedSt
             );
         }
 
-        entity.PhoneNumber = input.PhoneNumber ?? entity.PhoneNumber;
-        entity.Email = input.Email ?? entity.Email;
+        entity.PhoneNumber = string.IsNullOrWhiteSpace(input.PhoneNumber) ? entity.PhoneNumber : input.PhoneNumber;
+        entity.Email = string.IsNullOrWhiteSpace(input.Email) ? entity.Email : input.Email;
         entity.Gender = input.Gender ?? entity.Gender;
         entity.DateOfBirth = input.DateOfBirth ?? entity.DateOfBirth;
-        entity.Address = input.Address ?? entity.Address;
+        entity.Address = string.IsNullOrWhiteSpace(input.Address) ? entity.Address : input.Address;
 
         try
         {

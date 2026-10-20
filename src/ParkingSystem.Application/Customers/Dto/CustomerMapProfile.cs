@@ -1,4 +1,4 @@
-﻿
+
 
 using AutoMapper;
 using ParkingSystem.Entities;
@@ -13,6 +13,7 @@ public class CustomerMapProfile : Profile
         CreateMap<CreateCustomerDto, Customer>();
         CreateMap<UpdateCustomerDto, Customer>()
     .ForAllMembers(opt =>
-        opt.Condition((src, dest, srcMember) => srcMember != null));
+        opt.Condition((src, dest, srcMember) =>
+            srcMember != null && !(srcMember is string s && string.IsNullOrWhiteSpace(s))));
     }
 }

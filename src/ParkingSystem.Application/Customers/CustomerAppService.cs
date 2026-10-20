@@ -216,8 +216,8 @@ public class CustomerAppService : AsyncCrudAppService<Customer, CustomerDto, lon
         var existCustomer = await Repository
            .GetAll()
            .AnyAsync(x => x.Id != input.Id &&
-             (x.PhoneNumber == input.PhoneNumber ||
-               (input.Email != null && x.Email == input.Email)));
+             (!string.IsNullOrWhiteSpace(input.PhoneNumber) && x.PhoneNumber == input.PhoneNumber ||
+               (!string.IsNullOrWhiteSpace(input.Email) && x.Email == input.Email)));
 
         if (existCustomer)
         {
