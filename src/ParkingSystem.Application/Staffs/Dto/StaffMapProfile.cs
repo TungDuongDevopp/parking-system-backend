@@ -14,12 +14,20 @@ public class StaffMapProfile : Profile
         CreateMap<UpdateStaffDto, Staff>()
             .ForMember(d => d.HiredDate, opt =>
                 opt.PreCondition(s => s.HiredDate.HasValue))
+            .ForMember(d => d.DateOfBirth, opt =>
+                opt.PreCondition(s => s.DateOfBirth.HasValue))
+            .ForMember(d => d.Gender, opt =>
+                opt.PreCondition(s => s.Gender.HasValue))
             .ForAllMembers(opt =>
                 opt.Condition((src, dest, srcMember) => srcMember != null));
         CreateMap<ChangeStatusDto, Staff>();
       
-        CreateMap<ChangeProfileDto, Staff>()      
+        CreateMap<ChangeProfileDto, Staff>()
+            .ForMember(d => d.Gender, opt =>
+                opt.PreCondition(s => s.Gender.HasValue))
+            .ForMember(d => d.DateOfBirth, opt =>
+                opt.PreCondition(s => s.DateOfBirth.HasValue))
             .ForAllMembers(opt =>
-                opt.Condition((src, dest, srcMember) => srcMember != null)) ;
+                opt.Condition((src, dest, srcMember) => srcMember != null));
     }
 }
