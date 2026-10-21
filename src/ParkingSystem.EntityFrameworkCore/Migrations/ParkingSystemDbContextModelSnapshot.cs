@@ -1595,8 +1595,9 @@ namespace ParkingSystem.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -1606,11 +1607,10 @@ namespace ParkingSystem.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -1621,11 +1621,11 @@ namespace ParkingSystem.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique()
-                        .HasFilter("[IsDeleted] = 0 AND [Email] IS NOT NULL");
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.HasIndex("PhoneNumber")
                         .IsUnique()
-                        .HasFilter("[IsDeleted] = 0");
+                        .HasFilter("[IsDeleted] = 0 AND [PhoneNumber] IS NOT NULL");
 
                     b.HasIndex("UserId")
                         .IsUnique()
@@ -2148,7 +2148,7 @@ namespace ParkingSystem.Migrations
                     b.HasIndex("SubscriptionId", "PlateNumber")
                         .IsUnique();
 
-                    b.ToTable("SubscriptionAllowedPlate");
+                    b.ToTable("SubscriptionAllowedPlates");
                 });
 
             modelBuilder.Entity("ParkingSystem.MultiTenancy.Tenant", b =>

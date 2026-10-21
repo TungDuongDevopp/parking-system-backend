@@ -44,14 +44,22 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
              .HasFilter("[IsDeleted] = 0"); ;
             
 
+        modelBuilder.Entity<Customer>(b =>
+        {
+            b.Property(c => c.Name).HasMaxLength(150).IsRequired();
+            b.Property(c => c.Email).HasMaxLength(256).IsRequired();
+            b.Property(c => c.PhoneNumber).HasMaxLength(20);
+        });
+
         modelBuilder.Entity<Customer>()
             .HasIndex(x => x.PhoneNumber)
             .IsUnique()
-            .HasFilter("[IsDeleted] = 0"); ;
+            .HasFilter("[IsDeleted] = 0 AND [PhoneNumber] IS NOT NULL");
+
         modelBuilder.Entity<Customer>()
             .HasIndex(x => x.Email)
             .IsUnique()
-            .HasFilter("[IsDeleted] = 0 AND [Email] IS NOT NULL");
+            .HasFilter("[IsDeleted] = 0");
 
         //Staff entity configuration
         modelBuilder.Entity<Staff>()

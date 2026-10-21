@@ -110,7 +110,7 @@ public class CustomerAppService : AsyncCrudAppService<Customer, CustomerDto, lon
             !input.Keyword.IsNullOrWhiteSpace(),
             x =>
                 x.Name.Contains(input.Keyword) ||
-                x.PhoneNumber.Contains(input.Keyword) ||
+                (x.PhoneNumber != null && x.PhoneNumber.Contains(input.Keyword)) ||
                 (x.Email != null && x.Email.Contains(input.Keyword))
         );
     }
@@ -165,7 +165,7 @@ public class CustomerAppService : AsyncCrudAppService<Customer, CustomerDto, lon
         var existCustomer = await Repository
             .GetAll()
             .AnyAsync(x =>
-                x.PhoneNumber == input.PhoneNumber ||
+                (!string.IsNullOrWhiteSpace(input.PhoneNumber) && x.PhoneNumber == input.PhoneNumber) ||
                 (input.Email != null && x.Email == input.Email));
 
         if (existCustomer)
