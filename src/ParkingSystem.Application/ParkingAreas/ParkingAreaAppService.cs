@@ -28,16 +28,7 @@ public class ParkingAreaAppService: AsyncCrudAppService<ParkingArea,ParkingAreaD
     public ParkingAreaAppService(IRepository<ParkingArea,long> repository, IRepository<ParkingSpot, long> parkingSpotRepository) : base(repository) {
         _parkingSpotRepository = parkingSpotRepository;
     }
-    private void EnsureAreaConfigurable(ParkingArea area)
-    {
-        if (area.Status == ParkingAreaStatus.Active)
-        {
-            throw new CannotManipulateException(
-                "Cannot modify parking area configuration while it is active.");
-        }
-    }
-
-
+   
     protected override IQueryable<ParkingArea> ApplySorting(IQueryable<ParkingArea> query, PagedParkingAreaResultRequestDto input)
     {
         if (!string.IsNullOrEmpty(input.Sorting))
@@ -115,7 +106,7 @@ public class ParkingAreaAppService: AsyncCrudAppService<ParkingArea,ParkingAreaD
         var entity = await Repository.FirstOrDefaultAsync(input.Id);
         if(entity == null)
         {
-            throw new ResourceNotFoundException("Parking area not found with id: "+input.Id);
+            throw new ResourceNotFoundException("Parking area not found with id: " + input.Id);
         }
         if(!string.IsNullOrWhiteSpace(input.ParkingCode) && input.ParkingCode != entity.ParkingCode)
 {
@@ -130,11 +121,27 @@ public class ParkingAreaAppService: AsyncCrudAppService<ParkingArea,ParkingAreaD
                     "Parking area code already exists.");
             }
         }
-        if (input.Capacity.HasValue || input.ParkingMode.HasValue || input.VehicleType.HasValue)
+        if (entity.Status == ParkingAreaStatus.Active)
         {
-            EnsureAreaConfigurable(entity);
+            if (input.Capacity.HasValue && input.Capacity.Value != entity.Capacity)
+            {
+                throw new BusinessRuleException(
+                    "Cannot change capacity while the parking area is active.");
+            }
+
+            if (input.ParkingMode.HasValue && input.ParkingMode.Value != entity.ParkingMode)
+            {
+                throw new BusinessRuleException(
+                    "Cannot change parking mode while the parking area is active.");
+            }
+
+            if (input.VehicleType.HasValue && input.VehicleType.Value != entity.VehicleType)
+            {
+                throw new BusinessRuleException(
+                    "Cannot change vehicle type while the parking area is active.");
+            }
         }
-        
+
         ObjectMapper.Map(input, entity);
 
         try
@@ -176,7 +183,10 @@ public class ParkingAreaAppService: AsyncCrudAppService<ParkingArea,ParkingAreaD
         {
             throw new ResourceNotFoundException("Parking Area not found with id: " + input.Id);
         }
-        EnsureAreaConfigurable(entity);
+        if(entity.Status == ParkingAreaStatus.Active)
+        {
+            throw new BusinessRuleException("Can delete while the parking area is active.");
+        }
 
         var hasSpots = await _parkingSpotRepository
         .GetAll()
