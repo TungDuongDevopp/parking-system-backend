@@ -15,15 +15,15 @@ namespace ParkingSystem.Entities
 
     {
         [Required]
-        [StringLength(100)]
+        [StringLength(150)]
         public string Name { get; set; }
         
-        [Required]
         [StringLength(20)]
-        public string PhoneNumber { get; set; }
+        public string? PhoneNumber { get; set; }
        
-        [StringLength(255)] 
-        public string? Email { get; set; }
+        [Required]
+        [StringLength(256)] 
+        public string Email { get; set; }
         public DateTime CreationTime { get; set; }
         public long UserId { get; set; }
         public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();

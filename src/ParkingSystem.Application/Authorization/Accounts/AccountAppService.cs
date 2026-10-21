@@ -2,6 +2,7 @@ using Abp.Configuration;
 using Abp.Zero.Configuration;
 using ParkingSystem.Authorization.Accounts.Dto;
 using ParkingSystem.Authorization.Users;
+using ParkingSystem.Customers;
 using System.Threading.Tasks;
 
 namespace ParkingSystem.Authorization.Accounts;
@@ -12,11 +13,14 @@ public class AccountAppService : ParkingSystemAppServiceBase, IAccountAppService
     public const string PasswordRegex = "(?=^.{8,}$)(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?!.*\\s)[0-9a-zA-Z!@#$%^&*()]*$";
 
     private readonly UserRegistrationManager _userRegistrationManager;
+    private readonly CustomerManager _customerManager;
 
     public AccountAppService(
-        UserRegistrationManager userRegistrationManager)
+        UserRegistrationManager userRegistrationManager,
+        CustomerManager customerManager)
     {
         _userRegistrationManager = userRegistrationManager;
+        _customerManager = customerManager;
     }
 
     public async Task<IsTenantAvailableOutput> IsTenantAvailable(IsTenantAvailableInput input)
@@ -45,6 +49,8 @@ public class AccountAppService : ParkingSystemAppServiceBase, IAccountAppService
             input.Password,
             true // Assumed email address is always confirmed. Change this if you want to implement email confirmation.
         );
+
+        await _customerManager.CreateProfileForUserAsync(user);
 
         var isEmailConfirmationRequiredForLogin = await SettingManager.GetSettingValueAsync<bool>(AbpZeroSettingNames.UserManagement.IsEmailConfirmationRequiredForLogin);
 
