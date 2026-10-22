@@ -8,6 +8,8 @@ public class ParkingSpotDto: EntityDto<long>
 {
     public string SpotCode { get; set; }
     public ParkingSpotStatus Status { get; set; }
+
+    public string ParkingSpotStatusName => Status.ToString();
     public long ParkingAreaId { get; set; }
     public string ParkingAreaCode { get; set; }
     public string ParkingAreaName { get; set; }
