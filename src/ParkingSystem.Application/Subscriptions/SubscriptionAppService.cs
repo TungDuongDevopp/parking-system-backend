@@ -227,6 +227,13 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
                 case "duration desc":
                     query = query.OrderByDescending(x => x.Quotation.Duration);
                     break;
+                case "durationUnit asc":
+                    query = query.OrderBy(x => x.Quotation.DurationUnit);
+                    break;
+                case "durationUnit desc":
+                    query = query.OrderByDescending(x => x.Quotation.DurationUnit);
+                    break;
+
 
                 case "vehicleType asc":
                     query = query.OrderBy(x => x.Quotation.VehicleType);
