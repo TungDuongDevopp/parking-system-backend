@@ -182,6 +182,9 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
                 input.QuotationId.HasValue,
                 x => x.QuotationId == input.QuotationId)
             .WhereIf(
+                input.TotalAmount.HasValue,
+                x => x.TotalAmount == input.TotalAmount)
+            .WhereIf(
                 input.StartTime.HasValue,
                 x => x.StartTime >= input.StartTime)
             .WhereIf(

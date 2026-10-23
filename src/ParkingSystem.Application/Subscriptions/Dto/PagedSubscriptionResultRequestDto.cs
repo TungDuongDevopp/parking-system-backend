@@ -24,5 +24,7 @@ public class PagedSubscriptionResultRequestDto :PagedResultRequestDto, ISortedRe
     [GreaterThanZero]
     public long? CustomerId { get; set; }
 
+    [GreaterThanZero]
+    public decimal? TotalAmount { get; set; }
 
 }
