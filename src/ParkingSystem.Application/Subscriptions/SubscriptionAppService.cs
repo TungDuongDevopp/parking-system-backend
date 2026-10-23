@@ -206,7 +206,6 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
                 nameof(Subscription.QuotationId),
                 nameof(Subscription.Status),
                 nameof(Subscription.TotalAmount),
-                "totalAmount",
                 "customerName",
                 "duration",
                 "vehicleType",
@@ -235,12 +234,10 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
                 case "vehicleType desc":
                     query = query.OrderByDescending(x => x.Quotation.VehicleType);
                     break;
-
-                case "totalAmount asc":
                 case "price asc":
                     query = query.OrderBy(x => x.TotalAmount);
                     break;
-                case "totalAmount desc":
+               
                 case "price desc":
                     query = query.OrderByDescending(x => x.TotalAmount);
                     break;
