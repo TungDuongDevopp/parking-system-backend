@@ -209,8 +209,7 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
                 "customerName",
                 "duration",
                 "vehicleType",
-                "durationUnit",
-                "price"
+                "durationUnit"
             );
             switch (sorting)
             {
@@ -221,34 +220,24 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
                 case "customerName asc":
                     query = query.OrderBy(x => x.Customer.Name);
                     break;
-                case "duration asc":
-                    query = query.OrderBy(x => x.Quotation.Duration);
-                    break;
-                case "duration desc":
-                    query = query.OrderByDescending(x => x.Quotation.Duration);
-                    break;
-                case "durationUnit asc":
-                    query = query.OrderBy(x => x.Quotation.DurationUnit);
-                    break;
-                case "durationUnit desc":
-                    query = query.OrderByDescending(x => x.Quotation.DurationUnit);
+                case "durationUnit asc, duration asc":
+                    query = query
+                        .OrderBy(x => x.Quotation.DurationUnit)
+                        .ThenBy(x => x.Quotation.Duration);
                     break;
 
-
+                case "durationUnit desc, duration desc":
+                    query = query
+                        .OrderByDescending(x => x.Quotation.DurationUnit)
+                        .ThenByDescending(x => x.Quotation.Duration);
+                    break;
                 case "vehicleType asc":
                     query = query.OrderBy(x => x.Quotation.VehicleType);
                     break;
                 case "vehicleType desc":
                     query = query.OrderByDescending(x => x.Quotation.VehicleType);
                     break;
-                case "price asc":
-                    query = query.OrderBy(x => x.TotalAmount);
-                    break;
-               
-                case "price desc":
-                    query = query.OrderByDescending(x => x.TotalAmount);
-                    break;
-
+              
                 default:
                     query = query.OrderBy(sorting);
                     break;
