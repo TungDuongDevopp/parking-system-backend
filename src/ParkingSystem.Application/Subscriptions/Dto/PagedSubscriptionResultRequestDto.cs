@@ -14,9 +14,13 @@ public class PagedSubscriptionResultRequestDto :PagedResultRequestDto, ISortedRe
     [EnumDataType(typeof(SubscriptionStatus))]
     public SubscriptionStatus? Status { get; set; }
 
-    public DateTime? StartTime { get; set; }
+    public DateTime? StartTimeFrom { get; set; }
 
-    public DateTime? EndTime { get; set; }
+    public DateTime? StartTimeTo { get; set; }
+
+    public DateTime? EndTimeFrom { get; set; }
+
+    public DateTime? EndTimeTo { get; set; }
 
     [GreaterThanZero]
     public long? QuotationId { get; set; }

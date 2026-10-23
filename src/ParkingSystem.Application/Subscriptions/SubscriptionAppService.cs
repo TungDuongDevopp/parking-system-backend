@@ -185,11 +185,18 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
                 input.TotalAmount.HasValue,
                 x => x.TotalAmount == input.TotalAmount)
             .WhereIf(
-                input.StartTime.HasValue,
-                x => x.StartTime >= input.StartTime)
+                input.StartTimeFrom.HasValue,
+                x => x.StartTime >= input.StartTimeFrom)
             .WhereIf(
-                input.EndTime.HasValue,
-                x => x.EndTime <= input.EndTime);
+                input.StartTimeTo.HasValue,
+                x => x.StartTime <= input.StartTimeTo)
+            .WhereIf(
+                input.EndTimeTo.HasValue,
+                x => x.EndTime <= input.EndTimeTo)
+            .WhereIf(
+                input.EndTimeFrom.HasValue,
+                x => x.EndTime >= input.EndTimeFrom);
+
         // Total count
         var totalCount = await query.CountAsync();
        
