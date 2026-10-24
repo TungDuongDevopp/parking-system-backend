@@ -140,7 +140,7 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
                      x.Status == SubscriptionStatus.inUse);
 
         if (subscription == null)
-            throw new ResourceNotFoundException("Subscription not found with id " + input.SubscriptionId);
+            throw new ResourceNotFoundException("Subscription not found or invalid due to not inUse with " + input.SubscriptionId);
        
         if (subscription.Quotation?.VehicleType == VehicleType.Bicycle)
         {
