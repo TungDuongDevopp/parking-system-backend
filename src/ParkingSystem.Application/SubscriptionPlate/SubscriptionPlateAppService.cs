@@ -11,9 +11,11 @@ using ParkingSystem.Entities.Enums;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.SubscriptionPlate.Dto;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace ParkingSystem.SubscriptionPlate;
@@ -25,19 +27,16 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
     private readonly IRepository<Subscription, long> _subscriptionRepository;
     private readonly IRepository<SubscriptionAllowedPlate, long> _repository;
     private readonly IRepository<Customer, long> _customerRepository;
-    private readonly IRepository<Staff, long> _staffRepository;
 
     public SubscriptionPlateAppService(IRepository<Subscription, long> subscriptionRepository,
         IRepository<SubscriptionAllowedPlate, long> repository,
-        IRepository<Customer, long> customerRepository,
-        IRepository<Staff, long> staffRepository)
+        IRepository<Customer, long> customerRepository)
     {
         _repository = repository;
         _customerRepository = customerRepository;
-        _staffRepository = staffRepository;
         _subscriptionRepository = subscriptionRepository;
     }
-   
+
     private async Task CheckPlateViewAccessAsync(SubscriptionAllowedPlate plate)
     {
         var canViewAll = await PermissionChecker.IsGrantedAsync(
@@ -79,6 +78,10 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
             throw new ResourceNotFoundException("Subscription not found with id " + input.SubscriptionId);
         }
        await CheckPlateAddAccessAsync(subscription);
+        if (subscription.Quotation.VehicleType == VehicleType.Bicycle)
+        {
+            throw new BusinessRuleException("Bicycle subscriptions cannot have additional plates.");
+        }
 
         var plateNormalize = PlateNumberNormalizer.Normalize(input.PlateNumber);
 
@@ -130,6 +133,11 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
 
         if (subscription == null)
             throw new ResourceNotFoundException("Subscription not found with id " + input.SubscriptionId);
+       
+        if (subscription.Quotation.VehicleType == VehicleType.Bicycle)
+        {
+            throw new BusinessRuleException("Bicycle subscriptions cannot have additional plates.");
+        }
 
         if (subscription.HasReplacedPlate)
             throw new BusinessRuleException("You cannot change plate anymore");
@@ -185,6 +193,10 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
         if (maxNumOfPlate)
         {
             throw new BusinessRuleException("Subscription cannot have more than 3 plates.");
+        }
+        if (subscription.Quotation.VehicleType == VehicleType.Bicycle)
+        {
+            throw new BusinessRuleException("Bicycle subscriptions cannot have additional plates.");
         }
         var userId = AbpSession.UserId;
 
