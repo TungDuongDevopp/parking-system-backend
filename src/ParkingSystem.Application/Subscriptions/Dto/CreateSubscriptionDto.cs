@@ -11,7 +11,6 @@ public class CreateSubscriptionDto
 {
     [NotPast]
     public DateTime StartTime { get; set; }
-
     [Required]
     public long QuotationId { get; set; }
     public List<string> PlateNumbers { get; set; } = new();

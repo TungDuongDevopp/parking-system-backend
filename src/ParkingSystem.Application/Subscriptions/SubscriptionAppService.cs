@@ -11,11 +11,13 @@ using ParkingSystem.Entities.Enums;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.Quotations.Dto;
+using ParkingSystem.SubscriptionPlate;
 using ParkingSystem.Subscriptions.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace ParkingSystem.Subscriptions;
@@ -26,15 +28,31 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
     private readonly IRepository<Customer, long> _customerRepository;
     private readonly IRepository<Quotation, long> _quotationRepository;
     private readonly IRepository<Subscription, long> _repository;
-    private readonly IRepository<SubscriptionAllowedPlate, long> _plateRepository;
+
+    IRepository<SubscriptionAllowedPlate, long> _plateRepository;
 
     public SubscriptionAppService(IRepository<Subscription,long> repository, IRepository<Quotation, long> quotationRepository, IRepository<Customer, long> customerRepository,
-        IRepository<SubscriptionAllowedPlate, long> plateRepository)
+       IRepository<SubscriptionAllowedPlate, long> plateRepository)
     {
         _customerRepository = customerRepository;
         _quotationRepository = quotationRepository;
         _repository = repository;
         _plateRepository = plateRepository;
+        
+    }
+    private async Task<string> GenerateUniqueBicycleCodeAsync()
+    {
+        string code;
+        bool exists;
+        do
+        { 
+            code = $"BK-{Convert.ToHexString(RandomNumberGenerator.GetBytes(4))}";
+
+            exists = await _plateRepository.GetAll()
+                .AnyAsync(x => x.PlateNumber == code);
+        }
+        while (exists);
+        return code;
     }
     private async Task CheckSubcriptionViewAccessAsync(Subscription subscription)
     {
@@ -86,16 +104,25 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
         {
             throw new BusinessRuleException("You can not buy this subscription");
         }
-        if (input.PlateNumbers == null ||
-            input.PlateNumbers.Count is < 1 or > 3)
-          {
-            throw new BusinessRuleException(
-                "Subscription requires 1 to 3 plates");
+        var vehicleType = quotation.VehicleType;
+        List<string> plates = new List<string>();
+        if(vehicleType == VehicleType.Bicycle)
+        {
+            var bikeCode = await GenerateUniqueBicycleCodeAsync();
+            plates.Add(bikeCode);
         }
-
-        var plates = input.PlateNumbers
+        else
+        {
+            if (input.PlateNumbers == null ||
+            input.PlateNumbers.Count is < 1 or > 3)
+            {
+                throw new BusinessRuleException(
+                    "Subscription requires 1 to 3 plates");
+            }
+            plates = input.PlateNumbers
             .Select(x => x.Trim().ToUpperInvariant())
             .ToList();
+        }
 
         if (plates.Any(string.IsNullOrWhiteSpace) ||
             plates.Distinct().Count() != plates.Count)

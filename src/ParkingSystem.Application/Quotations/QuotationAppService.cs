@@ -10,6 +10,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ParkingSystem.Authorization;
 using ParkingSystem.Entities;
+using ParkingSystem.Entities.Enums;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.Quotations.Dto;
@@ -25,6 +26,37 @@ public class QuotationAppService: AsyncCrudAppService<Quotation,QuotationDto,lon
 {
     public QuotationAppService(IRepository<Quotation,long> repository) : base(repository)
     {
+
+    }
+    private void ValidateDuration (DurationUnit unit, int duration,VehicleType type)
+    {
+        if (unit == DurationUnit.Hour && duration > 24)
+        {
+            throw new BusinessRuleException("The number of hours cannot exceed 24.");
+        }
+        if(unit == DurationUnit.Week && duration > 4)
+        {
+            throw new BusinessRuleException("The number of weeks cannot exceed 4.");
+        }
+        if (unit == DurationUnit.Day && duration > 31)
+        {
+            throw new BusinessRuleException("The number of days cannot exceed 31.");
+        }
+        if (unit == DurationUnit.Month && duration > 12)
+        {
+            throw new BusinessRuleException("The number of months cannot exceed 12.");
+        }
+        if(unit == DurationUnit.Year && duration > 2)
+        {
+            throw new BusinessRuleException("The number of years cannot exceed 2.");
+        }
+        if (type == VehicleType.Bicycle && (unit > DurationUnit.Month || unit == DurationUnit.Month && duration > 1))
+        {
+            throw new BusinessRuleException("You cannot sign up for a plan longer than one month for a bicycle.");
+
+        }
+
+        return;
 
     }
 
@@ -64,7 +96,7 @@ public class QuotationAppService: AsyncCrudAppService<Quotation,QuotationDto,lon
     }
 
     [AbpAuthorize(PermissionNames.Pages_Quotations_Manager)]
-    public override async Task<QuotationDto>  UpdateAsync(UpdateQuotationDto input)
+    public override async Task<QuotationDto> UpdateAsync(UpdateQuotationDto input)
     {
         var entity = await Repository.FirstOrDefaultAsync(input.Id);
 
@@ -86,7 +118,9 @@ public class QuotationAppService: AsyncCrudAppService<Quotation,QuotationDto,lon
         {
             throw new DuplicateResourceException("Quotation already exists.");
         }
-     
+      
+        ValidateDuration(durationUnit, duration,vehicleType);
+        
         ObjectMapper.Map(input, entity);
        
         try
@@ -117,6 +151,8 @@ public class QuotationAppService: AsyncCrudAppService<Quotation,QuotationDto,lon
         {
             throw new DuplicateResourceException("Quotation already exists.");
         }
+
+        ValidateDuration(input.DurationUnit, input.Duration,input.VehicleType);
         var entity = ObjectMapper.Map<Quotation>(input);
 
         try
