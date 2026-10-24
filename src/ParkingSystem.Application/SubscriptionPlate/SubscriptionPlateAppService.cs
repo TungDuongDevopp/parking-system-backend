@@ -183,7 +183,7 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
         return ObjectMapper.Map<SubscriptionPlateDto>(plate);
     }
 
-    public async Task<PagedResultDto<SubscriptionPlateDto>> GetAllAysnc(PagedSubscriptionPlateResultRequestDto input)
+    public async Task<PagedResultDto<SubscriptionPlateDto>> GetAllAsync(PagedSubscriptionPlateResultRequestDto input)
     {
         IQueryable<SubscriptionAllowedPlate> query =  _repository.GetAll()
             .AsNoTracking();
