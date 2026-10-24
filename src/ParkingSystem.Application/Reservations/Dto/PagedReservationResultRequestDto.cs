@@ -23,9 +23,12 @@ public class PagedReservationResultRequestDto :PagedResultRequestDto, ISortedRes
     [GreaterThanZero]
     public long? ParkingAreaId { get; set; }
 
-    public DateTime? ReservedAt { get; set; }
+    public DateTime? ReservedAtFrom { get; set; }
 
-    public DateTime? ExpireAt { get; set; }
+    public DateTime? ReservedAtTo { get; set; }
+
+    public DateTime? ExpireAtFrom { get; set; }
+    public DateTime? ExpireAtTo { get; set; }
 
     [EnumDataType (typeof(ReservationStatus))]
     public ReservationStatus? Status { get; set; }

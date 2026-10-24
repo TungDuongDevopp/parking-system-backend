@@ -296,11 +296,17 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
             input.ParkingAreaId.HasValue,
             x => x.ParkingAreaId== input.ParkingAreaId)
              .WhereIf(
-                input.ReservedAt.HasValue,
-                x => x.ReservedAt >= input.ReservedAt)
+                input.ReservedAtFrom.HasValue,
+                x => x.ReservedAt >= input.ReservedAtFrom)
+             .WhereIf(
+                input.ReservedAtTo.HasValue,
+                x => x.ReservedAt <= input.ReservedAtFrom)
             .WhereIf(
-                input.ExpireAt.HasValue,
-                x => x.ExpireAt <= input.ExpireAt)
+                input.ExpireAtFrom.HasValue,
+                x => x.ExpireAt >= input.ExpireAtFrom)
+            .WhereIf(
+                input.ExpireAtTo.HasValue,
+                x => x.ExpireAt <= input.ExpireAtTo)
             .WhereIf(
                 input.Status.HasValue,
                 x=> x.Status == input.Status

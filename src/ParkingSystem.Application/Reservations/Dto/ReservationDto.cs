@@ -16,6 +16,7 @@ public class ReservationDto: EntityDto<long>
     public string? ParkingSpotCode { get; set; }
     public DateTime ReservedAt { get; set; }
     public ReservationStatus Status { get; set; }
+    public string ReservationStatusName => Status.ToString();
     public DateTime EndTime { get; set; }
     public VehicleType? VehicleType { get; set; }
     public string? VehicleTypeName => VehicleType?.ToString();
