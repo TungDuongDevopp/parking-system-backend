@@ -1,6 +1,7 @@
 using Abp.Application.Services.Dto;
 using Abp.Authorization;
 using Abp.Domain.Repositories;
+using Abp.Extensions;
 using Abp.Linq.Extensions;
 using Abp.UI;
 using Microsoft.Data.SqlClient;
@@ -11,7 +12,6 @@ using ParkingSystem.Entities.Enums;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.Quotations.Dto;
-using ParkingSystem.SubscriptionPlate;
 using ParkingSystem.Subscriptions.Dto;
 using System;
 using System.Collections.Generic;
@@ -222,7 +222,11 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
                 x => x.EndTime <= input.EndTimeTo)
             .WhereIf(
                 input.EndTimeFrom.HasValue,
-                x => x.EndTime >= input.EndTimeFrom);
+                x => x.EndTime >= input.EndTimeFrom)
+            .WhereIf(
+                !input.Keyword.IsNullOrWhiteSpace(),
+                x => x.Customer.Name.Contains(input.Keyword)
+            );
 
         // Total count
         var totalCount = await query.CountAsync();

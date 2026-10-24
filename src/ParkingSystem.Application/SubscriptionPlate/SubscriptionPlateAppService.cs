@@ -2,6 +2,7 @@ using Abp.Application.Services.Dto;
 using Abp.Authorization;
 using Abp.Domain.Repositories;
 using Abp.EntityFrameworkCore.Repositories;
+using Abp.Extensions;
 using Abp.Linq.Extensions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -215,7 +216,11 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
         query = query
             .WhereIf(
                 input.SubscriptionId.HasValue,
-                x => x.SubscriptionId == input.SubscriptionId);
+                x => x.SubscriptionId == input.SubscriptionId)
+            .WhereIf(
+                !input.Keyword.IsNullOrWhiteSpace(),
+                x=> x.PlateNumber.Contains(input.Keyword)
+            );
             
         // Total count
         var totalCount = await query.CountAsync();
