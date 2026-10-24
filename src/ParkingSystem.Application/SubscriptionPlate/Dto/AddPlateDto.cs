@@ -1,11 +1,9 @@
-﻿
-
 using ParkingSystem.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace ParkingSystem.SubscriptionPlate.Dto;
 
-public class CreatePlateDto 
+public class AddPlateDto 
 {
     [GreaterThanZero]
     public long SubscriptionId { get; set; }

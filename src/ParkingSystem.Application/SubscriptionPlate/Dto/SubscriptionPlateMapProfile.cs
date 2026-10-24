@@ -1,4 +1,4 @@
-﻿
+
 
 using AutoMapper;
 using ParkingSystem.Entities;
@@ -9,7 +9,7 @@ public class SubscriptionPlateMapProfile : Profile
 {
     public SubscriptionPlateMapProfile()
     {
-        CreateMap<CreatePlateDto, SubscriptionAllowedPlate>();
+        CreateMap<AddPlateDto, SubscriptionAllowedPlate>();
         CreateMap<ChangePlateDto, SubscriptionAllowedPlate>();
         CreateMap<SubscriptionAllowedPlate, SubscriptionPlateDto>()
             .ForMember(x=>x.VehicleType,
