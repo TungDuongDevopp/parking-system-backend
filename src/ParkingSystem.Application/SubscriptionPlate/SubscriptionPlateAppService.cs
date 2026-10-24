@@ -111,7 +111,10 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
         if (rowsAffected == 0)
             throw new BusinessRuleException("Can add plate");
 
-        var plate = await _repository.FirstOrDefaultAsync(x => x.SubscriptionId == subscription.Id && x.PlateNumber == input.PlateNumber);
+        var plate = await _repository.GetAll()
+            .Include(x => x.Subscription)
+                .ThenInclude(s => s.Quotation)
+            .FirstOrDefaultAsync(x => x.SubscriptionId == subscription.Id && x.PlateNumber == input.PlateNumber);
         return ObjectMapper.Map<SubscriptionPlateDto>(plate);
     }
 
@@ -178,16 +181,21 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
         if (plateRowsAffected != 1)
             throw new BusinessRuleException("Plate number already exists or update failed");
 
-        await dbContext.Entry(plate).ReloadAsync();
+        var updatedPlate = await _repository.GetAll()
+            .Include(x => x.Subscription)
+                .ThenInclude(s => s.Quotation)
+            .FirstOrDefaultAsync(x => x.Id == plate.Id);
 
-        return ObjectMapper.Map<SubscriptionPlateDto>(plate);
+        return ObjectMapper.Map<SubscriptionPlateDto>(updatedPlate);
     }
 
     public async Task<PagedResultDto<SubscriptionPlateDto>> GetAllAsync(PagedSubscriptionPlateResultRequestDto input)
     {
-        IQueryable<SubscriptionAllowedPlate> query =  _repository.GetAll()
-            .AsNoTracking();
-            
+        IQueryable<SubscriptionAllowedPlate> query = _repository.GetAll()
+        .Include(x => x.Subscription)
+            .ThenInclude(s => s.Quotation)
+        .AsNoTracking();
+
 
         // Permission / Ownership
         var canViewAll =
@@ -245,7 +253,8 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
     {
         IQueryable<SubscriptionAllowedPlate> query = _repository.GetAll()
          .AsNoTracking()
-         .Include(x=>x.Subscription);
+         .Include(x => x.Subscription)
+             .ThenInclude(s => s.Quotation);
 
         var plate = await query
             .FirstOrDefaultAsync(s => s.Id == input.Id);
