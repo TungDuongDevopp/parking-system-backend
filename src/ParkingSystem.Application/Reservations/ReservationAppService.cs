@@ -119,6 +119,8 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
                 "You do not have customer profile.");
         }
 
+        var phoneNumber = customer.PhoneNumber == null ? throw new BusinessRuleException("Please provide your phone by updating your profile") : customer.PhoneNumber;
+
         // 3. Check active subscription
         var subscription = await _subscriptionRepository
             .FirstOrDefaultAsync(x =>
@@ -233,9 +235,9 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
 
         // 8. Create reservation
         var reservation = ObjectMapper.Map<Reservation>(input);
-
         reservation.CustomerId = customer.Id;
         reservation.ExpireAt = input.ReservedAt.AddHours(ReservationDurationHours).AddMinutes(ReservationGracePeriodMinutes);
+        reservation.ContactPhone = phoneNumber;
 
         try
         {
@@ -285,22 +287,46 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
                     "User is not logged in.");
             query = query.Where(x => x.Customer.UserId == userId);
         }
+        var keyword = input.Keyword?.Trim();
+        var customerName = input.CustomerName?.Trim();
+        var parkingAreaCode = input.ParkingAreaCode?.Trim();
+        var parkingSpotCode = input.ParkingSpotCode?.Trim();
+
         query = query
             .WhereIf(
-            input.CustomerId.HasValue,
-            x=>x.CustomerId==input.CustomerId)
+                !string.IsNullOrWhiteSpace(keyword),
+                x => (x.Customer != null && x.Customer.Name.Contains(keyword))
+                    || (x.ParkingArea != null && x.ParkingArea.ParkingCode.Contains(keyword))
+                    || (x.ParkingSpot != null && x.ParkingSpot.SpotCode.Contains(keyword))
+                    || x.ContactPhone.Contains(keyword)
+            )
             .WhereIf(
-            input.ParkingSpotId.HasValue,
-            x => x.ParkingSpotId == input.ParkingSpotId)
+                !string.IsNullOrWhiteSpace(customerName),
+                x => x.Customer != null && x.Customer.Name.Contains(customerName)
+            )
             .WhereIf(
-            input.ParkingAreaId.HasValue,
-            x => x.ParkingAreaId== input.ParkingAreaId)
-             .WhereIf(
+                !string.IsNullOrWhiteSpace(parkingAreaCode),
+                x => x.ParkingArea != null && x.ParkingArea.ParkingCode.Contains(parkingAreaCode)
+            )
+            .WhereIf(
+                !string.IsNullOrWhiteSpace(parkingSpotCode),
+                x => x.ParkingSpot != null && x.ParkingSpot.SpotCode.Contains(parkingSpotCode)
+            )
+            .WhereIf(
+                input.CustomerId.HasValue,
+                x=>x.CustomerId==input.CustomerId)
+            .WhereIf(
+                input.ParkingSpotId.HasValue,
+                x => x.ParkingSpotId == input.ParkingSpotId)
+            .WhereIf(
+                input.ParkingAreaId.HasValue,
+                x => x.ParkingAreaId== input.ParkingAreaId)
+            .WhereIf(
                 input.ReservedAtFrom.HasValue,
                 x => x.ReservedAt >= input.ReservedAtFrom)
-             .WhereIf(
+            .WhereIf(
                 input.ReservedAtTo.HasValue,
-                x => x.ReservedAt <= input.ReservedAtFrom)
+                x => x.ReservedAt <= input.ReservedAtTo)
             .WhereIf(
                 input.ExpireAtFrom.HasValue,
                 x => x.ExpireAt >= input.ExpireAtFrom)
@@ -312,8 +338,8 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
                 x=> x.Status == input.Status
             );
 
-            // Total count
-           var totalCount = await query.CountAsync();
+        // Total count
+        var totalCount = await query.CountAsync();
 
         //Sorting
         if (!string.IsNullOrEmpty(input.Sorting))
@@ -326,9 +352,36 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
                 nameof(Reservation.CreationTime),
                 nameof(Reservation.ExpireAt),
                 nameof(Reservation.Status),
-                nameof(Reservation.ReservedAt)
+                nameof(Reservation.ReservedAt),
+                "customerName",
+                "parkingAreaCode",
+                "parkingSpotCode"
                 );
-            query = query.OrderBy(sorting);
+
+            switch (sorting?.ToLowerInvariant())
+            {
+                case "customername asc":
+                    query = query.OrderBy(x => x.Customer.Name);
+                    break;
+                case "customername desc":
+                    query = query.OrderByDescending(x => x.Customer.Name);
+                    break;
+                case "parkingareacode asc":
+                    query = query.OrderBy(x => x.ParkingArea.ParkingCode);
+                    break;
+                case "parkingareacode desc":
+                    query = query.OrderByDescending(x => x.ParkingArea.ParkingCode);
+                    break;
+                case "parkingspotcode asc":
+                    query = query.OrderBy(x => x.ParkingSpot != null ? x.ParkingSpot.SpotCode : null);
+                    break;
+                case "parkingspotcode desc":
+                    query = query.OrderByDescending(x => x.ParkingSpot != null ? x.ParkingSpot.SpotCode : null);
+                    break;
+                default:
+                    query = query.OrderBy(sorting);
+                    break;
+            }
         }
         else
         {

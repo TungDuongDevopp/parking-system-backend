@@ -12,6 +12,7 @@ public class ReservationDto: EntityDto<long>
     public long ParkingAreaId { get; set; }
     public string ParkingAreaCode { get; set; }
     public string ParkingAreaName { get; set; }
+    public string ContactPhone { get; set; }
     public long? ParkingSpotId { get; set; }
     public string? ParkingSpotCode { get; set; }
     public DateTime ReservedAt { get; set; }

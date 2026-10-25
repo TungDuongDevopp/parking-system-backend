@@ -10,6 +10,7 @@
 	<text name="Customers_ViewAll" value="Customers ViewAll"/>
 	<text name="Customers_ModifyAll" value="Customers ModifyAll"/>
 	<text name="Customers_ModifyOwn" value="Customers ModifyOwn"/>  
+	<text name="Dashboard" value="Dashboard"/>
 	<text name="Staffs" value="Staffs"/>
 	<text name="Staffs_Manager" value="Staffs Manager"/>
 	<text name="ParkingAreas" value="Parking Areas"/>

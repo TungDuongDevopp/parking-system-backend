@@ -1,4 +1,4 @@
-﻿
+
 
 
 using Abp.Application.Services.Dto;
@@ -13,6 +13,9 @@ public class PagedReservationResultRequestDto :PagedResultRequestDto, ISortedRes
 {
     public string Keyword { get; set; }
     public string Sorting { get; set; }
+    public string CustomerName { get; set; }
+    public string ParkingAreaCode { get; set; }
+    public string ParkingSpotCode { get; set; }
 
     [GreaterThanZero]
     public long? CustomerId { get; set; }

@@ -62,4 +62,6 @@ public static class PermissionNames
     public const string Pages_Subscription_Plate_Change = "Pages.Subscription.Plate.Change";
     public const string Pages_Subscription_Plate_Add = "Pages.Subscription.Plate.Add";
 
+    // Dashboard
+    public const string Pages_Dashboard = "Pages.Dashboard";
 }
