@@ -15,6 +15,7 @@ using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.ParkingSessions.Dto;
 using ParkingSystem.Reservations;
+using ParkingSystem.Reservations.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -439,7 +440,12 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                     "User is not logged in.");
             query = query.Where(x => x.Customer.UserId == userId);
         }
-        query = query
+        query = query.WhereIf(!input.Keyword.IsNullOrEmpty(),
+            x=> x.CustomerId!=null && x.Customer.Name.Contains(input.Keyword)
+                || (x.ParkingSpotId != null  && x.ParkingSpot.SpotCode.Contains(input.Keyword))
+                || (x.ParkingArea.ParkingCode.Contains(input.Keyword))
+                || (x.CheckInStaffId!= null && x.CheckInStaff.Name.Contains(input.Keyword))
+                || (x.CheckOutStaff!= null && x.CheckOutStaff.Name.Contains(input.Keyword)))
             .WhereIf(
             input.CustomerId.HasValue,
             x => x.CustomerId == input.CustomerId)
@@ -456,11 +462,17 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             input.CheckOutStaffId.HasValue,
             x => x.CheckOutStaffId == input.CheckOutStaffId)
              .WhereIf(
-                input.FromTime.HasValue,
-                x => x.EntryTime >= input.FromTime)
+                input.EntryFrom.HasValue,
+                x => x.EntryTime >= input.EntryFrom)
+             .WhereIf(
+                input.EntryTo.HasValue,
+                x => x.EntryTime <= input.EntryTo)
             .WhereIf(
-                input.ToTime.HasValue,
-                x => x.ExitTime <= input.ToTime)
+                input.ExitFrom.HasValue,
+                x => x.ExitTime >= input.ExitFrom)
+            .WhereIf(
+                input.ExitTo.HasValue,
+                x => x.ExitTime <= input.ExitTo)
             .WhereIf(
                 input.Status.HasValue,
                 x => x.Status == input.Status
@@ -506,12 +518,11 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                 nameof(ParkingSession.Status),
                 nameof(ParkingSession.EntryTime),
                 nameof(ParkingSession.CheckInStaffId),
-                 nameof(ParkingSession.CheckOutStaffId),
-                 nameof(ParkingSession.DailyRate),
-                 nameof(ParkingSession.HourlyRate),
-                 nameof(ParkingSession.ParkingArea),
-                 nameof(ParkingSession.TicketCode),
-                 nameof(ParkingSession.Fee)
+                nameof(ParkingSession.CheckOutStaffId),
+                nameof(ParkingSession.DailyRate),
+                nameof(ParkingSession.HourlyRate),
+                nameof(ParkingSession.TicketCode),
+                nameof(ParkingSession.Fee)
                 );
             query = query.OrderBy(sorting);
         }
@@ -543,5 +554,73 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         }
         await CheckSessionViewAccessAsync(session);
         return ObjectMapper.Map<ParkingSessionDto>(session);
+    }
+
+    public async Task<ParkingSessionLookUpDto> GetSessionLookUpAsync()
+    {
+        var subQuery = _repository.GetAll().AsNoTracking();
+        var customerIds = subQuery.Select(s => s.CustomerId).Distinct();
+        var parkingAreaIds = subQuery.Select(s => s.ParkingAreaId).Distinct();
+        var parkingSpotIds = subQuery.Select(s => s.ParkingSpotId).Distinct();
+        var staffIds = subQuery
+            .Where(s => s.CheckInStaffId.HasValue)
+            .Select(s => s.CheckInStaffId.Value)
+            .Concat(
+                subQuery
+                    .Where(s => s.CheckOutStaffId.HasValue)
+                    .Select(s => s.CheckOutStaffId.Value)
+            )
+            .Distinct();
+        var customers = await _customerRepository.GetAll()
+          .AsNoTracking()
+          .Where(c => customerIds.Contains(c.Id))
+          .OrderBy(c => c.Name)
+          .Select(c => new SessionCustomerLookUpDto
+          {
+              Id = c.Id,
+              Name = c.Name,
+              PhoneNumber = c.PhoneNumber
+          })
+          .ToListAsync();
+        var parkingAreas = await _parkingAreaRepository.GetAll()
+        .AsNoTracking()
+        .Where(a => parkingAreaIds.Contains(a.Id))
+        .OrderBy(a => a.ParkingCode)
+        .Select(a => new SessionAreaLookUpDto
+        {
+            Id = a.Id,
+            ParkingCode = a.ParkingCode,
+            VehicleType = a.VehicleType
+        })
+        .ToListAsync();
+
+        var parkingSpots = await _parkingSpotRepository.GetAll()
+          .AsNoTracking()
+          .Where(p => parkingSpotIds.Contains(p.Id))
+          .OrderBy(p => p.SpotCode)
+          .Select(p => new SessionSpotLookUpDto
+          {
+              Id = p.Id,
+              SpotCode = p.SpotCode,
+
+          })
+          .ToListAsync();
+        var staffs = await _staffRepository.GetAll()
+            .AsNoTracking()
+            .Where(s=>staffIds.Contains(s.Id))
+             .OrderBy(p => p.Name)
+          .Select(p => new SessionStaffLookUpDto
+          {
+              Id = p.Id,
+              UserId=p.UserId,
+              Name = p.Name
+          }).ToListAsync();
+        return new ParkingSessionLookUpDto
+        {
+            Customers = customers,
+            Staffs = staffs,
+            ParkingAreas = parkingAreas,
+            ParkingSpots = parkingSpots
+        };
     }
 }

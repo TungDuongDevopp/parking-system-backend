@@ -37,11 +37,13 @@ public class PagedParkingSessionResultRequestDto : PagedResultRequestDto, ISorte
     [GreaterThanZero]
     public decimal? MaxDailyRate { get; set; }
 
-    [NotFuture]
-    public DateTime? FromTime { get; set; }
+    public DateTime? EntryFrom { get; set; }
 
-    [NotFuture]
-    public DateTime? ToTime { get; set; }
+    public DateTime? EntryTo { get; set; }
+
+    public DateTime? ExitFrom { get; set; }
+
+    public DateTime? ExitTo { get; set; }
 
     [EnumDataType(typeof(ParkingSessionStatus))]
     public ParkingSessionStatus? Status { get; set; }

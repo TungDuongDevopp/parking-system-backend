@@ -11,4 +11,6 @@ public interface IParkingSessionAppService
     Task<PagedResultDto<ParkingSessionDto>> GetAllAsync(PagedParkingSessionResultRequestDto input);
     Task<CheckInResultDto> CheckInAsync(ParkingSessionCheckInDto input);
     Task<CheckOutResultDto> CheckOutAsync(ParkingSessionCheckOutDto input);
+
+    Task<ParkingSessionLookUpDto> GetSessionLookUpAsync();
 }

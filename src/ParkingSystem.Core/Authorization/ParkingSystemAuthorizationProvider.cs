@@ -54,6 +54,8 @@ public class ParkingSystemAuthorizationProvider : AuthorizationProvider
         context.CreatePermission(PermissionNames.Pages_Subscription_Plate_Change, L("Subscription_Plate_Change"));
         context.CreatePermission(PermissionNames.Pages_Subscription_Plate_ViewAll, L("Subscription_Plate_ViewAll"));
         context.CreatePermission(PermissionNames.Pages_Subscription_Plate_ViewOwn, L("Subscription_Plate_ViewOwn"));
+        //Dashboard
+        context.CreatePermission(PermissionNames.Pages_Dashboard, L("Dashboard"));
     }
     private static ILocalizableString L(string name)
     {

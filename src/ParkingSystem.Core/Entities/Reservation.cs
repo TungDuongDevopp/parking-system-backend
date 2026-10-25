@@ -4,6 +4,7 @@ using Abp.Timing;
 using ParkingSystem.Entities;
 using ParkingSystem.Entities.Enums;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 public class Reservation :
     Entity<long>,
@@ -13,6 +14,10 @@ public class Reservation :
 {
     public long CustomerId { get; set; }
     public Customer Customer { get; set; }
+   
+    [Required]
+    [StringLength(20)]
+    public string ContactPhone { get; set; }
     public long ParkingAreaId { get; set; }
     public ParkingArea ParkingArea { get; set; }
     public long? ParkingSpotId { get; set; }
