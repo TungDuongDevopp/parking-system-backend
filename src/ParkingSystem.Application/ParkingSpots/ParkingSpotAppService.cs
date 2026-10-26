@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace ParkingSystem.ParkingSpots;
 
-[AbpAuthorize(PermissionNames.Pages_ParkingSpots)]
+[AbpAuthorize(PermissionNames.Pages_ParkingSpots, PermissionNames.Pages_ParkingSpots_Lookup)]
 public class ParkingSpotAppService : AsyncCrudAppService<ParkingSpot,ParkingSpotDto,long,PagedParkingSpotResultRequestDto,CreateParkingSpotDto,UpdateParkingSpotDto>,IParkingSpotAppService
 {
     private readonly IRepository<ParkingArea, long> _parkingAreaRepository;
@@ -243,9 +243,18 @@ public class ParkingSpotAppService : AsyncCrudAppService<ParkingSpot,ParkingSpot
             VehicleType = a.VehicleType
         })
         .ToListAsync();
-
-
     }
 
-   
+    [AbpAuthorize(PermissionNames.Pages_ParkingSpots_Lookup, PermissionNames.Pages_ParkingSpots)]
+    public async Task<List<ParkingSpotDto>> GetAvailableSpotsAsync(long parkingAreaId)
+    {
+        var spots = await Repository.GetAll()
+            .AsNoTracking()
+            .Include(x => x.ParkingArea)
+            .Where(x => x.ParkingAreaId == parkingAreaId && x.ParkingArea.Status == ParkingAreaStatus.Active)
+            .OrderBy(x => x.SpotCode)
+            .ToListAsync();
+
+        return ObjectMapper.Map<List<ParkingSpotDto>>(spots);
+    }
 }

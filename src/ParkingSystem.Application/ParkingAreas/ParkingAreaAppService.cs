@@ -14,13 +14,14 @@ using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.ParkingAreas.Dto;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 
 namespace ParkingSystem.ParkingAreas;
 
-[AbpAuthorize(PermissionNames.Pages_ParkingAreas)]
+[AbpAuthorize(PermissionNames.Pages_ParkingAreas, PermissionNames.Pages_ParkingAreas_Lookup)]
 public class ParkingAreaAppService: AsyncCrudAppService<ParkingArea,ParkingAreaDto,long,PagedParkingAreaResultRequestDto,CreateParkingAreaDto,UpdateParkingAreaDto>,IParkingAreaAppService
 {
     private readonly IRepository<ParkingSpot, long> _parkingSpotRepository;
@@ -228,5 +229,72 @@ public class ParkingAreaAppService: AsyncCrudAppService<ParkingArea,ParkingAreaD
         await Repository.UpdateAsync(area);
         await CurrentUnitOfWork.SaveChangesAsync();
         return MapToEntityDto(area);
+    }
+
+    [AbpAuthorize(PermissionNames.Pages_ParkingAreas_Lookup, PermissionNames.Pages_ParkingAreas)]
+    public async Task<List<ParkingAreaLookupDto>> GetAvailableAreasAsync()
+    {
+        var activeAreas = await Repository.GetAll()
+            .AsNoTracking()
+            .Where(x => x.Status == ParkingAreaStatus.Active)
+            .OrderBy(a => a.ParkingCode)
+            .ToListAsync();
+
+        if (activeAreas.Count == 0)
+        {
+            return new List<ParkingAreaLookupDto>();
+        }
+
+        var individualAreaIds = activeAreas
+            .Where(a => a.ParkingMode == ParkingMode.individualSpot)
+            .Select(a => a.Id)
+            .ToList();
+
+        var spotStatusByArea = individualAreaIds.Count > 0
+            ? await _parkingSpotRepository.GetAll()
+                .AsNoTracking()
+                .Where(s => individualAreaIds.Contains(s.ParkingAreaId))
+                .GroupBy(s => new { s.ParkingAreaId, s.Status })
+                .Select(g => new { g.Key.ParkingAreaId, g.Key.Status, Count = g.Count() })
+                .ToListAsync()
+            : null;
+
+        var result = new List<ParkingAreaLookupDto>();
+
+        foreach (var area in activeAreas)
+        {
+            int unavailable;
+            if (area.ParkingMode == ParkingMode.capacityBase)
+            {
+                unavailable = Math.Clamp(area.CurrentOccupancy, 0, area.Capacity);
+            }
+            else
+            {
+                var spots = spotStatusByArea?.Where(s => s.ParkingAreaId == area.Id).ToList();
+                var occupiedSpots = spots?.FirstOrDefault(s => s.Status == ParkingSpotStatus.Occupied)?.Count ?? 0;
+                var reservedSpots = spots?.FirstOrDefault(s => s.Status == ParkingSpotStatus.Reserved)?.Count ?? 0;
+                var unavailableSpots = spots?.FirstOrDefault(s => s.Status == ParkingSpotStatus.Unavailable)?.Count ?? 0;
+                unavailable = Math.Min(area.Capacity, occupiedSpots + reservedSpots + unavailableSpots);
+            }
+
+            var available = Math.Max(0, area.Capacity - unavailable);
+
+            result.Add(new ParkingAreaLookupDto
+            {
+                Id = area.Id,
+                ParkingCode = area.ParkingCode,
+                Name = area.Name,
+                Location = area.Location,
+                VehicleType = area.VehicleType,
+                ParkingMode = area.ParkingMode,
+                Status = area.Status,
+                Capacity = area.Capacity,
+                AvailableCapacity = available,
+                UnavailableCapacity = unavailable,
+                Description = area.Description
+            });
+        }
+
+        return result;
     }
 }

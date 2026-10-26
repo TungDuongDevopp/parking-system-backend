@@ -349,6 +349,7 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
         return ObjectMapper.Map<SubscriptionDto>(subscription);
     }
 
+    [AbpAllowAnonymous]
     public async Task<List<QuotationDto>> GetAvailableQuotationsAsync()
     {
         // Mirror the business rule in CreateAsync: only Week / Month / Year
@@ -365,6 +366,7 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
         return ObjectMapper.Map<List<QuotationDto>>(quotations);
     }
 
+    [AbpAuthorize(PermissionNames.Pages_Subscriptions_Manager)]
     public async Task<SubscriptionLookUpDto> GetSubscriptionLookUpAsync()
     {
         var subQuery = _repository.GetAll().AsNoTracking();

@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace ParkingSystem.Dashboard;
 
-[AbpAuthorize(PermissionNames.Pages_Dashboard)]
+[AbpAuthorize(PermissionNames.Pages_Dashboard_Admin, PermissionNames.Pages_Dashboard_Staff)]
 public class DashboardAppService : ParkingSystemAppServiceBase, IDashboardAppService
 {
     private readonly IRepository<ParkingArea, long> _parkingAreaRepository;
@@ -52,6 +52,7 @@ public class DashboardAppService : ParkingSystemAppServiceBase, IDashboardAppSer
         }
     }
 
+    [AbpAuthorize(PermissionNames.Pages_Dashboard_Admin)]
     public async Task<DashboardSummaryDto> GetDashboardSummaryAsync()
     {
         var nowUtc = Clock.Now;
@@ -125,6 +126,7 @@ public class DashboardAppService : ParkingSystemAppServiceBase, IDashboardAppSer
         };
     }
 
+    [AbpAuthorize(PermissionNames.Pages_Dashboard_Admin, PermissionNames.Pages_Dashboard_Staff)]
     public async Task<List<ParkingAreaOccupancyDto>> GetParkingAreaOccupancyAsync()
     {
         var nowUtc = Clock.Now;
@@ -216,6 +218,7 @@ public class DashboardAppService : ParkingSystemAppServiceBase, IDashboardAppSer
         return result;
     }
 
+    [AbpAuthorize(PermissionNames.Pages_Dashboard_Admin)]
     public async Task<List<ParkingActivityDto>> GetParkingActivityAsync(GetParkingActivityInput input)
     {
         if (input.FromDate > input.ToDate)
@@ -337,6 +340,7 @@ public class DashboardAppService : ParkingSystemAppServiceBase, IDashboardAppSer
         return result;
     }
 
+    [AbpAuthorize(PermissionNames.Pages_Dashboard_Admin, PermissionNames.Pages_Dashboard_Staff)]
     public async Task<List<RecentActivityDto>> GetRecentActivitiesAsync(GetRecentActivitiesInput input)
     {
         var maxCount = Math.Clamp(input.MaxCount, 1, 50);

@@ -129,12 +129,24 @@ public class ReservationAppService : ParkingSystemAppServiceBase, IReservationAp
 
         if (subscription == null)
         {
+            var hasPending = await _subscriptionRepository
+                .GetAll()
+                .AnyAsync(x =>
+                    x.CustomerId == customer.Id &&
+                    x.Status == SubscriptionStatus.pending);
+
+            if (hasPending)
+            {
+                throw new BusinessRuleException(
+                    "Your subscription is pending payment. Please complete the payment before making a reservation.");
+            }
+
             throw new BusinessRuleException(
-                "You must buy subscription package to use this feature.");
+                "You need an active subscription to make a reservation.");
         }
         // 4. Check active/ expried reservation
 
-            var expiredReservation =
+        var expiredReservation =
         await _repository.FirstOrDefaultAsync(x =>
             x.CustomerId == customer.Id &&
             x.Status == ReservationStatus.Reserved &&

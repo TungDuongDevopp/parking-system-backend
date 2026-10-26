@@ -26,10 +26,12 @@ public static class PermissionNames
     //Parking Area
     public const string Pages_ParkingAreas = "Pages.ParkingAreas";
     public const string Pages_ParkingAreas_Manager = "Pages.ParkingAreas.Manager";
+    public const string Pages_ParkingAreas_Lookup = "Pages.ParkingAreas.Lookup";
 
     //Parking Spot
     public const string Pages_ParkingSpots = "Pages.ParkingSpots";
     public const string Pages_ParkingSpots_Manager = "Pages.ParkingSpots.Manager";
+    public const string Pages_ParkingSpots_Lookup = "Pages.ParkingSpots.Lookup";
 
     //Quotation
     public const string Pages_Quotations = "Pages.Quotations";
@@ -64,4 +66,6 @@ public static class PermissionNames
 
     // Dashboard
     public const string Pages_Dashboard = "Pages.Dashboard";
+    public const string Pages_Dashboard_Admin = "Pages.Dashboard.Admin";
+    public const string Pages_Dashboard_Staff = "Pages.Dashboard.Staff";
 }

@@ -1,4 +1,4 @@
-﻿
+
 using Abp.Application.Services;
 using ParkingSystem.ParkingSpots.Dto;
 using System.Collections.Generic;
@@ -9,4 +9,5 @@ public interface IParkingSpotAppService : IAsyncCrudAppService<ParkingSpotDto,lo
 {
      Task ChangeStatus(ChangeStatusDto dto);
     Task<List<ParkingSpotLookUpDto>> GetParkingAreaLookUpAsync();
+    Task<List<ParkingSpotDto>> GetAvailableSpotsAsync(long parkingAreaId);
 }

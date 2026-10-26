@@ -24,11 +24,13 @@ public class ParkingSystemAuthorizationProvider : AuthorizationProvider
         context.CreatePermission(PermissionNames.Pages_Staffs, L("Staffs"));
         context.CreatePermission(PermissionNames.Pages_Staffs_Manager, L("Staffs_Manager"));
         //Parking Area
-        context.CreatePermission(PermissionNames.Pages_ParkingAreas, L("ParkingAreas"));
-        context.CreatePermission(PermissionNames.Pages_ParkingAreas_Manager, L("ParkingAreas_Manager"));
+        var parkingAreas = context.CreatePermission(PermissionNames.Pages_ParkingAreas, L("ParkingAreas"));
+        parkingAreas.CreateChildPermission(PermissionNames.Pages_ParkingAreas_Manager, L("ParkingAreas_Manager"));
+        parkingAreas.CreateChildPermission(PermissionNames.Pages_ParkingAreas_Lookup, L("ParkingAreas_Lookup"));
         //Parking Spot
-        context.CreatePermission(PermissionNames.Pages_ParkingSpots, L("ParkingSpots"));
-        context.CreatePermission(PermissionNames.Pages_ParkingSpots_Manager, L("ParkingSpots_Manager"));
+        var parkingSpots = context.CreatePermission(PermissionNames.Pages_ParkingSpots, L("ParkingSpots"));
+        parkingSpots.CreateChildPermission(PermissionNames.Pages_ParkingSpots_Manager, L("ParkingSpots_Manager"));
+        parkingSpots.CreateChildPermission(PermissionNames.Pages_ParkingSpots_Lookup, L("ParkingSpots_Lookup"));
         //Quotation
         context.CreatePermission(PermissionNames.Pages_Quotations, L("Quotations"));
         context.CreatePermission(PermissionNames.Pages_Quotations_Manager, L("Quotations_Manager"));
@@ -55,7 +57,9 @@ public class ParkingSystemAuthorizationProvider : AuthorizationProvider
         context.CreatePermission(PermissionNames.Pages_Subscription_Plate_ViewAll, L("Subscription_Plate_ViewAll"));
         context.CreatePermission(PermissionNames.Pages_Subscription_Plate_ViewOwn, L("Subscription_Plate_ViewOwn"));
         //Dashboard
-        context.CreatePermission(PermissionNames.Pages_Dashboard, L("Dashboard"));
+        var dashboard = context.CreatePermission(PermissionNames.Pages_Dashboard, L("Dashboard"));
+        dashboard.CreateChildPermission(PermissionNames.Pages_Dashboard_Admin, L("DashboardAdmin"));
+        dashboard.CreateChildPermission(PermissionNames.Pages_Dashboard_Staff, L("DashboardStaff"));
     }
     private static ILocalizableString L(string name)
     {

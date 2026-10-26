@@ -11,12 +11,16 @@
 	<text name="Customers_ModifyAll" value="Customers ModifyAll"/>
 	<text name="Customers_ModifyOwn" value="Customers ModifyOwn"/>  
 	<text name="Dashboard" value="Dashboard"/>
+	<text name="DashboardAdmin" value="Dashboard Admin"/>
+	<text name="DashboardStaff" value="Dashboard Staff"/>
 	<text name="Staffs" value="Staffs"/>
 	<text name="Staffs_Manager" value="Staffs Manager"/>
 	<text name="ParkingAreas" value="Parking Areas"/>
 	<text name="ParkingAreas_Manager" value="Parking Areas Manager"/>
+	<text name="ParkingAreas_Lookup" value="Parking Areas Lookup"/>
 	<text name="ParkingSpots" value="Parking Spots"/>
 	<text name="ParkingSpots_Manager" value="Parking Spots Manager"/>
+	<text name="ParkingSpots_Lookup" value="Parking Spots Lookup"/>
 	<text name="Quotations" value="Quotations"/>
 	<text name="Quotations_Manager" value="Quotations Manager"/>
 	<text name="Subscriptions" value="Subscriptions"/>

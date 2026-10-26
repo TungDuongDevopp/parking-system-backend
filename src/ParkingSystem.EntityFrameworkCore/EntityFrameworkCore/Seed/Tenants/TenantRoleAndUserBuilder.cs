@@ -1,4 +1,4 @@
-﻿using Abp.Authorization;
+using Abp.Authorization;
 using Abp.Authorization.Roles;
 using Abp.Authorization.Users;
 using Abp.MultiTenancy;
@@ -8,6 +8,7 @@ using ParkingSystem.Authorization.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic;
 using System.Linq;
 using ParkingSystem.Entities;
 
@@ -40,12 +41,17 @@ public class TenantRoleAndUserBuilder
             _context.SaveChanges();
         }
 
-        var staffRole = _context.Roles.IgnoreQueryFilters().FirstOrDefault(r=>r.TenantId == _tenantId && r.Name == StaticRoleNames.Tenants.Staff);
-
+        var staffRole = _context.Roles.IgnoreQueryFilters().FirstOrDefault(r => r.TenantId == _tenantId && r.Name == StaticRoleNames.Tenants.Staff);
         if (staffRole == null)
         {
             staffRole = _context.Roles.Add(new Role(_tenantId, StaticRoleNames.Tenants.Staff, StaticRoleNames.Tenants.Staff) { IsStatic = true }).Entity;
-   
+            _context.SaveChanges();
+        }
+
+        var customerRole = _context.Roles.IgnoreQueryFilters().FirstOrDefault(r => r.TenantId == _tenantId && r.Name == StaticRoleNames.Tenants.Customer);
+        if (customerRole == null)
+        {
+            customerRole = _context.Roles.Add(new Role(_tenantId, StaticRoleNames.Tenants.Customer, StaticRoleNames.Tenants.Customer) { IsStatic = true, IsDefault = true }).Entity;
             _context.SaveChanges();
         }
 
@@ -72,6 +78,86 @@ public class TenantRoleAndUserBuilder
                     Name = permission.Name,
                     IsGranted = true,
                     RoleId = adminRole.Id
+                })
+            );
+            _context.SaveChanges();
+        }
+
+        // Grant operational permissions to staff role
+        var staffPermissions = new List<string>
+        {
+            PermissionNames.Pages_Dashboard_Staff,
+            PermissionNames.Pages_Staffs,
+            PermissionNames.Pages_ParkingAreas,
+            PermissionNames.Pages_ParkingAreas_Lookup,
+            PermissionNames.Pages_ParkingSpots,
+            PermissionNames.Pages_ParkingSpots_Lookup,
+            PermissionNames.Pages_Quotations,
+            PermissionNames.Pages_Subscriptions,
+            PermissionNames.Pages_Subscription_Plate,
+            PermissionNames.Pages_Reservations,
+            PermissionNames.Pages_Reservations_ViewAll,
+            PermissionNames.Pages_ParkingSessions,
+            PermissionNames.Pages_ParkingSessions_ViewAll,
+            PermissionNames.Pages_ParkingSessions_Image,
+            PermissionNames.Pages_ParkingSession_Image_ViewAll
+        };
+
+        var staffGranted = _context.Permissions.IgnoreQueryFilters()
+            .OfType<RolePermissionSetting>()
+            .Where(p => p.TenantId == _tenantId && p.RoleId == staffRole.Id)
+            .Select(p => p.Name)
+            .ToList();
+
+        var staffMissing = staffPermissions.Where(p => !staffGranted.Contains(p)).ToList();
+        if (staffMissing.Any())
+        {
+            _context.Permissions.AddRange(
+                staffMissing.Select(permissionName => new RolePermissionSetting
+                {
+                    TenantId = _tenantId,
+                    Name = permissionName,
+                    IsGranted = true,
+                    RoleId = staffRole.Id
+                })
+            );
+            _context.SaveChanges();
+        }
+
+        // Grant personal & lookup permissions to customer role
+        var customerPermissions = new List<string>
+        {
+            PermissionNames.Pages_Customers,
+            PermissionNames.Pages_Customers_ModifyOwn,
+            PermissionNames.Pages_Reservations,
+            PermissionNames.Pages_Reservations_ModifyOwn,
+            PermissionNames.Pages_Subscriptions,
+            PermissionNames.Pages_Subscription_Plate,
+            PermissionNames.Pages_Subscription_Plate_Add,
+            PermissionNames.Pages_Subscription_Plate_Change,
+            PermissionNames.Pages_Subscription_Plate_ViewOwn,
+            PermissionNames.Pages_ParkingSessions,
+            PermissionNames.Pages_ParkingSessions_ViewOwn,
+            PermissionNames.Pages_ParkingAreas_Lookup,
+            PermissionNames.Pages_ParkingSpots_Lookup
+        };
+
+        var customerGranted = _context.Permissions.IgnoreQueryFilters()
+            .OfType<RolePermissionSetting>()
+            .Where(p => p.TenantId == _tenantId && p.RoleId == customerRole.Id)
+            .Select(p => p.Name)
+            .ToList();
+
+        var customerMissing = customerPermissions.Where(p => !customerGranted.Contains(p)).ToList();
+        if (customerMissing.Any())
+        {
+            _context.Permissions.AddRange(
+                customerMissing.Select(permissionName => new RolePermissionSetting
+                {
+                    TenantId = _tenantId,
+                    Name = permissionName,
+                    IsGranted = true,
+                    RoleId = customerRole.Id
                 })
             );
             _context.SaveChanges();
