@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace ParkingSystem.Validation;
@@ -9,6 +10,8 @@ public class GreaterThanZeroAttribute: ValidationAttribute
     {
         if (value == null)
             return true;
+        if (value is Enum enumValue)
+            return Convert.ToInt64(enumValue) > 0;
 
         return value switch
         {
