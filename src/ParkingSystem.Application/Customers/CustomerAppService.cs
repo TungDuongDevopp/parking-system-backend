@@ -4,6 +4,7 @@ using Abp.Authorization;
 using Abp.Domain.Repositories;
 using Abp.Extensions;
 using Abp.Linq.Extensions;
+using Abp.UI;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ParkingSystem.Authorization;
@@ -145,64 +146,11 @@ public class CustomerAppService : AsyncCrudAppService<Customer, CustomerDto, lon
         return query.OrderByDescending(x => x.Id);
     }
 
-    public override async Task<CustomerDto> CreateAsync(CreateCustomerDto input)
+
+    [RemoteService(IsEnabled = false)]
+    public override Task<CustomerDto> CreateAsync(CreateCustomerDto input)
     {
-        var userId = AbpSession.UserId
-            ?? throw new AbpAuthorizationException("User is not logged in.");
-
-        var existingCustomer = await Repository
-     .GetAll()
-     .IgnoreQueryFilters()
-     .FirstOrDefaultAsync(x => x.UserId == userId);
-
-        if (existingCustomer != null)
-        {
-            throw new DuplicateResourceException(
-                "Current user already has a customer profile."
-            );
-        }
-
-        var existCustomer = await Repository
-            .GetAll()
-            .AnyAsync(x =>
-                (!string.IsNullOrWhiteSpace(input.PhoneNumber) && x.PhoneNumber == input.PhoneNumber) ||
-                (input.Email != null && x.Email == input.Email));
-
-        if (existCustomer)
-        {
-            throw new DuplicateResourceException(
-                "A customer with the same phone number or email already exists."
-            );
-        }
-
-        var entity = ObjectMapper.Map<Customer>(input);
-        entity.UserId = userId;
-
-        try
-        {
-            var created = await Repository.InsertAsync(entity);
-            await CurrentUnitOfWork.SaveChangesAsync();
-            return MapToEntityDto(created);
-        }
-        catch (DbUpdateException ex)
-            when (ex.InnerException is SqlException sqlEx
-                && (sqlEx.Number == 2601 || sqlEx.Number == 2627))
-        {
-            var errorMessage = sqlEx.Message;
-            if (errorMessage.Contains("UserId", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new DuplicateResourceException("Current user already has a customer profile.");
-            }
-            if (errorMessage.Contains("PhoneNumber", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new DuplicateResourceException("A customer with the same phone number already exists.");
-            }
-            if (errorMessage.Contains("Email", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new DuplicateResourceException("A customer with the same email already exists.");
-            }
-            throw new DuplicateResourceException("A customer with conflicting data already exists.");
-        }
+        throw new UserFriendlyException("Hồ sơ khách hàng được tạo tự động khi đăng ký tài khoản.");
     }
     public override async Task<CustomerDto> UpdateAsync(UpdateCustomerDto input)
     {
