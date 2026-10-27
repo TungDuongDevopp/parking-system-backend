@@ -10,7 +10,6 @@ using ParkingSystem.Entities;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.Payments.Dto;
-using ParkingSystem.PaymentTransactions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
@@ -23,9 +22,15 @@ namespace ParkingSystem.Payments;
 public class PaymentAppService : ParkingSystemAppServiceBase, IPaymentAppService
 {
     private readonly IRepository<Payment, long> _repository;
-    public PaymentAppService(IRepository<Payment, long> repository)
+    private readonly IRepository<Subscription, long> _subscriptionRepository;
+    private readonly IRepository<ParkingSession, long> _sessionRepository;
+    public PaymentAppService(IRepository<Payment, long> repository, IRepository<Subscription, long> subscriptionRepository,
+        IRepository<ParkingSession, long> sessionRepository
+        )
     {
         _repository = repository;
+        _sessionRepository = sessionRepository;
+        _subscriptionRepository = subscriptionRepository;
     }
 
     [AbpAuthorize(PermissionNames.Pages_Payment_Manager)]
@@ -147,5 +152,43 @@ public class PaymentAppService : ParkingSystemAppServiceBase, IPaymentAppService
         }
 
         return ObjectMapper.Map<PaymentDto>(payment);
+    }
+    [AbpAuthorize(PermissionNames.Pages_Payment_Manager)]
+    public async Task<PaymentLookUpDto> GetPaymentLookUpAsync()
+    {
+        var subQuery = _repository.GetAll().AsNoTracking();
+        var subscriptionIds = subQuery.Select(s => s.SubscriptionId).Distinct();
+        var sessionIds = subQuery.Select(s => s.ParkingSessionId).Distinct();
+        var sessions = await _sessionRepository.GetAll()
+            .AsNoTracking()
+            .Include(s=>s.CheckInStaff)
+            .Include(s=>s.CheckOutStaff)
+            .Where(s => sessionIds.Contains(s.Id))
+            .OrderBy(s => s.PlateNumber)
+            .Select(s => new PaymentSessionLookupDto
+            {
+                Id = s.Id,
+                PlateNumber= s.PlateNumber,
+                NameStaffIn = s.CheckInStaff.Name,
+                NameStaffOut = s.CheckOutStaff.Name
+            })
+            .ToListAsync();
+        var subs = await _subscriptionRepository.GetAll()
+            .AsNoTracking()
+            .Include(c=>c.Customer)
+            .Where(s => subscriptionIds.Contains(s.Id))
+            .OrderBy(s => s.CustomerId)
+            .Select(s => new PaymentSubscriptionLookUpDto
+            {
+                Id = s.Id,
+                CustomerName = s.Customer.Name,
+                QuotationId = s.QuotationId
+            })
+            .ToListAsync();
+        return new PaymentLookUpDto
+        {
+            Sessions = sessions,
+            Subscriptions = subs
+        };
     }
 }
