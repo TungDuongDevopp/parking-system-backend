@@ -164,7 +164,8 @@
 	  <text name="ActiveSubscriptionRequiredMessage" value="You must have an active subscription package to reserve a parking spot." />
 	  <text name="ManageSubscription" value="Manage Subscription" />
 	  <text name="ReservationNotice" value="Reservations must be made for the current day. Valid for 3 hours with a 15-minute grace period." />
-	  
+	  <text name="Payment" value="Payment"/>
+	  <text name="Payment_Manager" value="Payment_Manager"/>
 	  
 	<text name="PhoneNumber" value="Phone number"/>
 	<text name="CreationTime" value="Creation time"/>

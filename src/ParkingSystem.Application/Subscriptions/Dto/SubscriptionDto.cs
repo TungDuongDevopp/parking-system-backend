@@ -20,4 +20,10 @@ public class SubscriptionDto : EntityDto<long>
     public string CustomerName { get; set; }
     public VehicleType VehicleType { get; set; }
     public string VehicleTypeName => VehicleType.ToString();
+    public long? PaymentId { get; set; }
+    public string? TransactionCode { get; set; }
+    public DateTime? PaymentExpiresAt { get; set; }
+    public PaymentStatus? PaymentStatus { get; set; }
+    public PaymentMethod? PaymentMethod { get; set; }
 }
+

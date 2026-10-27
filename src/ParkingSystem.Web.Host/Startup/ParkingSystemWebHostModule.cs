@@ -3,6 +3,7 @@ using Abp.Reflection.Extensions;
 using Abp.Threading.BackgroundWorkers;
 using ParkingSystem.Configuration;
 using ParkingSystem.Reservations;
+using ParkingSystem.Subscriptions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 
@@ -33,6 +34,13 @@ namespace ParkingSystem.Web.Host.Startup
             {
                 var workManager = IocManager.Resolve<IBackgroundWorkerManager>();
                 workManager.Add(IocManager.Resolve<ReservationExpirationWorker>());
+            }
+
+            var isSubWorkerEnabled = _appConfiguration.GetValue<bool>("BackgroundJobs:SubscriptionActivationWorker:IsEnabled", true);
+            if (isSubWorkerEnabled)
+            {
+                var workManager = IocManager.Resolve<IBackgroundWorkerManager>();
+                workManager.Add(IocManager.Resolve<SubscriptionActivationWorker>());
             }
         }
     }

@@ -1,5 +1,6 @@
-﻿
 
+
+using ParkingSystem.Entities.Enums;
 using ParkingSystem.Validation;
 using System;
 using System.Collections.Generic;
@@ -14,4 +15,9 @@ public class CreateSubscriptionDto
     [Required]
     public long QuotationId { get; set; }
     public List<string> PlateNumbers { get; set; } = new();
+
+    [EnumDataType(typeof(PaymentMethod))]
+    [GreaterThanZero]
+    public PaymentMethod PaymentMethod { get; set; }
 }
+

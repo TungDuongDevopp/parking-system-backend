@@ -1,8 +1,6 @@
 
-
 using Abp.Domain.Entities;
 using Abp.Domain.Entities.Auditing;
-using Abp.Timing;
 using ParkingSystem.Entities.Enums;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -22,7 +20,6 @@ public class PaymentTransaction : Entity<long>, IHasCreationTime, IHasModificati
     public DateTime? TransactionTime { get; set; }
     public Payment Payment { get; set; }
     public long PaymentId { get; set; }
-    public PaymentTransaction() => Status = TransactionStatus.Pending;
     
 }
 

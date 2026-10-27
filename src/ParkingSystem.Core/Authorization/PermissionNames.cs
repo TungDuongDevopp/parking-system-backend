@@ -68,4 +68,12 @@ public static class PermissionNames
     public const string Pages_Dashboard = "Pages.Dashboard";
     public const string Pages_Dashboard_Admin = "Pages.Dashboard.Admin";
     public const string Pages_Dashboard_Staff = "Pages.Dashboard.Staff";
+
+    //Payment
+    public const string Pages_Payment = "Pages.Payment";
+    public const string Pages_Payment_Manager = "Pages.Payment.Manager";
+
+    //Transaction
+    public const string Pages_Transaction = "Pages.Transaction";
+   
 }

@@ -4,9 +4,8 @@ namespace ParkingSystem.Entities.Enums;
 
 public enum PaymentMethod
 {
-    Cash,
-    BankTransfer,
-    E_Wallet,
-
-    CreditCard,
+    Cash = 1,
+    BankTransfer = 2,
+    E_Wallet = 3,
+    CreditCard = 4,
 }
