@@ -10,4 +10,5 @@ public interface IPaymentAppService
 {
     Task<PaymentDto> GetAsync(EntityDto<long> input);
     Task<PagedResultDto<PaymentDto>> GetAllAsync(PagedPaymentResultRequestDto input);
+    Task<PaymentLookUpDto> GetPaymentLookUpAsync();
 }
