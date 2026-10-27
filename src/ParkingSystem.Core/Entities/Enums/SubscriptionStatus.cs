@@ -1,4 +1,4 @@
-﻿
+
 
 namespace ParkingSystem.Entities.Enums;
 
@@ -10,6 +10,9 @@ public enum SubscriptionStatus
 
     expired = 2,
 
-    canceled = 3
+    canceled = 3,
+
+    paidWaiting = 4
 
 }
+

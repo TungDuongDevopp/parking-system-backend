@@ -60,6 +60,11 @@ public class ParkingSystemAuthorizationProvider : AuthorizationProvider
         var dashboard = context.CreatePermission(PermissionNames.Pages_Dashboard, L("Dashboard"));
         dashboard.CreateChildPermission(PermissionNames.Pages_Dashboard_Admin, L("DashboardAdmin"));
         dashboard.CreateChildPermission(PermissionNames.Pages_Dashboard_Staff, L("DashboardStaff"));
+        //Payment
+        context.CreatePermission(PermissionNames.Pages_Payment, L("Payment"));
+        context.CreatePermission(PermissionNames.Pages_Payment_Manager, L("Payment_Manager"));
+        //Transaction
+        context.CreatePermission(PermissionNames.Pages_Transaction, L("Transaction"));
     }
     private static ILocalizableString L(string name)
     {

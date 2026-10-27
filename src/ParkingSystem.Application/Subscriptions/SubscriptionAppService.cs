@@ -3,6 +3,7 @@ using Abp.Authorization;
 using Abp.Domain.Repositories;
 using Abp.Extensions;
 using Abp.Linq.Extensions;
+using Abp.Timing;
 using Abp.UI;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ using ParkingSystem.Entities;
 using ParkingSystem.Entities.Enums;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
+using ParkingSystem.PaymentTransactions;
 using ParkingSystem.Quotations.Dto;
 using ParkingSystem.Subscriptions.Dto;
 using System;
@@ -28,17 +30,24 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
     private readonly IRepository<Customer, long> _customerRepository;
     private readonly IRepository<Quotation, long> _quotationRepository;
     private readonly IRepository<Subscription, long> _repository;
+    private readonly IRepository<SubscriptionAllowedPlate, long> _plateRepository;
+    private readonly IRepository<Payment, long> _paymentRepository;
+    private readonly TransactionManager _transactionManager;
 
-    IRepository<SubscriptionAllowedPlate, long> _plateRepository;
-
-    public SubscriptionAppService(IRepository<Subscription,long> repository, IRepository<Quotation, long> quotationRepository, IRepository<Customer, long> customerRepository,
-       IRepository<SubscriptionAllowedPlate, long> plateRepository)
+    public SubscriptionAppService(
+        IRepository<Subscription, long> repository,
+        IRepository<Quotation, long> quotationRepository,
+        IRepository<Customer, long> customerRepository,
+        IRepository<SubscriptionAllowedPlate, long> plateRepository,
+        IRepository<Payment, long> paymentRepository,
+        TransactionManager transactionManager)
     {
         _customerRepository = customerRepository;
         _quotationRepository = quotationRepository;
         _repository = repository;
         _plateRepository = plateRepository;
-        
+        _paymentRepository = paymentRepository;
+        _transactionManager = transactionManager;
     }
     private async Task<string> GenerateUniqueBicycleCodeAsync()
     {
@@ -160,7 +169,31 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
         {
             var created = await _repository.InsertAsync(subscription);
             await CurrentUnitOfWork.SaveChangesAsync();
-            return ObjectMapper.Map<SubscriptionDto>(created);
+
+            var payment = new Payment
+            {
+                Amount = quotation.Price,
+                SubscriptionId = created.Id,
+                PaymentType = PaymentType.subscription,
+                PaymentMethod = input.PaymentMethod,
+                PaymentStatus = PaymentStatus.Pending,
+                ExpiresAt = Clock.Now.AddMinutes(15),
+                Description = $"Payment for subscription #{created.Id}"
+            };
+
+            var createdPayment = await _paymentRepository.InsertAsync(payment);
+            await CurrentUnitOfWork.SaveChangesAsync();
+
+            var transaction = await _transactionManager.CreatePaymentTransactionAsync(createdPayment);
+
+            var result = ObjectMapper.Map<SubscriptionDto>(created);
+            result.PaymentId = createdPayment.Id;
+            result.TransactionCode = transaction.TransactionCode;
+            result.PaymentExpiresAt = createdPayment.ExpiresAt;
+            result.PaymentStatus = createdPayment.PaymentStatus;
+            result.PaymentMethod = createdPayment.PaymentMethod;
+
+            return result;
         }
         catch (DbUpdateException ex)
             when (ex.InnerException is SqlException sqlEx

@@ -1,7 +1,6 @@
 
 using Abp.Domain.Entities;
 using Abp.Domain.Entities.Auditing;
-using Abp.Timing;
 using ParkingSystem.Entities.Enums;
 using System;
 using System.Collections.Generic;
@@ -13,32 +12,20 @@ namespace ParkingSystem.Entities
     {
         public PaymentMethod PaymentMethod { get; set; }
         public PaymentStatus PaymentStatus { get; set; }
-        public decimal ExpectedAmount { get; set; }
-        public decimal ReceivedAmount { get; set; }
+        public decimal Amount { get; set; }
         public DateTime CreationTime { get; set; }
         public DateTime? LastModificationTime { get; set; }
         public DateTime? PaidAt { get; set; }
 
         [StringLength(500)]
         public string? Description { get; set; }
-
-      
         public long? SubscriptionId { get; set; }
-
         public long? ParkingSessionId { get; set; }
-
         public PaymentType PaymentType { get; set; }
         public ParkingSession ParkingSession { get; set; }
-
         public Subscription Subscription { get; set; }
         public DateTime ExpiresAt { get; set; }
-
-        public Payment()
-        {
-            PaymentStatus = PaymentStatus.Pending;
-            ExpiresAt = Clock.Now.AddHours(24);
-        }
-
+        public Payment() => PaymentStatus = PaymentStatus.Pending;
         public ICollection<PaymentTransaction> PaymentTransactions { get; set; }= new List<PaymentTransaction>();
     }
 }

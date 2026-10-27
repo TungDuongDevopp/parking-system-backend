@@ -12,6 +12,8 @@ public class PagedParkingSpotResultRequestDto: PagedResultRequestDto, ISortedRes
     public string Keyword { get; set; }
     public string Sorting { get; set; }
 
+    [GreaterThanZero]        
+
     [EnumDataType(typeof(ParkingSpotStatus))]
     public ParkingSpotStatus? Status { get; set; }
 

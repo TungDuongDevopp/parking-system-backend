@@ -217,8 +217,7 @@ public class ParkingSystemDbContext(DbContextOptions<ParkingSystemDbContext> opt
         //Money Configuration
         modelBuilder.Entity<Quotation>().Property(q => q.Price).HasPrecision(18, 2);
         modelBuilder.Entity<ParkingSession>().Property(ps => ps.Fee).HasPrecision(18, 2);
-        modelBuilder.Entity<Payment>().Property(p => p.ExpectedAmount).HasPrecision(18, 2);
-        modelBuilder.Entity<Payment>().Property(p => p.ReceivedAmount).HasPrecision(18, 2);
+        modelBuilder.Entity<Payment>().Property(p => p.Amount).HasPrecision(18, 2);
         modelBuilder.Entity<PaymentTransaction>().Property(pt => pt.Amount).HasPrecision(18, 2);
         modelBuilder.Entity<ParkingSession>().Property(ph => ph.HourlyRate).HasPrecision(18, 2);
         modelBuilder.Entity<ParkingSession>().Property(pd => pd.DailyRate).HasPrecision(18, 2);
