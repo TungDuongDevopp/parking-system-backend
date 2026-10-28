@@ -13,6 +13,7 @@ using ParkingSystem.Entities.Enums;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.PaymentTransactions.Dto;
+using ParkingSystem.Subscriptions.Dto;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Dynamic.Core;
@@ -143,6 +144,27 @@ public class TransactionAppService : ParkingSystemAppServiceBase, ITransactionAp
         return ObjectMapper.Map<TransactionDto>(transaction);
     }
 
+    public async Task<TransactionLookupDto> GetTransactionLookupAsync()
+    {
+        var subQuery = _repository.GetAll().AsNoTracking();
+        var paymentIds = subQuery.Select(p => p.PaymentId).Distinct();
+        var payments = await _paymentRepository.GetAll()
+           .AsNoTracking()
+           .Where(p => paymentIds.Contains(p.Id))
+           .OrderBy(p => p.Id)
+           .Select(c => new TransactionPaymentLookupDto
+           {
+               Id = c.Id,
+               Type= c.PaymentType.ToString(),
+               Method = c.PaymentMethod.ToString()
+           })
+           .ToListAsync();
+        return new TransactionLookupDto
+        {
+            Payments = payments
+        };
+    }
+
     public async Task<TransactionDto> ProcessPaymentResultAsync(ProcessPaymentResultInput input)
     {
         var transaction = await _repository.GetAll()
@@ -225,4 +247,6 @@ public class TransactionAppService : ParkingSystemAppServiceBase, ITransactionAp
 
         return ObjectMapper.Map<TransactionDto>(newTx);
     }
+
+    
 }

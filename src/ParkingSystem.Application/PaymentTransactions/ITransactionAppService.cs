@@ -11,4 +11,6 @@ public interface ITransactionAppService
     Task<PagedResultDto<TransactionDto>> GetAllAsync(PagedTransactionResultRequest input);
     Task<TransactionDto> ProcessPaymentResultAsync(ProcessPaymentResultInput input);
     Task<TransactionDto> RetryPaymentAsync(RetryPaymentInput input);
+
+    Task<TransactionLookupDto> GetTransactionLookupAsync();
 }
