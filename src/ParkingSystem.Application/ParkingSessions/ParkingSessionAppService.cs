@@ -286,10 +286,10 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             var spotDbContext = _parkingSpotRepository.GetDbContext();
             var spotRowsAffected = await spotDbContext.Database.ExecuteSqlInterpolatedAsync($@"
                 UPDATE ParkingSpots
-                SET Status = {ParkingSpotStatus.Occupied}
+                SET Status = {(int)ParkingSpotStatus.Occupied}
                 WHERE Id = {reservation.ParkingSpotId.Value}
                   AND ParkingAreaId = {parkingArea.Id}
-                  AND Status = {ParkingSpotStatus.Reserved}
+                  AND Status = {(int)ParkingSpotStatus.Reserved}
                   AND IsDeleted = 0
             ");
             if (spotRowsAffected == 0)
@@ -338,7 +338,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                 WHERE Id = {parkingArea.Id}
                   AND CurrentOccupancy < Capacity
                   AND IsDeleted = 0
-                  AND Status = {ParkingAreaStatus.Active}");
+                  AND Status = {(int)ParkingAreaStatus.Active}");
             if (rowsAffected == 0)
             {
                 throw new BusinessRuleException("This parking area is full.");
@@ -359,10 +359,10 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             var spotDbContext = _parkingSpotRepository.GetDbContext();
             var spotRowsAffected = await spotDbContext.Database.ExecuteSqlInterpolatedAsync($@"
                 UPDATE ParkingSpots
-                SET Status = {ParkingSpotStatus.Occupied}
+                SET Status = {(int)ParkingSpotStatus.Occupied}
                 WHERE Id = {parkingSportId.Value}
                   AND ParkingAreaId = {parkingArea.Id}
-                  AND Status = {ParkingSpotStatus.Available}
+                  AND Status = {(int)ParkingSpotStatus.Available}
                   AND IsDeleted = 0
             ");
 

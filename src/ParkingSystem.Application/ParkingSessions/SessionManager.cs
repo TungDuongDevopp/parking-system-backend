@@ -32,9 +32,10 @@ public class SessionManager : DomainService
             var spotDbContext = _parkingSpotRepository.GetDbContext();
             var spotRowsAffected = await spotDbContext.Database.ExecuteSqlInterpolatedAsync($@"
             UPDATE ParkingSpots
-            SET Status = {ParkingSpotStatus.Available}
+            SET Status = {(int)ParkingSpotStatus.Available},
+                LastModificationTime = GETUTCDATE()
             WHERE Id = {session.ParkingSpotId.Value}
-              AND Status = {ParkingSpotStatus.Occupied}
+              AND Status = {(int)ParkingSpotStatus.Occupied}
               AND ParkingAreaId = {session.ParkingAreaId} 
               AND IsDeleted = 0
             ");
@@ -53,7 +54,8 @@ public class SessionManager : DomainService
             var dbContext = _parkingAreaRepository.GetDbContext();
             var areaRowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
             UPDATE ParkingAreas
-            SET CurrentOccupancy = CurrentOccupancy - 1
+            SET CurrentOccupancy = CurrentOccupancy - 1,
+                LastModificationTime = GETUTCDATE()
             WHERE Id = {session.ParkingAreaId}
               AND CurrentOccupancy > 0
               AND IsDeleted = 0
@@ -69,13 +71,13 @@ public class SessionManager : DomainService
 
         var rowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
         UPDATE ParkingSessions
-        SET Status = {ParkingSessionStatus.Paid},
+        SET Status = {(int)ParkingSessionStatus.Paid},
             ExitTime = GETUTCDATE(),
             CheckOutStaffId = {staffId},
             Fee = {fee},
             LastModificationTime = GETUTCDATE()
         WHERE Id = {session.Id}
-          AND (Status = {ParkingSessionStatus.Active} OR Status = {ParkingSessionStatus.PendingPayment})
+          AND (Status = {(int)ParkingSessionStatus.Active} OR Status = {(int)ParkingSessionStatus.PendingPayment})
         ");
 
         if (rowsAffected == 0)
@@ -91,11 +93,11 @@ public class SessionManager : DomainService
 
         var rowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
         UPDATE ParkingSessions
-        SET Status = {ParkingSessionStatus.Paid},
+        SET Status = {(int)ParkingSessionStatus.Paid},
             ExitTime = GETUTCDATE(),
             LastModificationTime = GETUTCDATE()
         WHERE Id = {session.Id}
-          AND (Status = {ParkingSessionStatus.PendingPayment} OR Status = {ParkingSessionStatus.Active})
+          AND (Status = {(int)ParkingSessionStatus.PendingPayment} OR Status = {(int)ParkingSessionStatus.Active})
         ");
 
         if (rowsAffected == 0)

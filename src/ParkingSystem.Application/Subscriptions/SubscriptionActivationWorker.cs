@@ -16,7 +16,8 @@ namespace ParkingSystem.Subscriptions;
 
 /// <summary>
 /// Background worker that periodically checks for subscriptions in paidWaiting status
-/// and activates them to inUse when their StartTime has arrived.
+/// and activates them to inUse when their StartTime has arrived,
+/// and cancels pending subscriptions whose payment has expired.
 /// </summary>
 public class SubscriptionActivationWorker : PeriodicBackgroundWorkerBase, ISingletonDependency
 {
@@ -77,6 +78,7 @@ public class SubscriptionActivationWorker : PeriodicBackgroundWorkerBase, ISingl
                       AND  EndTime > {now};
                 ");
 
+                // 2. Hủy subscription nếu Payment đã Expired hoặc Payment đang Pending nhưng đã quá hạn
                 var canceledCount = dbContext.Database.ExecuteSqlInterpolated($@"
                     UPDATE TOP ({_batchSize}) s
                     SET    s.Status = {(int)SubscriptionStatus.canceled},
@@ -84,8 +86,16 @@ public class SubscriptionActivationWorker : PeriodicBackgroundWorkerBase, ISingl
                     FROM   Subscriptions s
                     INNER JOIN Payments p ON p.SubscriptionId = s.Id
                     WHERE  s.Status = {(int)SubscriptionStatus.pending}
-                      AND  p.PaymentStatus = {(int)PaymentStatus.Pending}
-                      AND  p.ExpiresAt < {now};
+                      AND  (
+                          p.PaymentStatus = {(int)PaymentStatus.Expired}
+                          OR (p.PaymentStatus = {(int)PaymentStatus.Pending} AND p.ExpiresAt <= {now})
+                      )
+                      AND  NOT EXISTS (
+                          SELECT 1 FROM Payments p2
+                          WHERE  p2.SubscriptionId = s.Id
+                            AND  p2.PaymentStatus = {(int)PaymentStatus.Pending}
+                            AND  p2.ExpiresAt > {now}
+                      );
                 ");
 
                 uow.Complete();

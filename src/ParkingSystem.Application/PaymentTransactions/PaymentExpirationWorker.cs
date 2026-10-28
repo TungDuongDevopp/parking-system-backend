@@ -17,7 +17,8 @@ namespace ParkingSystem.PaymentTransactions;
 /// Background worker tự động xử lý Payment hết hạn:
 /// 1. Đánh dấu tất cả PaymentTransaction đang Pending thuộc Payment hết hạn → Failed.
 /// 2. Chuyển Payment từ Pending → Expired khi ExpiresAt &lt;= now.
-/// 3. Trả trạng thái ParkingSession từ PendingPayment → Active nếu Payment của nó hết hạn (để có thể checkout lại).
+/// 3. Chuyển Subscription từ pending → canceled nếu Payment của gói đó bị Expired.
+/// 4. Trả trạng thái ParkingSession từ PendingPayment → Active nếu Payment của phiên đó hết hạn (để có thể checkout lại).
 /// Sử dụng raw SQL trong cùng một UoW để đảm bảo atomicity và hiệu năng cao.
 /// </summary>
 public class PaymentExpirationWorker : PeriodicBackgroundWorkerBase, ISingletonDependency
@@ -94,7 +95,24 @@ public class PaymentExpirationWorker : PeriodicBackgroundWorkerBase, ISingletonD
                       AND  ExpiresAt   <= {now};
                 ");
 
-                // Bước 3: Trả ParkingSession từ PendingPayment về lại Active nếu Payment của nó hết hạn (để có thể checkout lại).
+                // Bước 3: Hủy Subscription (pending → canceled) nếu Payment của gói đó đã Expired và không còn Payment Pending nào còn hạn.
+                var canceledSubCount = dbContext.Database.ExecuteSqlInterpolated($@"
+                    UPDATE s
+                    SET    s.Status = {(int)SubscriptionStatus.canceled},
+                           s.LastModificationTime = GETUTCDATE()
+                    FROM   Subscriptions AS s
+                    INNER JOIN Payments AS p ON p.SubscriptionId = s.Id
+                    WHERE  s.Status = {(int)SubscriptionStatus.pending}
+                      AND  p.PaymentStatus = {(int)PaymentStatus.Expired}
+                      AND  NOT EXISTS (
+                          SELECT 1 FROM Payments AS p2
+                          WHERE p2.SubscriptionId = s.Id
+                            AND p2.PaymentStatus = {(int)PaymentStatus.Pending}
+                            AND p2.ExpiresAt > {now}
+                      );
+                ");
+
+                // Bước 4: Trả ParkingSession từ PendingPayment về lại Active nếu Payment của nó hết hạn (để có thể checkout lại).
                 var resetSessionCount = dbContext.Database.ExecuteSqlInterpolated($@"
                     UPDATE s
                     SET    s.Status = {(int)ParkingSessionStatus.Active},
@@ -113,9 +131,9 @@ public class PaymentExpirationWorker : PeriodicBackgroundWorkerBase, ISingletonD
 
                 uow.Complete();
 
-                if (expiredPaymentCount > 0 || failedTxCount > 0 || resetSessionCount > 0)
+                if (expiredPaymentCount > 0 || failedTxCount > 0 || canceledSubCount > 0 || resetSessionCount > 0)
                 {
-                    Logger.Info($"[PaymentExpirationWorker] Cycle finished: ExpiredPayments={expiredPaymentCount}, FailedTransactions={failedTxCount}, ResetSessions={resetSessionCount}.");
+                    Logger.Info($"[PaymentExpirationWorker] Cycle finished: ExpiredPayments={expiredPaymentCount}, FailedTransactions={failedTxCount}, CanceledSubscriptions={canceledSubCount}, ResetSessions={resetSessionCount}.");
                 }
                 else
                 {
