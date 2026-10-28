@@ -5,6 +5,7 @@ using Abp.EntityFrameworkCore.Repositories;
 using Abp.Threading.BackgroundWorkers;
 using Abp.Threading.Timers;
 using Abp.Timing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using ParkingSystem.Entities;
 using ParkingSystem.Entities.Enums;
@@ -16,6 +17,7 @@ namespace ParkingSystem.PaymentTransactions;
 /// Background worker tự động xử lý Payment hết hạn:
 /// 1. Đánh dấu tất cả PaymentTransaction đang Pending thuộc Payment hết hạn → Failed.
 /// 2. Chuyển Payment từ Pending → Expired khi ExpiresAt &lt;= now.
+/// 3. Trả trạng thái ParkingSession từ PendingPayment → Active nếu Payment của nó hết hạn (để có thể checkout lại).
 /// Sử dụng raw SQL trong cùng một UoW để đảm bảo atomicity và hiệu năng cao.
 /// </summary>
 public class PaymentExpirationWorker : PeriodicBackgroundWorkerBase, ISingletonDependency
@@ -92,11 +94,28 @@ public class PaymentExpirationWorker : PeriodicBackgroundWorkerBase, ISingletonD
                       AND  ExpiresAt   <= {now};
                 ");
 
+                // Bước 3: Trả ParkingSession từ PendingPayment về lại Active nếu Payment của nó hết hạn (để có thể checkout lại).
+                var resetSessionCount = dbContext.Database.ExecuteSqlInterpolated($@"
+                    UPDATE s
+                    SET    s.Status = {(int)ParkingSessionStatus.Active},
+                           s.LastModificationTime = GETUTCDATE()
+                    FROM   ParkingSessions AS s
+                    INNER JOIN Payments AS p ON p.ParkingSessionId = s.Id
+                    WHERE  s.Status = {(int)ParkingSessionStatus.PendingPayment}
+                      AND  p.PaymentStatus = {(int)PaymentStatus.Expired}
+                      AND  NOT EXISTS (
+                          SELECT 1 FROM Payments AS p2
+                          WHERE p2.ParkingSessionId = s.Id
+                            AND p2.PaymentStatus = {(int)PaymentStatus.Pending}
+                            AND p2.ExpiresAt > {now}
+                      );
+                ");
+
                 uow.Complete();
 
-                if (expiredPaymentCount > 0 || failedTxCount > 0)
+                if (expiredPaymentCount > 0 || failedTxCount > 0 || resetSessionCount > 0)
                 {
-                    Logger.Info($"[PaymentExpirationWorker] Cycle finished: ExpiredPayments={expiredPaymentCount}, FailedTransactions={failedTxCount}.");
+                    Logger.Info($"[PaymentExpirationWorker] Cycle finished: ExpiredPayments={expiredPaymentCount}, FailedTransactions={failedTxCount}, ResetSessions={resetSessionCount}.");
                 }
                 else
                 {

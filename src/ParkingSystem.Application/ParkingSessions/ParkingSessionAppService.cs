@@ -1,4 +1,3 @@
-
 using Abp.Application.Services.Dto;
 using Abp.Authorization;
 using Abp.Collections.Extensions;
@@ -6,6 +5,7 @@ using Abp.Domain.Repositories;
 using Abp.EntityFrameworkCore.Repositories;
 using Abp.Linq.Extensions;
 using Abp.Timing;
+using Abp.UI;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ParkingSystem.Authorization;
@@ -14,8 +14,8 @@ using ParkingSystem.Entities.Enums;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
 using ParkingSystem.ParkingSessions.Dto;
+using ParkingSystem.PaymentTransactions;
 using ParkingSystem.Reservations;
-using ParkingSystem.Reservations.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -39,7 +39,11 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
     private readonly IRepository<Quotation, long> _quotationRepository;
     private readonly IRepository<SubscriptionAllowedPlate, long> _plateRepository;
     private readonly IRepository<Subscription, long> _subscriptionRepository;
-    public ParkingSessionAppService(IRepository<ParkingSession, long> repository,
+    private readonly IRepository<Payment, long> _paymentRepository;
+    private readonly TransactionManager _transactionManager;
+
+    public ParkingSessionAppService(
+        IRepository<ParkingSession, long> repository,
         IRepository<Reservation, long> reservationRepository,
         IRepository<ParkingArea, long> parkingAreaRepository,
         IRepository<ParkingSpot, long> parkingSpotRepository,
@@ -49,9 +53,9 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         IRepository<Quotation, long> quotationRepository,
         IRepository<Subscription, long> subscriptionRepository,
         SessionManager sessionManager,
-        IRepository<SubscriptionAllowedPlate, long> plateRepository
-        )
-      
+        IRepository<SubscriptionAllowedPlate, long> plateRepository,
+        IRepository<Payment, long> paymentRepository,
+        TransactionManager transactionManager)
     {
         _repository = repository;
         _reservationRepository = reservationRepository;
@@ -63,8 +67,11 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         _quotationRepository = quotationRepository;
         _plateRepository = plateRepository;
         _sessionManager = sessionManager;
-        _subscriptionRepository = subscriptionRepository;       
+        _subscriptionRepository = subscriptionRepository;
+        _paymentRepository = paymentRepository;
+        _transactionManager = transactionManager;
     }
+
     private async Task CheckSessionViewAccessAsync(ParkingSession session)
     {
         var canViewAll = await PermissionChecker.IsGrantedAsync(
@@ -85,13 +92,11 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
 
     private static string GenerateTicketCode()
     {
-        return $"PK-{Convert.ToHexString(
-            RandomNumberGenerator.GetBytes(12))}";
-
+        return $"PK-{Convert.ToHexString(RandomNumberGenerator.GetBytes(12))}";
     }
 
-    private static decimal CaculateFee(DateTime entryTime,DateTime exitTime, decimal halfDayRate, decimal dailyRate) {
-       
+    private static decimal CaculateFee(DateTime entryTime, DateTime exitTime, decimal halfDayRate, decimal dailyRate)
+    {
         if (entryTime > exitTime)
         {
             throw new BusinessRuleException("The entry time must not exceed the exit time.");
@@ -114,12 +119,11 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             total += halfDayRate;
         }
         return total;
-
     }
 
     private async Task<bool> IsFreeWhenHasSub(
-     string plateNumber,
-     VehicleType type)
+        string plateNumber,
+        VehicleType type)
     {
         var now = Clock.Now;
 
@@ -132,15 +136,15 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                 x.Subscription.Quotation.VehicleType == type &&
                 !_repository.GetAll().Any(s =>
                     s.SubscriptionId == x.SubscriptionId &&
-                    s.Status == ParkingSessionStatus.Active
+                    (s.Status == ParkingSessionStatus.Active || s.Status == ParkingSessionStatus.PendingPayment)
                 ));
     }
 
     public async Task<CheckInResultDto> CheckInAsync(ParkingSessionCheckInDto input)
     {
         var userId = AbpSession.UserId;
-        var staff =  await _staffRepository.FirstOrDefaultAsync(x => x.UserId == userId && x.Status == StaffStatus.Active);
-        if(staff  == null)
+        var staff = await _staffRepository.FirstOrDefaultAsync(x => x.UserId == userId && x.Status == StaffStatus.Active);
+        if (staff == null)
         {
             throw new BusinessRuleException("You don't have permision to do this action");
         }
@@ -152,11 +156,11 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         }
 
         ParkingSession session = null;
-      
+
         if (input.ReservationId.HasValue)
         {
             session = await CheckInForReservationAsync(input.ReservationId.Value, input.VehicleType);
-            if(session == null)
+            if (session == null)
             {
                 return new CheckInResultDto
                 {
@@ -164,13 +168,11 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                     Message = "Reservation invalidated due to vehicle type mismatch"
                 };
             }
-            
         }
-        
-        else if(input.ParkingAreaId != null)
+        else if (input.ParkingAreaId != null)
         {
             session = await CheckInForNotReservationAsync(input.VehicleType, input.ParkingAreaId.Value, input.ParkingSpotId);
-            if(session == null)
+            if (session == null)
             {
                 return new CheckInResultDto
                 {
@@ -180,8 +182,8 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             }
         }
 
-        var quotationHourly =  await _quotationRepository.FirstOrDefaultAsync(x => x.VehicleType == input.VehicleType && x.DurationUnit == DurationUnit.Hour && x.Duration == 12);
-        var quotationDaily =  await _quotationRepository.FirstOrDefaultAsync(x => x.VehicleType == input.VehicleType && x.DurationUnit == DurationUnit.Day && x.Duration == 1);
+        var quotationHourly = await _quotationRepository.FirstOrDefaultAsync(x => x.VehicleType == input.VehicleType && x.DurationUnit == DurationUnit.Hour && x.Duration == 12);
+        var quotationDaily = await _quotationRepository.FirstOrDefaultAsync(x => x.VehicleType == input.VehicleType && x.DurationUnit == DurationUnit.Day && x.Duration == 1);
         if (quotationHourly == null || quotationDaily == null)
         {
             throw new BusinessRuleException(
@@ -190,7 +192,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         var hourlyRate = quotationHourly.Price;
         var dailyRate = quotationDaily.Price;
         var ticketCode = GenerateTicketCode();
-        
+
         if (!input.PlateNumber.IsNullOrEmpty())
         {
             var plateNumber = PlateNumberNormalizer.Normalize(input.PlateNumber);
@@ -199,7 +201,6 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             {
                 session.Fee = 0;
 
-                // Null-safe: plate và sub phải tồn tại vì IsFreeWhenHasSub đã xác nhận
                 var plate = await _plateRepository.FirstOrDefaultAsync(x =>
                     x.PlateNumber == plateNumber &&
                     x.Subscription.Status == SubscriptionStatus.inUse);
@@ -219,6 +220,8 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         session.CheckInStaffId = staff.Id;
         session.TicketCode = ticketCode;
         session.HourlyRate = hourlyRate;
+        session.DailyRate = dailyRate;
+
         try
         {
             var created = await _repository.InsertAsync(session);
@@ -255,10 +258,9 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
 
             throw new BusinessRuleException("A conflict occurred while checking in. Please try again.");
         }
-
     }
 
-    private async Task<ParkingSession> CheckInForReservationAsync(long? id,VehicleType type)
+    private async Task<ParkingSession> CheckInForReservationAsync(long? id, VehicleType type)
     {
         var reservation = await _reservationRepository.FirstOrDefaultAsync(x => x.Id == id && x.Status == ReservationStatus.Reserved);
         if (reservation == null)
@@ -266,7 +268,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             throw new BusinessRuleException("Reservation not found with id: " + id);
         }
         var parkingArea = await _parkingAreaRepository.FirstOrDefaultAsync(x => x.Id == reservation.ParkingAreaId && x.Status == ParkingAreaStatus.Active);
-       
+
         if (parkingArea == null)
         {
             throw new BusinessRuleException("Parking area is currently inactive or not found.");
@@ -281,7 +283,6 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
 
         if (reservation.ParkingSpotId.HasValue)
         {
-            // Atomic update: chỉ ocuppied nếu spot đã trong trạng thái reserver
             var spotDbContext = _parkingSpotRepository.GetDbContext();
             var spotRowsAffected = await spotDbContext.Database.ExecuteSqlInterpolatedAsync($@"
                 UPDATE ParkingSpots
@@ -315,7 +316,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             throw new ResourceNotFoundException(
                 "Parking Area not found with id: " + parkingAreaId);
         }
-        if(parkingArea.VehicleType != type)
+        if (parkingArea.VehicleType != type)
         {
             return null;
         }
@@ -324,7 +325,6 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
 
         if (parkingArea.ParkingMode == ParkingMode.capacityBase)
         {
-           
             if (parkingSportId.HasValue)
             {
                 throw new BusinessRuleException(
@@ -344,21 +344,18 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                 throw new BusinessRuleException("This parking area is full.");
             }
         }
-
         else if (parkingArea.ParkingMode == ParkingMode.individualSpot)
         {
-            // Individual mode requires SpotId
             if (!parkingSportId.HasValue)
             {
                 throw new BusinessRuleException(
                     "Please choose a parking spot.");
             }
-            parkingSpot = await _parkingSpotRepository.FirstOrDefaultAsync(x => x.Id == parkingSportId && x.ParkingAreaId ==parkingArea.Id);
-            if(parkingSpot == null)
+            parkingSpot = await _parkingSpotRepository.FirstOrDefaultAsync(x => x.Id == parkingSportId && x.ParkingAreaId == parkingArea.Id);
+            if (parkingSpot == null)
             {
                 throw new ResourceNotFoundException("parkingSpot not found with id: " + parkingSportId);
             }
-            // Atomic update: chỉ occupied nếu spot vẫn còn Available
             var spotDbContext = _parkingSpotRepository.GetDbContext();
             var spotRowsAffected = await spotDbContext.Database.ExecuteSqlInterpolatedAsync($@"
                 UPDATE ParkingSpots
@@ -374,10 +371,9 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                 throw new BusinessRuleException(
                     "The selected parking spot is not available.");
             }
-           
-           
         }
-        return new ParkingSession { 
+        return new ParkingSession
+        {
             ParkingArea = parkingArea,
             ParkingAreaId = parkingAreaId,
             ParkingSpot = parkingSpot,
@@ -389,7 +385,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
     {
         var session = await _repository.GetAll()
             .Include(x => x.ParkingArea)
-            .FirstOrDefaultAsync(x => x.Id == input.Id && x.Status == ParkingSessionStatus.Active);
+            .FirstOrDefaultAsync(x => x.Id == input.Id && (x.Status == ParkingSessionStatus.Active || x.Status == ParkingSessionStatus.PendingPayment));
 
         if (session == null)
         {
@@ -404,36 +400,104 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             throw new BusinessRuleException("You don't have permission to do this action");
         }
 
-        if (session.Fee == null)
+        // Tính phí nếu chưa có phí hoặc session đang Active
+        if (session.Fee == null || session.Status == ParkingSessionStatus.Active)
         {
             if (session.HourlyRate == null || session.DailyRate == null)
                 throw new BusinessRuleException("Session is missing rate configuration and cannot be charged.");
 
             session.Fee = CaculateFee(session.EntryTime, Clock.Now, session.HourlyRate.Value, session.DailyRate.Value);
-            // TODO: Gọi cổng thanh toán nếu cần
         }
 
-        await _sessionManager.CompleteAsync(session, staff.Id, session.Fee.Value);
-        var dbContext = _repository.GetDbContext();
+        // Trường hợp phí = 0 (miễn phí <= 15 phút hoặc có Subscription)
+        if (session.Fee.Value == 0)
+        {
+            await _sessionManager.CompleteAsync(session, staff.Id, 0);
+            var dbContext = _repository.GetDbContext();
 
-        await dbContext.Entry(session).ReloadAsync();
-        var sessionDto = ObjectMapper.Map<CheckOutResultDto>(session);
-        sessionDto.Success = true;
-        sessionDto.Message = "Checkout successfully!";
-        return sessionDto;
+            await dbContext.Entry(session).ReloadAsync();
+            var sessionDto = ObjectMapper.Map<CheckOutResultDto>(session);
+            sessionDto.Success = true;
+            sessionDto.Message = "Checkout successfully!";
+            sessionDto.Fee = 0;
+            return sessionDto;
+        }
+
+        // Trường hợp phí > 0: Tích hợp luồng payment tương tự subscription
+        // Kiểm tra xem đã có Payment pending còn hạn chưa
+        var existingPayment = await _paymentRepository.GetAll()
+            .Include(p => p.PaymentTransactions)
+            .Where(p => p.ParkingSessionId == session.Id && p.PaymentStatus == PaymentStatus.Pending && p.ExpiresAt > Clock.Now)
+            .OrderByDescending(p => p.Id)
+            .FirstOrDefaultAsync();
+
+        Payment payment;
+        PaymentTransaction transaction;
+
+        if (existingPayment != null)
+        {
+            payment = existingPayment;
+            transaction = payment.PaymentTransactions
+                .Where(t => t.Status == TransactionStatus.Pending)
+                .OrderByDescending(t => t.Id)
+                .FirstOrDefault();
+
+            if (transaction == null)
+            {
+                transaction = await _transactionManager.CreatePaymentTransactionAsync(payment);
+            }
+        }
+        else
+        {
+            session.Status = ParkingSessionStatus.PendingPayment;
+            session.CheckOutStaffId = staff.Id;
+            session.CheckOutStaff = staff;
+            await _repository.UpdateAsync(session);
+            await CurrentUnitOfWork.SaveChangesAsync();
+
+            payment = new Payment
+            {
+                Amount = session.Fee.Value,
+                ParkingSessionId = session.Id,
+                PaymentType = PaymentType.parkingSession,
+                PaymentMethod = input.PaymentMethod ?? PaymentMethod.Cash,
+                PaymentStatus = PaymentStatus.Pending,
+                ExpiresAt = Clock.Now.AddMinutes(15),
+                Description = $"Payment for parking session #{session.TicketCode}"
+            };
+
+            var createdPayment = await _paymentRepository.InsertAsync(payment);
+            await CurrentUnitOfWork.SaveChangesAsync();
+
+            payment = createdPayment;
+            transaction = await _transactionManager.CreatePaymentTransactionAsync(createdPayment);
+        }
+
+        var result = ObjectMapper.Map<CheckOutResultDto>(session);
+        result.Success = true;
+        result.Message = "Payment required for checkout";
+        result.Fee = session.Fee.Value;
+        result.CheckOutStaffId = staff.Id;
+        result.PaymentId = payment.Id;
+        result.TransactionCode = transaction.TransactionCode;
+        result.PaymentExpiresAt = payment.ExpiresAt;
+        result.PaymentStatus = payment.PaymentStatus;
+        result.PaymentMethod = payment.PaymentMethod;
+
+        return result;
     }
+
     public async Task<PagedResultDto<ParkingSessionDto>> GetAllAsync(PagedParkingSessionResultRequestDto input)
     {
         IQueryable<ParkingSession> query = _repository.GetAll()
              .AsNoTracking()
              .Include(x => x.ParkingArea)
              .Include(x => x.ParkingSpot)
-             .Include(x=>x.Customer);
+             .Include(x => x.Customer);
 
-        // Permission / Ownership
         var canViewAll = PermissionChecker.IsGranted(
             PermissionNames.Pages_ParkingSessions_ViewAll
-            );
+        );
         if (!canViewAll)
         {
             var userId = AbpSession.UserId ?? throw new AbpAuthorizationException(
@@ -441,30 +505,30 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             query = query.Where(x => x.Customer.UserId == userId);
         }
         query = query.WhereIf(!input.Keyword.IsNullOrEmpty(),
-            x=> x.CustomerId!=null && x.Customer.Name.Contains(input.Keyword)
-                || (x.ParkingSpotId != null  && x.ParkingSpot.SpotCode.Contains(input.Keyword))
+            x => x.CustomerId != null && x.Customer.Name.Contains(input.Keyword)
+                || (x.ParkingSpotId != null && x.ParkingSpot.SpotCode.Contains(input.Keyword))
                 || (x.ParkingArea.ParkingCode.Contains(input.Keyword))
-                || (x.CheckInStaffId!= null && x.CheckInStaff.Name.Contains(input.Keyword))
-                || (x.CheckOutStaff!= null && x.CheckOutStaff.Name.Contains(input.Keyword)))
+                || (x.CheckInStaffId != null && x.CheckInStaff.Name.Contains(input.Keyword))
+                || (x.CheckOutStaff != null && x.CheckOutStaff.Name.Contains(input.Keyword)))
             .WhereIf(
-            input.CustomerId.HasValue,
-            x => x.CustomerId == input.CustomerId)
+                input.CustomerId.HasValue,
+                x => x.CustomerId == input.CustomerId)
             .WhereIf(
-            input.ParkingSpotId.HasValue,
-            x => x.ParkingSpotId == input.ParkingSpotId)
+                input.ParkingSpotId.HasValue,
+                x => x.ParkingSpotId == input.ParkingSpotId)
             .WhereIf(
-            input.ParkingAreaId.HasValue,
-            x => x.ParkingAreaId == input.ParkingAreaId)
+                input.ParkingAreaId.HasValue,
+                x => x.ParkingAreaId == input.ParkingAreaId)
             .WhereIf(
-            input.CheckInStaffId.HasValue,
-            x => x.CheckInStaffId == input.CheckInStaffId)
+                input.CheckInStaffId.HasValue,
+                x => x.CheckInStaffId == input.CheckInStaffId)
             .WhereIf(
-            input.CheckOutStaffId.HasValue,
-            x => x.CheckOutStaffId == input.CheckOutStaffId)
-             .WhereIf(
+                input.CheckOutStaffId.HasValue,
+                x => x.CheckOutStaffId == input.CheckOutStaffId)
+            .WhereIf(
                 input.EntryFrom.HasValue,
                 x => x.EntryTime >= input.EntryFrom)
-             .WhereIf(
+            .WhereIf(
                 input.EntryTo.HasValue,
                 x => x.EntryTime <= input.EntryTo)
             .WhereIf(
@@ -485,7 +549,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                 input.MaxFee.HasValue,
                 x => x.Fee <= input.MaxFee
             )
-              .WhereIf(
+            .WhereIf(
                 input.MinDailyRate.HasValue,
                 x => x.DailyRate >= input.MinDailyRate
             )
@@ -493,7 +557,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                 input.MaxDailyRate.HasValue,
                 x => x.DailyRate <= input.MaxDailyRate
             )
-             .WhereIf(
+            .WhereIf(
                 input.MinHourlyRate.HasValue,
                 x => x.HourlyRate >= input.MinHourlyRate
             )
@@ -502,10 +566,8 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                 x => x.HourlyRate <= input.MaxHourlyRate
             );
 
-        // Total count
         var totalCount = await query.CountAsync();
 
-        //Sorting
         if (!string.IsNullOrEmpty(input.Sorting))
         {
             var sorting = SortingHelper.ValidateSorting(
@@ -523,14 +585,14 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                 nameof(ParkingSession.HourlyRate),
                 nameof(ParkingSession.TicketCode),
                 nameof(ParkingSession.Fee)
-                );
+            );
             query = query.OrderBy(sorting);
         }
         else
         {
             query = query.OrderByDescending(x => x.Id);
         }
-        // Paging
+
         var items = await query
             .PageBy(input.SkipCount, input.MaxResultCount)
             .ToListAsync();
@@ -544,7 +606,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
            .AsNoTracking()
            .Include(x => x.ParkingArea)
            .Include(x => x.ParkingSpot)
-           .Include(x=>x.Customer);
+           .Include(x => x.Customer);
 
         var session = await query.FirstOrDefaultAsync(x => x.Id == input.Id);
         if (session == null)
@@ -602,19 +664,18 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
           {
               Id = p.Id,
               SpotCode = p.SpotCode,
-
           })
           .ToListAsync();
         var staffs = await _staffRepository.GetAll()
             .AsNoTracking()
-            .Where(s=>staffIds.Contains(s.Id))
-             .OrderBy(p => p.Name)
-          .Select(p => new SessionStaffLookUpDto
-          {
-              Id = p.Id,
-              UserId=p.UserId,
-              Name = p.Name
-          }).ToListAsync();
+            .Where(s => staffIds.Contains(s.Id))
+            .OrderBy(p => p.Name)
+            .Select(p => new SessionStaffLookUpDto
+            {
+                Id = p.Id,
+                UserId = p.UserId,
+                Name = p.Name
+            }).ToListAsync();
         return new ParkingSessionLookUpDto
         {
             Customers = customers,
@@ -622,5 +683,39 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
             ParkingAreas = parkingAreas,
             ParkingSpots = parkingSpots
         };
+    }
+
+    public async Task<ParkingSessionDto> GetActiveSessionAsync(SearchActiveSessionDto input)
+    {
+        if (input.Id == null && input.PlateNumber.IsNullOrEmpty())
+        {
+            throw new BusinessRuleException("Please provide id or plate number.");
+        }
+
+        ParkingSession session;
+
+        if (input.Id != null)
+        {
+            session = await _repository.GetAll()
+                .FirstOrDefaultAsync(x =>
+                    (x.Status == ParkingSessionStatus.Active || x.Status == ParkingSessionStatus.PendingPayment) &&
+                    x.Id == input.Id);
+        }
+        else
+        {
+            var plateNormalize = PlateNumberNormalizer.Normalize(input.PlateNumber);
+            session = await _repository.GetAll()
+                .FirstOrDefaultAsync(x =>
+                    (x.Status == ParkingSessionStatus.Active || x.Status == ParkingSessionStatus.PendingPayment) &&
+                    x.PlateNumber == plateNormalize);
+        }
+
+        if (session == null)
+        {
+            throw new UserFriendlyException(
+                "Không tìm thấy phiên gửi xe đang hoạt động.");
+        }
+
+        return ObjectMapper.Map<ParkingSessionDto>(session);
     }
 }

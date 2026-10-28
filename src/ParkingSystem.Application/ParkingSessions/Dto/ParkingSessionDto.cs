@@ -24,4 +24,5 @@ public class ParkingSessionDto : EntityDto<long>
     public long? CheckOutStaffId { get; set; }
     public decimal? HourlyRate { get; set; }
     public decimal? DailyRate { get; set; }
+
 }

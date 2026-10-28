@@ -1,5 +1,3 @@
-
-
 using Abp.Application.Services.Dto;
 using Abp.Authorization;
 using Abp.Domain.Repositories;
@@ -12,6 +10,7 @@ using ParkingSystem.Entities;
 using ParkingSystem.Entities.Enums;
 using ParkingSystem.Exceptions;
 using ParkingSystem.Helpers;
+using ParkingSystem.ParkingSessions;
 using ParkingSystem.PaymentTransactions.Dto;
 using ParkingSystem.Subscriptions.Dto;
 using System.Collections.Generic;
@@ -27,17 +26,23 @@ public class TransactionAppService : ParkingSystemAppServiceBase, ITransactionAp
     private readonly IRepository<PaymentTransaction, long> _repository;
     private readonly TransactionManager _manager;
     private readonly IRepository<Subscription, long> _subscriptionRepository;
+    private readonly IRepository<ParkingSession, long> _sessionRepository;
+    private readonly SessionManager _sessionManager;
     private readonly IRepository<Payment, long> _paymentRepository;
 
     public TransactionAppService(
         IRepository<PaymentTransaction, long> repository,
         TransactionManager manager,
         IRepository<Subscription, long> subscriptionRepository,
+        IRepository<ParkingSession, long> sessionRepository,
+        SessionManager sessionManager,
         IRepository<Payment, long> paymentRepository)
     {
         _repository = repository;
         _manager = manager;
         _subscriptionRepository = subscriptionRepository;
+        _sessionRepository = sessionRepository;
+        _sessionManager = sessionManager;
         _paymentRepository = paymentRepository;
     }
 
@@ -227,6 +232,27 @@ public class TransactionAppService : ParkingSystemAppServiceBase, ITransactionAp
             }
         }
 
+        // Nếu Payment thuộc loại ParkingSession, điều phối cập nhật trạng thái ParkingSession
+        if (transaction.Payment.PaymentType == PaymentType.parkingSession)
+        {
+            if (!transaction.Payment.ParkingSessionId.HasValue)
+            {
+                throw new BusinessRuleException("Payment không có ParkingSessionId liên kết hợp lệ.");
+            }
+
+            var sessionId = transaction.Payment.ParkingSessionId.Value;
+            var session = await _sessionRepository.GetAll()
+                .Include(x => x.ParkingArea)
+                .FirstOrDefaultAsync(x => x.Id == sessionId);
+
+            if (session == null)
+            {
+                throw new ResourceNotFoundException("ParkingSession not found with id: " + sessionId);
+            }
+
+            await _sessionManager.CompleteFromPaymentAsync(session);
+        }
+
         return ObjectMapper.Map<TransactionDto>(transaction);
     }
 
@@ -247,6 +273,4 @@ public class TransactionAppService : ParkingSystemAppServiceBase, ITransactionAp
 
         return ObjectMapper.Map<TransactionDto>(newTx);
     }
-
-    
 }
