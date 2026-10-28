@@ -2,6 +2,7 @@ using Abp.Modules;
 using Abp.Reflection.Extensions;
 using Abp.Threading.BackgroundWorkers;
 using ParkingSystem.Configuration;
+using ParkingSystem.PaymentTransactions;
 using ParkingSystem.Reservations;
 using ParkingSystem.Subscriptions;
 using Microsoft.AspNetCore.Hosting;
@@ -41,6 +42,13 @@ namespace ParkingSystem.Web.Host.Startup
             {
                 var workManager = IocManager.Resolve<IBackgroundWorkerManager>();
                 workManager.Add(IocManager.Resolve<SubscriptionActivationWorker>());
+            }
+
+            var isPaymentWorkerEnabled = _appConfiguration.GetValue<bool>("BackgroundJobs:PaymentExpirationWorker:IsEnabled", true);
+            if (isPaymentWorkerEnabled)
+            {
+                var workManager = IocManager.Resolve<IBackgroundWorkerManager>();
+                workManager.Add(IocManager.Resolve<PaymentExpirationWorker>());
             }
         }
     }
