@@ -4,7 +4,6 @@ using Abp.Domain.Repositories;
 using Abp.EntityFrameworkCore.Repositories;
 using Abp.Extensions;
 using Abp.Linq.Extensions;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using ParkingSystem.Authorization;
 using ParkingSystem.Entities;
@@ -80,7 +79,7 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
         {
             throw new ResourceNotFoundException("Subscription not found with id " + input.SubscriptionId);
         }
-       await CheckPlateAddAccessAsync(subscription);
+        await CheckPlateAddAccessAsync(subscription);
         if (subscription.Quotation?.VehicleType == VehicleType.Bicycle)
         {
             throw new BusinessRuleException("Bicycle subscriptions cannot have additional plates.");
@@ -88,23 +87,33 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
 
         var plateNormalize = PlateNumberNormalizer.Normalize(input.PlateNumber);
 
+        var isPlateInUse = await _repository.GetAll().
+            AnyAsync(x => x.PlateNumber == plateNormalize && 
+            (x.Subscription.Status == SubscriptionStatus.paidWaiting ||
+            x.Subscription.Status == SubscriptionStatus.inUse));
+        if (isPlateInUse)
+        {
+            throw new BusinessRuleException($"Plate number {plateNormalize} is already registered in an active or waiting subscription.");
+        }
+
         var dbContext = _repository.GetDbContext();
 
         var rowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
-            INSERT INTO SubscriptionAllowedPlate (SubscriptionId, PlateNumber,CreationTime)
+            INSERT INTO SubscriptionAllowedPlates (SubscriptionId, PlateNumber,CreationTime)
             SELECT s.Id, {plateNormalize},GETUTCDATE()
             FROM Subscriptions s WITH (UPDLOCK, HOLDLOCK)
             WHERE s.Id = {subscription.Id}
               AND s.Status = {(int)SubscriptionStatus.inUse}
               AND NOT EXISTS (
                   SELECT 1
-                  FROM SubscriptionAllowedPlate p
-                  WHERE p.SubscriptionId = s.Id
-                    AND p.PlateNumber = {plateNormalize}
+              FROM SubscriptionAllowedPlates p2
+              INNER JOIN Subscriptions s2 ON s2.Id = p2.SubscriptionId
+              WHERE s2.Status IN ({(int)SubscriptionStatus.inUse}, {(int)SubscriptionStatus.paidWaiting})
+                AND p2.PlateNumber = {plateNormalize}
               )
               AND (
                   SELECT COUNT(*)
-                  FROM SubscriptionAllowedPlate p
+                  FROM SubscriptionAllowedPlates p
                   WHERE p.SubscriptionId = s.Id
               ) < 3
         ");
@@ -113,9 +122,10 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
             throw new BusinessRuleException("Can add plate");
 
         var plate = await _repository.GetAll()
+            .AsNoTracking()
             .Include(x => x.Subscription)
                 .ThenInclude(s => s.Quotation)
-            .FirstOrDefaultAsync(x => x.SubscriptionId == subscription.Id && x.PlateNumber == input.PlateNumber);
+            .FirstOrDefaultAsync(x => x.SubscriptionId == subscription.Id && x.PlateNumber == plateNormalize);
         return ObjectMapper.Map<SubscriptionPlateDto>(plate);
     }
 
@@ -147,6 +157,16 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
             throw new BusinessRuleException("Bicycle subscriptions cannot have additional plates.");
         }
 
+        var isPlateInUse = await _repository.GetAll()
+            .AnyAsync(x => x.Id != plate.Id
+                && x.PlateNumber == plateNormalize
+                && (x.Subscription.Status == SubscriptionStatus.inUse || x.Subscription.Status == SubscriptionStatus.paidWaiting));
+
+        if (isPlateInUse)
+        {
+            throw new BusinessRuleException($"Plate number {plateNormalize} is already registered in an active or waiting subscription.");
+        }
+
         if (subscription.HasReplacedPlate)
             throw new BusinessRuleException("You cannot change plate anymore");
 
@@ -166,16 +186,17 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
 
         // 2. Đổi biển số
         var plateRowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"
-        UPDATE SubscriptionAllowedPlate
+        UPDATE SubscriptionAllowedPlates
         SET PlateNumber = {plateNormalize}
         WHERE Id = {plate.Id}
           AND SubscriptionId = {subscription.Id}
           AND NOT EXISTS (
               SELECT 1
-              FROM SubscriptionAllowedPlate
-              WHERE SubscriptionId = {subscription.Id}
-                AND PlateNumber = {plateNormalize}
-                AND Id <> {plate.Id}
+              FROM SubscriptionAllowedPlates p2
+              INNER JOIN Subscriptions s2 ON s2.Id = p2.SubscriptionId
+              WHERE s2.Status IN ({(int)SubscriptionStatus.inUse}, {(int)SubscriptionStatus.paidWaiting})
+                AND p2.PlateNumber = {plateNormalize}
+                AND p2.Id <> {plate.Id}
           )
     ");
 
@@ -183,6 +204,7 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
             throw new BusinessRuleException("Plate number already exists or update failed");
 
         var updatedPlate = await _repository.GetAll()
+            .AsNoTracking()
             .Include(x => x.Subscription)
                 .ThenInclude(s => s.Quotation)
             .FirstOrDefaultAsync(x => x.Id == plate.Id);
