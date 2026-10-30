@@ -7,6 +7,7 @@ using ParkingSystem.Authorization;
 using ParkingSystem.Dashboard.Dto;
 using ParkingSystem.Entities;
 using ParkingSystem.Entities.Enums;
+using ParkingSystem.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -225,7 +226,19 @@ public class DashboardAppService : ParkingSystemAppServiceBase, IDashboardAppSer
         {
             throw new UserFriendlyException("FromDate must be less than or equal to ToDate");
         }
-
+        var duration = input.ToDate - input.FromDate;
+        if(input.GroupBy == TimeGroupingMode.Day && duration.TotalDays>90)
+        {
+            throw new BusinessRuleException("You can't search over 90 day in Day mode ");
+        }
+        if(input.GroupBy == TimeGroupingMode.Week && duration.TotalDays>365)
+        {
+            throw new BusinessRuleException("You can't search over 1 year in Week mode ");
+        }
+        if(input.GroupBy == TimeGroupingMode.Month && duration.TotalDays>1095)
+        {
+            throw new BusinessRuleException("You can't search over 3 year in Month mode ");
+        }
         // Quy đổi ngày bắt đầu và kết thúc theo Múi giờ Việt Nam (UTC+7)
         var localStart = new DateTime(input.FromDate.Year, input.FromDate.Month, input.FromDate.Day, 0, 0, 0, DateTimeKind.Unspecified);
         var localEnd = new DateTime(input.ToDate.Year, input.ToDate.Month, input.ToDate.Day, 23, 59, 59, 999, DateTimeKind.Unspecified);
