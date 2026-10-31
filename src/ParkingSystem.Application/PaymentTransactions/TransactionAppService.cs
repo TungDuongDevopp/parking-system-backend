@@ -214,7 +214,7 @@ public class TransactionAppService : ParkingSystemAppServiceBase, ITransactionAp
             // - Nếu StartTime > Clock.Now: chuyển sang paidWaiting (đã thanh toán, chờ đến ngày hiệu lực)
             var targetStatus = subscription.StartTime <= Clock.Now
                 ? SubscriptionStatus.inUse
-                : SubscriptionStatus.paidWaiting;
+                : SubscriptionStatus.awaitUsing;
 
             var dbContext = _repository.GetDbContext();
             var rowsAffected = await dbContext.Database.ExecuteSqlInterpolatedAsync($@"

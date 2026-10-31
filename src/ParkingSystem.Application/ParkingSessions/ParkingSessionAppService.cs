@@ -3,6 +3,7 @@ using Abp.Authorization;
 using Abp.Collections.Extensions;
 using Abp.Domain.Repositories;
 using Abp.EntityFrameworkCore.Repositories;
+using Abp.Extensions;
 using Abp.Linq.Extensions;
 using Abp.Timing;
 using Abp.UI;
@@ -93,8 +94,22 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
     private static string GenerateTicketCode()
     {
         return $"PK-{Convert.ToHexString(RandomNumberGenerator.GetBytes(12))}";
-    }
 
+    }
+    private async Task<string> GenerateUniqueBicycleCodeAsync()
+    {
+        string code;
+        bool exists;
+        do
+        {
+            code = $"BK-{Convert.ToHexString(RandomNumberGenerator.GetBytes(4))}";
+
+            exists = await _plateRepository.GetAll()
+                .AnyAsync(x => x.PlateNumber == code);
+        }
+        while (exists);
+        return code;
+    }
     private static decimal CaculateFee(DateTime entryTime, DateTime exitTime, decimal halfDayRate, decimal dailyRate)
     {
         if (entryTime > exitTime)
@@ -155,6 +170,16 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
                 "Provide either ReservationId or ParkingAreaId.");
         }
 
+        if (input.VehicleType != VehicleType.Bicycle)
+        {
+            if (input.PlateNumber.IsNullOrWhiteSpace())
+            {
+                throw new BusinessRuleException("Please provide plateNumber to continue checkIn");
+            }
+
+            PlateNumberNormalizer.Validate(input.PlateNumber, input.VehicleType);
+        }
+       
         ParkingSession session = null;
 
         if (input.ReservationId.HasValue)
@@ -193,28 +218,34 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         var dailyRate = quotationDaily.Price;
         var ticketCode = GenerateTicketCode();
 
-        if (!input.PlateNumber.IsNullOrEmpty())
+        if (input.PlateNumber.IsNullOrWhiteSpace())
+        {
+            session.PlateNumber = await GenerateUniqueBicycleCodeAsync();
+        }
+
+        else if (!input.PlateNumber.IsNullOrWhiteSpace())
         {
             var plateNumber = PlateNumberNormalizer.Normalize(input.PlateNumber);
             session.PlateNumber = plateNumber;
-            if (await IsFreeWhenHasSub(plateNumber, input.VehicleType))
-            {
-                session.Fee = 0;
+       
+        }
 
-                var plate = await _plateRepository.FirstOrDefaultAsync(x =>
-                    x.PlateNumber == plateNumber &&
-                    x.Subscription.Status == SubscriptionStatus.inUse);
+        if (await IsFreeWhenHasSub(session.PlateNumber, input.VehicleType))
+        {
+            session.Fee = 0;
+            var plate = await _plateRepository.FirstOrDefaultAsync(x =>
+                x.PlateNumber == session.PlateNumber &&
+                x.Subscription.Status == SubscriptionStatus.inUse);
 
-                if (plate == null)
-                    throw new BusinessRuleException("Subscription plate not found for: " + plateNumber);
+            if (plate == null)
+                throw new BusinessRuleException("Subscription plate not found for: " + session.PlateNumber);
 
-                var sub = await _subscriptionRepository.FirstOrDefaultAsync(x => x.Id == plate.SubscriptionId);
-                if (sub == null)
-                    throw new BusinessRuleException("Subscription not found for plate: " + plateNumber);
+            var sub = await _subscriptionRepository.FirstOrDefaultAsync(x => x.Id == plate.SubscriptionId);
+            if (sub == null)
+                throw new BusinessRuleException("Subscription not found for plate: " + session.PlateNumber);
 
-                session.CustomerId = sub.CustomerId;
-                session.SubscriptionId = sub.Id;
-            }
+            session.CustomerId = sub.CustomerId;
+            session.SubscriptionId = sub.Id;
         }
         session.CheckInStaff = staff;
         session.CheckInStaffId = staff.Id;
@@ -401,7 +432,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         }
 
         // Tính phí nếu chưa có phí hoặc session đang Active
-        if (session.Fee == null || session.Status == ParkingSessionStatus.Active)
+        if ((session.Fee == null || session.Status == ParkingSessionStatus.Active) && session.SubscriptionId == null)
         {
             if (session.HourlyRate == null || session.DailyRate == null)
                 throw new BusinessRuleException("Session is missing rate configuration and cannot be charged.");
@@ -618,6 +649,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         return ObjectMapper.Map<ParkingSessionDto>(session);
     }
 
+    [AbpAuthorize(PermissionNames.Pages_ParkingSessions_ViewAll)]
     public async Task<ParkingSessionLookUpDto> GetSessionLookUpAsync()
     {
         var subQuery = _repository.GetAll().AsNoTracking();
@@ -685,6 +717,7 @@ public class ParkingSessionAppService : ParkingSystemAppServiceBase, IParkingSes
         };
     }
 
+    [AbpAuthorize(PermissionNames.Pages_ParkingSessions_ViewAll)]
     public async Task<ParkingSessionDto> GetActiveSessionAsync(SearchActiveSessionDto input)
     {
         if (input.Id == null && input.PlateNumber.IsNullOrEmpty())

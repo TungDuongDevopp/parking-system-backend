@@ -87,9 +87,11 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
 
         var plateNormalize = PlateNumberNormalizer.Normalize(input.PlateNumber);
 
+        PlateNumberNormalizer.Validate(plateNormalize, subscription.Quotation?.VehicleType);
+
         var isPlateInUse = await _repository.GetAll().
             AnyAsync(x => x.PlateNumber == plateNormalize && 
-            (x.Subscription.Status == SubscriptionStatus.paidWaiting ||
+            (x.Subscription.Status == SubscriptionStatus.awaitUsing ||
             x.Subscription.Status == SubscriptionStatus.inUse));
         if (isPlateInUse)
         {
@@ -108,7 +110,7 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
                   SELECT 1
               FROM SubscriptionAllowedPlates p2
               INNER JOIN Subscriptions s2 ON s2.Id = p2.SubscriptionId
-              WHERE s2.Status IN ({(int)SubscriptionStatus.inUse}, {(int)SubscriptionStatus.paidWaiting})
+              WHERE s2.Status IN ({(int)SubscriptionStatus.inUse}, {(int)SubscriptionStatus.awaitUsing})
                 AND p2.PlateNumber = {plateNormalize}
               )
               AND (
@@ -157,10 +159,12 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
             throw new BusinessRuleException("Bicycle subscriptions cannot have additional plates.");
         }
 
+        PlateNumberNormalizer.Validate(plateNormalize, subscription.Quotation?.VehicleType);
+
         var isPlateInUse = await _repository.GetAll()
             .AnyAsync(x => x.Id != plate.Id
                 && x.PlateNumber == plateNormalize
-                && (x.Subscription.Status == SubscriptionStatus.inUse || x.Subscription.Status == SubscriptionStatus.paidWaiting));
+                && (x.Subscription.Status == SubscriptionStatus.inUse || x.Subscription.Status == SubscriptionStatus.awaitUsing));
 
         if (isPlateInUse)
         {
@@ -194,7 +198,7 @@ public class SubscriptionPlateAppService : ParkingSystemAppServiceBase, ISubscri
               SELECT 1
               FROM SubscriptionAllowedPlates p2
               INNER JOIN Subscriptions s2 ON s2.Id = p2.SubscriptionId
-              WHERE s2.Status IN ({(int)SubscriptionStatus.inUse}, {(int)SubscriptionStatus.paidWaiting})
+              WHERE s2.Status IN ({(int)SubscriptionStatus.inUse}, {(int)SubscriptionStatus.awaitUsing})
                 AND p2.PlateNumber = {plateNormalize}
                 AND p2.Id <> {plate.Id}
           )

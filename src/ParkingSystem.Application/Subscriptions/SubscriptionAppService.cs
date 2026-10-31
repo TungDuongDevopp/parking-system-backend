@@ -93,7 +93,7 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
         var currentSubscription = await _repository.FirstOrDefaultAsync(
      x => x.CustomerId == customer.Id &&
           (x.Status == SubscriptionStatus.pending ||
-           x.Status == SubscriptionStatus.inUse));
+           x.Status == SubscriptionStatus.inUse || x.Status == SubscriptionStatus.awaitUsing));
 
         if (currentSubscription != null)
         {
@@ -129,8 +129,13 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
                     "Subscription requires 1 to 3 plates");
             }
             plates = input.PlateNumbers
-            .Select(x => x.Trim().ToUpperInvariant())
-            .ToList();
+                .Select(x => PlateNumberNormalizer.Normalize(x))
+                .ToList();
+
+            foreach (var plate in plates)
+            {
+                PlateNumberNormalizer.Validate(plate, vehicleType);
+            }
         }
 
         if (plates.Any(string.IsNullOrWhiteSpace) ||
@@ -372,7 +377,8 @@ public class SubscriptionAppService : ParkingSystemAppServiceBase,ISubscriptionA
             .Include(x => x.Customer)
             .Where(x => x.CustomerId == customer.Id &&
                         (x.Status == SubscriptionStatus.pending ||
-                         x.Status == SubscriptionStatus.inUse))
+                         x.Status == SubscriptionStatus.inUse || 
+                         x.Status == SubscriptionStatus.awaitUsing))
             .OrderByDescending(x => x.Id)
             .FirstOrDefaultAsync();
 

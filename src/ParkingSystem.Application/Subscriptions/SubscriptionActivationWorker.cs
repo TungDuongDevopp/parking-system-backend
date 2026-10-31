@@ -73,12 +73,20 @@ public class SubscriptionActivationWorker : PeriodicBackgroundWorkerBase, ISingl
                     UPDATE TOP ({_batchSize}) Subscriptions
                     SET    Status = {(int)SubscriptionStatus.inUse},
                            LastModificationTime = GETUTCDATE()
-                    WHERE  Status = {(int)SubscriptionStatus.paidWaiting}
+                    WHERE  Status = {(int)SubscriptionStatus.awaitUsing}
                       AND  StartTime <= {now}
                       AND  EndTime > {now};
                 ");
 
-                // 2. Hủy subscription nếu Payment đã Expired hoặc Payment đang Pending nhưng đã quá hạn
+                // 2. Hết hạn khi gói inUse và đã đến thời gian EndTime
+                var expiredCount = dbContext.Database.ExecuteSqlInterpolated($@"
+                    UPDATE TOP ({_batchSize}) Subscriptions
+                    SET    Status = {(int)SubscriptionStatus.expired},
+                           LastModificationTime = GETUTCDATE()
+                    WHERE  Status = {(int)SubscriptionStatus.inUse}
+                      AND  EndTime <= {now};
+                ");
+                // 3. Hủy subscription nếu Payment đã Expired hoặc Payment đang Pending nhưng đã quá hạn
                 var canceledCount = dbContext.Database.ExecuteSqlInterpolated($@"
                     UPDATE TOP ({_batchSize}) s
                     SET    s.Status = {(int)SubscriptionStatus.canceled},
@@ -100,9 +108,9 @@ public class SubscriptionActivationWorker : PeriodicBackgroundWorkerBase, ISingl
 
                 uow.Complete();
 
-                if (activatedCount > 0 || canceledCount > 0)
+                if (activatedCount > 0 || canceledCount > 0 || expiredCount > 0)
                 {
-                    Logger.Info($"[SubscriptionActivationWorker] Cycle finished: Activated={activatedCount}, Canceled={canceledCount}.");
+                    Logger.Info($"[SubscriptionActivationWorker] Cycle finished: Activated={activatedCount}, Canceled={canceledCount}, Expired = {expiredCount}.");
                 }
                 else
                 {
